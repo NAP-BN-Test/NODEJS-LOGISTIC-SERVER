@@ -11,6 +11,12 @@ routes(app)
 
 const port = process.env.PORT || 3002
 
+// server.listen(port, function () {
+//     console.log('http://localhost:' + port);
+// });
+// server.listen(port, function () {
+//     console.log('http://localhost:' + port);
+// });
 server.listen(port, function () {
     console.log('http://localhost:' + port);
 });
