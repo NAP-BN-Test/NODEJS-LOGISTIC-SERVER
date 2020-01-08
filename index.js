@@ -1,8 +1,10 @@
 let app = require('express')();
 let server = require('http').createServer(app);
+let cors = require('cors');
 
 const bodyParser = require('body-parser')
 
+app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
@@ -11,12 +13,6 @@ routes(app)
 
 const port = process.env.PORT || 3002
 
-// server.listen(port, function () {
-//     console.log('http://localhost:' + port);
-// });
-// server.listen(port, function () {
-//     console.log('http://localhost:' + port);
-// });
 server.listen(port, function () {
     console.log('http://localhost:' + port);
 });

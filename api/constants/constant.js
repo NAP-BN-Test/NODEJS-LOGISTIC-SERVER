@@ -11,7 +11,17 @@ const STATUS = {
     FAIL: 0
 }
 
+const ACTIVITY_TYPE = {
+    ALL: 0,
+    CALL: 1,
+    EMAIL: 2,
+    MEET: 3,
+    NOTE: 4,
+    TASK: 5
+}
+
 module.exports = {
     MESSAGE: MESSAGE,
-    STATUS: STATUS
+    STATUS: STATUS,
+    ACTIVITY_TYPE: ACTIVITY_TYPE
 }

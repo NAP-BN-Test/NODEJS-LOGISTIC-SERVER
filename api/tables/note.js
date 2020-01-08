@@ -1,15 +1,16 @@
 const Sequelize = require('sequelize');
 
 module.exports = function (db) {
-    var table = db.define('Users', {
+    var table = db.define('Notes', {
         ID: {
             type: Sequelize.BIGINT,
             primaryKey: true,
             autoIncrement: true
         },
-        Username: Sequelize.STRING,
-        Password: Sequelize.STRING,
-        Name: Sequelize.STRING,
+        Description: Sequelize.STRING,
+        TimeRemind: Sequelize.DATE,
+        UserID: Sequelize.BIGINT,
+        TimeCreate: Sequelize.DATE
     });
 
     return table;
