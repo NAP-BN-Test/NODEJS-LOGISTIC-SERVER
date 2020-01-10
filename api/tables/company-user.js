@@ -7,15 +7,8 @@ module.exports = function (db) {
             primaryKey: true,
             autoIncrement: true
         },
-        NameVI: Sequelize.STRING,
-        NameEN: Sequelize.STRING,
-        Email: Sequelize.STRING,
-        Address: Sequelize.STRING,
-        ParentID: Sequelize.BIGINT,
         UserID: Sequelize.BIGINT,
-        ShortName: Sequelize.STRING,
-        Phone: Sequelize.STRING,
-        Country: Sequelize.STRING,
+        CompanyID: Sequelize.BIGINT,
     });
 
     return table;

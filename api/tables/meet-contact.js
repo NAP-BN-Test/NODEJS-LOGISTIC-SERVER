@@ -1,18 +1,14 @@
 const Sequelize = require('sequelize');
 
 module.exports = function (db) {
-    var table = db.define('Calls', {
+    var table = db.define('Companies', {
         ID: {
             type: Sequelize.BIGINT,
             primaryKey: true,
             autoIncrement: true
         },
+        MeetID: Sequelize.BIGINT,
         ContactID: Sequelize.BIGINT,
-        State: Sequelize.INTEGER,
-        TimeCreate: Sequelize.literal,
-        Description: Sequelize.STRING,
-        TimeRemind: Sequelize.DATE,
-        UserID: Sequelize.BIGINT
     });
 
     return table;

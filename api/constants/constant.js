@@ -3,7 +3,8 @@ const MESSAGE = {
     ACTION_FAIL: "Thao tác thất bại!",
     ACTION_SUCCESS: "Thao tác thành công!",
     LOGIN_SUCCESS: "Đăng nhập thành công!",
-    DATA_NOT_FOUND: "Không tìm thấy dữ liệu!"
+    DATA_NOT_FOUND: "Không tìm thấy dữ liệu!",
+    LOGIN_FAIL: "Đăng nhập thất bại!",
 }
 
 const STATUS = {

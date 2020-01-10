@@ -14,7 +14,7 @@ module.exports = function (db) {
         Owner: Sequelize.STRING,
         AssociatCompany: Sequelize.STRING,
         LastActivity: Sequelize.DATE,
-        CreateTime: Sequelize.DATE,
+        TimeCreate: Sequelize.DATE,
         Type: Sequelize.INTEGER,
         UserID: Sequelize.BIGINT,
         CompanyID: Sequelize.BIGINT,

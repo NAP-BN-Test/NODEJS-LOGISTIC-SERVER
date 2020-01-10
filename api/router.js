@@ -1,9 +1,11 @@
 module.exports = function (app) {
     var controller = require('./controllers/controller');
+    var login = require('./controllers/login');
+    var activity = require('./controllers/activity');
     var svController = require('./controllers/server-controller');
 
     // todoList Routes
-    app.route('/fcms').post(controller.fcm);
+    app.route('/crm/user_login').post(login.login);
 
     app.route('/server/add_user').post(svController.addUser);
 
@@ -17,9 +19,12 @@ module.exports = function (app) {
 
     app.route('/crm/get_list_quick_deal').post(controller.getListQuickDeal);
 
-    app.route('/crm/get_list_activity').post(controller.getListActivity);
+    app.route('/crm/get_list_activity').post(activity.getListActivity);
 
     app.route('/crm/get_list_contact').post(controller.getListContact);
 
+    app.route('/crm/get_list_contact_full').post(controller.getListContactFull);
+
+    app.route('/crm/update_activity').post(activity.updateActivity);
 
 };

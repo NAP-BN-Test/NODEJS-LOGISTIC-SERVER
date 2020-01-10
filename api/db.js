@@ -1,77 +1,70 @@
 const Sequelize = require('sequelize');
 
 module.exports = {
-  serverDB: function (ip, username) {
+  serverDB: function (ip, username, dbName) {
     return new Promise((resolve) => {
-      // var dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
-      //   host: '163.44.192.123',
-      //   dialect: 'mssql',
-      //   operatorsAliases: '0',
-      //   pool: {
-      //     max: 5,
-      //     min: 0,
-      //     acquire: 30000,
-      //     idle: 10000
-      //   },
-      //   define: {
-      //     timestamps: false,
-      //     freezeTableName: true
-      //   }
-      // });
+      var dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
+        host: '163.44.192.123',
+        dialect: 'mssql',
+        operatorsAliases: '0',
+        pool: {
+          max: 5,
+          min: 0,
+          acquire: 30000,
+          idle: 10000
+        },
+        define: {
+          timestamps: false,
+          freezeTableName: true
+        }
+      });
 
-      // dbServer.authenticate().then(() => {
-      //   var serverInfo = dbServer.define('LogisticServer', {
-      //     ID: {
-      //       type: Sequelize.BIGINT,
-      //       primaryKey: true,
-      //       autoIncrement: true
-      //     },
-      //     IP: Sequelize.STRING,
-      //     Username: Sequelize.STRING,
-      //     Password: Sequelize.STRING,
-      //     DBName: Sequelize.STRING,
-      //   });
+      dbServer.authenticate().then(() => {
+        var serverInfo = dbServer.define('LogisticServer', {
+          ID: {
+            type: Sequelize.BIGINT,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          IP: Sequelize.STRING,
+          Username: Sequelize.STRING,
+          Password: Sequelize.STRING,
+          DBName: Sequelize.STRING,
+        });
 
-      //   let serverUser = dbServer.define('LogisticUser', {
-      //     ID: {
-      //       type: Sequelize.BIGINT,
-      //       primaryKey: true,
-      //       autoIncrement: true
-      //     },
-      //     Username: Sequelize.STRING,
-      //     ServerID: Sequelize.BIGINT
-      //   });
+        var serverUser = dbServer.define('LogisticUser', {
+          ID: {
+            type: Sequelize.BIGINT,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          Username: Sequelize.STRING,
+          ServerID: Sequelize.BIGINT
+        });
 
 
-      //   serverUser.belongsTo(serverInfo, { foreignKey: 'ServerID' });
+        serverUser.belongsTo(serverInfo, { foreignKey: 'ServerID' });
 
-      //   serverUser.findOne({
-      //     where: { Username: username },
-      //     include: [{
-      //       model: serverInfo,
-      //       where: { IP: ip }
-      //     }]
-      //   }).then(data => {
-      //     if (data) {
-      //       var db = data.LogisticServer.dataValues;
-      //       server = {
-      //         ip: db.IP,
-      //         dbName: db.DBName,
-      //         username: db.Username,
-      //         password: db.Password
-      //       };
-
-      //       resolve(server);
-      //     }
-      //   }).catch(() => resolve())
-      // }).catch(() => resolve())
-      var server = {
-        ip: '163.44.192.123',
-        dbName: 'LOGISTIC_CRM',
-        username: 'logistic_crm',
-        password: '123456a$'
-      };
-      resolve(server);
+        serverUser.findOne({
+          where: { Username: username },
+          raw: true,
+          include: [{
+            model: serverInfo,
+            where: { IP: ip, DBName: dbName }
+          }]
+        }).then(data => {
+          if (data) {
+            
+            var server = {
+              ip: data['LogisticServer.IP'],
+              dbName: data['LogisticServer.DBName'],
+              username: data['LogisticServer.Username'],
+              password: data['LogisticServer.Password']
+            };
+            resolve(server);
+          }
+        }).catch(() => resolve())
+      }).catch(() => resolve())
     })
 
 
