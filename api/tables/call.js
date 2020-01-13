@@ -9,7 +9,7 @@ module.exports = function (db) {
         },
         ContactID: Sequelize.BIGINT,
         State: Sequelize.INTEGER,
-        TimeCreate: Sequelize.literal,
+        TimeCreate: Sequelize.DATE,
         Description: Sequelize.STRING,
         TimeRemind: Sequelize.DATE,
         UserID: Sequelize.BIGINT

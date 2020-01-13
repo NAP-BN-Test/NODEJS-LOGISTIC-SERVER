@@ -27,4 +27,7 @@ module.exports = function (app) {
 
     app.route('/crm/update_activity').post(activity.updateActivity);
 
+    app.route('/crm/get_list_meet_attend').post(activity.getListMeetAttend);
+
+
 };
