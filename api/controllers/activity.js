@@ -16,6 +16,7 @@ var mNote = require('../tables/note');
 var mTask = require('../tables/task');
 
 var mMeetAttend = require('../tables/meet-attend');
+var mNoteAssociate = require('../tables/note-associate');
 
 
 module.exports = {
@@ -39,7 +40,7 @@ module.exports = {
                         meet.belongsTo(mUser(db), { foreignKey: ['UserID', 'AttendID'], sourceKey: ['UserID', 'AttendID'] });
 
                         var task = mTask(db);
-                        task.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
+                        task.belongsTo(mUser(db), { foreignKey: 'AssignID', sourceKey: 'AssignID' });
 
                         if (body.activityType == Constant.ACTIVITY_TYPE.ALL) {
                             call.findAll({ where: { CompanyID: body.companyID }, raw: true, include: [{ model: mContact(db) }] }).then(dataCall => {
@@ -99,15 +100,16 @@ module.exports = {
                                                 })
                                             });
 
-                                            task.findAll({ where: { CompanyID: body.companyID }, raw: true, include: [{ model: mContact(db) }] }).then(dataTask => {
+                                            task.findAll({ where: { CompanyID: body.companyID }, raw: true, include: [{ model: mUser(db) }] }).then(dataTask => {
                                                 dataTask.forEach(elm => {
                                                     array.push({
                                                         id: elm['ID'],
                                                         timeCreate: elm['TimeCreate'],
                                                         timeRemind: elm['TimeRemind'],
                                                         description: elm['Description'],
-                                                        contactID: elm['Contact.ID'],
-                                                        contactName: elm['Contact.NameVI'],
+                                                        assignID: elm['User.ID'],
+                                                        assignName: elm['User.Name'],
+                                                        taskType: elm['Type'],
                                                         activityType: Constant.ACTIVITY_TYPE.TASK
                                                     })
                                                 });
@@ -228,7 +230,7 @@ module.exports = {
                                 res.json(result);
                             });
                         } else if (body.activityType == Constant.ACTIVITY_TYPE.TASK) {
-                            task.findAll({ where: { CompanyID: body.companyID }, raw: true, include: [{ model: mContact(db) }] }).then(data => {
+                            task.findAll({ where: { CompanyID: body.companyID }, raw: true, include: [{ model: mUser(db) }] }).then(data => {
                                 var array = [];
 
                                 data.forEach(elm => {
@@ -237,8 +239,9 @@ module.exports = {
                                         timeCreate: elm['TimeCreate'],
                                         timeRemind: elm['TimeRemind'],
                                         description: elm['Description'],
-                                        contactID: elm['Contact.ID'],
-                                        contactName: elm['Contact.NameVI'],
+                                        assignID: elm['User.ID'],
+                                        assignName: elm['User.Name'],
+                                        taskType: elm['Type'],
                                         activityType: Constant.ACTIVITY_TYPE.TASK
                                     })
                                 });
@@ -328,11 +331,7 @@ module.exports = {
                             }
                             else if (body.timeStart != null) {
                                 let date = new Date(body.timeStart).toISOString();
-                                console.log(date, body.activityID);
-
                                 mMeet(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(data => {
-                                    console.log(data);
-
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
@@ -340,6 +339,24 @@ module.exports = {
                         else if (body.activityType == Constant.ACTIVITY_TYPE.NOTE) {
                             if (body.description) {
                                 mNote(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(data => {
+                                    res.json(Result.ACTION_SUCCESS)
+                                })
+                            }
+                        }
+                        else if (body.activityType == Constant.ACTIVITY_TYPE.TASK) {
+                            if (body.assignID) {
+                                mTask(db).update({ AssignID: body.assignID }, { where: { ID: body.activityID } }).then(data => {
+                                    res.json(Result.ACTION_SUCCESS)
+                                })
+                            }
+                            else if (body.timeStart != null) {
+                                let date = new Date(body.timeStart).toISOString();
+                                mTask(db).update({ TimeCreate: date }, { where: { ID: body.activityID } }).then(data => {
+                                    res.json(Result.ACTION_SUCCESS)
+                                })
+                            }
+                            else if (body.taskType) {
+                                mTask(db).update({ Type: body.taskType }, { where: { ID: body.activityID } }).then(data => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
@@ -385,6 +402,130 @@ module.exports = {
                 })
             }
         })
-    }
+    },
+
+    createNote: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        let note
+                        mNote(db).create({
+                            UserID: body.userID,
+                            CompanyID: body.companyID,
+                            Description: body.description,
+                            TimeRemind: body.timeRemind ? body.timeRemind : null,
+                            TimeCreate: new Date().toISOString()
+                        }).then(data => {
+                            var obj = {
+                                id: data.dataValues.ID,
+                                timeCreate: data.dataValues.TimeCreate,
+                                timeRemind: data.dataValues.TimeRemind,
+                                description: data.dataValues.Description,
+                                activityType: Constant.ACTIVITY_TYPE.NOTE,
+                            };
+
+                            var result = {
+                                status: Constant.STATUS.SUCCESS,
+                                message: Constant.MESSAGE.ACTION_SUCCESS,
+                                obj: obj
+                            }
+
+                            res.json(result);
+                        })
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
+    getNoteAssociate: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        mNoteAssociate(db).findAll({ where: { NoteID: body.noteID } }).then(data => {
+                            var array = [];
+
+                            data.forEach(elm => {
+                                array.push({
+                                    noteID: elm['NoteID'],
+                                    userID: elm['UserID'],
+                                })
+                            });
+
+                            var result = {
+                                status: Constant.STATUS.SUCCESS,
+                                message: '',
+                                array: array
+                            }
+
+                            res.json(result);
+                        })
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
+    updateNoteAssociate: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.state == Constant.STATUS.SUCCESS) {
+                            mNoteAssociate(db).create({ NoteID: body.noteID, UserID: body.userID }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        } else {
+                            mNoteAssociate(db).destroy({ where: { NoteID: body.noteID, UserID: body.userID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
+    deleteNote: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        mNoteAssociate(db).destroy({ where: { NoteID: body.noteID } }).then(data => {
+                            mNote(db).destroy({ where: { ID: body.noteID, UserID: body.userID } }).then(() => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        })
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
 
 }
