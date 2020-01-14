@@ -427,7 +427,7 @@ module.exports = {
                                 description: data.dataValues.Description,
                                 activityType: Constant.ACTIVITY_TYPE.NOTE,
                             };
-
+ç
                             var result = {
                                 status: Constant.STATUS.SUCCESS,
                                 message: Constant.MESSAGE.ACTION_SUCCESS,
