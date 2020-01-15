@@ -41,5 +41,6 @@ module.exports = function (app) {
 
     app.route('/crm/delete_note').post(activity.deleteNote);
 
+    app.route('/crm/create_call').post(activity.createCall);
 
 };

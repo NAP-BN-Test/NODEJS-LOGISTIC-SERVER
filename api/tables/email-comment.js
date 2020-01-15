@@ -1,19 +1,17 @@
 const Sequelize = require('sequelize');
 
 module.exports = function (db) {
-    var table = db.define('Calls', {
+    var table = db.define('EmailComment', {
         ID: {
             type: Sequelize.BIGINT,
             primaryKey: true,
             autoIncrement: true
         },
-        ContactID: Sequelize.BIGINT,
-        State: Sequelize.INTEGER,
+        ActivityID: Sequelize.BIGINT,
         TimeCreate: Sequelize.DATE,
-        TimeStart: Sequelize.DATE,
-        Description: Sequelize.STRING,
-        TimeRemind: Sequelize.DATE,
-        UserID: Sequelize.BIGINT
+        Contents: Sequelize.STRING,
+        UserID: Sequelize.BIGINT,
+        UserName: Sequelize.STRING
     });
 
     return table;
