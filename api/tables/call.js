@@ -8,6 +8,7 @@ module.exports = function (db) {
             autoIncrement: true
         },
         ContactID: Sequelize.BIGINT,
+        CompanyID: Sequelize.BIGINT,
         State: Sequelize.INTEGER,
         TimeCreate: Sequelize.DATE,
         TimeStart: Sequelize.DATE,

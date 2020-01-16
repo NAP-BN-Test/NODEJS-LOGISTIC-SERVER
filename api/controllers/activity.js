@@ -16,34 +16,11 @@ var mNote = require('../tables/note');
 var mTask = require('../tables/task');
 
 var mMeetAttend = require('../tables/meet-attend');
-var mNoteAssociate = require('../tables/note-associate');
 
 var mCallComment = require('../tables/call-comment');
 var mEmailComment = require('../tables/email-comment');
 var mMeetComment = require('../tables/meet-comment');
 var mNoteComment = require('../tables/note-comment');
-
-
-function getListComment(db, activityID, activityType) {
-    return new Promise((res) => {
-        mActivityComment(db).findAll({ where: { ActivityID: activityID, ActivityType: activityType }, raw: true }).then(data => {
-            var array = [];
-
-            data.forEach(elm => {
-                array.push({
-                    id: elm['ID'],
-                    activityID: elm['ActivityID'],
-                    activityType: elm['activityType'],
-                    content: elm['Contents'],
-                    timeCreate: elm['TimeCreate'],
-                    userName: elm['UserName'],
-                })
-            });
-
-            res(array);
-        })
-    })
-}
 
 function getListCmt(listData) {
     var array = [];
@@ -110,6 +87,7 @@ function getListActivityEmail(db, body) {
                 array.push({
                     id: elm.dataValues.ID,
                     timeCreate: elm.dataValues.TimeCreate,
+                    timeStart: elm.dataValues.TimeStart,
                     timeRemind: elm.dataValues.TimeRemind,
                     contactID: elm.dataValues.Contact.dataValues.ID,
                     contactName: elm.dataValues.Contact.dataValues.NameVI,
@@ -128,11 +106,11 @@ function getListActivityEmail(db, body) {
 function getListActivityMeet(db, body) {
     return new Promise((res) => {
         var meet = mMeet(db);
-        meet.belongsTo(mUser(db), { foreignKey: ['UserID', 'AttendID'], sourceKey: ['UserID', 'AttendID'] });
+        meet.belongsTo(mUser(db), { foreignKey: ['UserID'], sourceKey: ['UserID'] });
         meet.hasMany(mMeetComment(db), { foreignKey: 'ActivityID' })
 
         meet.findAll({
-            where: Sequelize.or({ CompanyID: body.companyID }, { AttendID: body.attendID }),
+            where: Sequelize.or({ CompanyID: body.companyID }),
             include: [{ model: mUser(db) }, { model: mMeetComment(db) }]
         }).then(data => {
             var array = [];
@@ -140,7 +118,8 @@ function getListActivityMeet(db, body) {
             data.forEach(elm => {
                 array.push({
                     id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeStart,
+                    timeCreate: elm.dataValues.TimeCreate,
+                    timeStart: elm.dataValues.TimeStart,
                     timeRemind: elm.dataValues.TimeRemind,
                     description: elm.dataValues.Description,
                     duration: elm.dataValues.Duration,
@@ -187,20 +166,23 @@ function getListActivityTask(db, body) {
         var task = mTask(db);
         task.belongsTo(mUser(db), { foreignKey: 'AssignID', sourceKey: 'AssignID' });
 
-        task.findAll({ where: { CompanyID: body.companyID }, raw: true, include: [{ model: mUser(db) }] })
+        task.findAll({ where: { CompanyID: body.companyID }, include: [{ model: mUser(db) }] })
             .then(data => {
                 var array = [];
 
                 data.forEach(elm => {
                     array.push({
-                        id: elm['ID'],
-                        timeCreate: elm['TimeCreate'],
-                        timeRemind: elm['TimeRemind'],
-                        description: elm['Description'],
-                        assignID: elm['User.ID'],
-                        assignName: elm['User.Name'],
-                        taskType: elm['Type'],
-                        activityType: Constant.ACTIVITY_TYPE.TASK
+                        id: elm.dataValues.ID,
+                        timeCreate: elm.dataValues.TimeCreate,
+                        timeRemind: elm.dataValues.TimeRemind,
+                        timeAssign: elm.dataValues.TimeAssign,
+                        timeStart: elm.dataValues.TimeStart,
+                        description: elm.dataValues.Description,
+                        taskType: elm.dataValues.Type,
+                        taskName: elm.dataValues.Name,
+                        assignID: elm.dataValues.AssignID,
+                        activityType: Constant.ACTIVITY_TYPE.TASK,
+                        listComment: []
                     })
                 });
 
@@ -347,6 +329,11 @@ module.exports = {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
+                            else if (body.description) {
+                                mEmail(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(data => {
+                                    res.json(Result.ACTION_SUCCESS)
+                                })
+                            }
                             else if (body.activityState) {
                                 mEmail(db).update({ State: body.activityState }, { where: { ID: body.activityID } }).then(data => {
                                     res.json(Result.ACTION_SUCCESS)
@@ -378,8 +365,13 @@ module.exports = {
                                 })
                             }
                             else if (body.timeStart != null) {
-                                let date = new Date(body.timeStart).toISOString();
+                                let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
                                 mMeet(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(data => {
+                                    res.json(Result.ACTION_SUCCESS)
+                                })
+                            }
+                            else if (body.description) {
+                                mMeet(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(data => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
@@ -397,14 +389,30 @@ module.exports = {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
+                            else if (body.taskName != null) {
+                                mTask(db).update({ Name: body.taskName }, { where: { ID: body.activityID } }).then(data => {
+                                    res.json(Result.ACTION_SUCCESS)
+                                })
+                            }
                             else if (body.timeStart != null) {
-                                let date = new Date(body.timeStart).toISOString();
-                                mTask(db).update({ TimeCreate: date }, { where: { ID: body.activityID } }).then(data => {
+                                let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+                                mTask(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(data => {
+                                    res.json(Result.ACTION_SUCCESS)
+                                })
+                            }
+                            else if (body.timeAssign != null) {
+                                let date = moment.utc(body.timeAssign).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+                                mTask(db).update({ TimeAssign: date }, { where: { ID: body.activityID } }).then(data => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.taskType) {
                                 mTask(db).update({ Type: body.taskType }, { where: { ID: body.activityID } }).then(data => {
+                                    res.json(Result.ACTION_SUCCESS)
+                                })
+                            }
+                            else if (body.description) {
+                                mTask(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(data => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
@@ -420,215 +428,5 @@ module.exports = {
         })
     },
 
-    getListMeetAttend: (req, res) => {
-        let body = req.body;
-
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-
-                    db.authenticate().then(() => {
-                        mMeetAttend(db).findAll({ where: { MeetID: body.meetID } }).then(data => {
-                            var array = [];
-
-                            data.forEach(elm => {
-                                array.push({
-                                    meetID: elm['MeetID'],
-                                    userID: elm['UserID'],
-                                })
-                            });
-
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
-                            }
-
-                            res.json(result);
-                        })
-                    })
-                })
-            }
-        })
-    },
-
-    createNote: (req, res) => {
-        let body = req.body;
-
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-
-                    db.authenticate().then(() => {
-                        mNote(db).create({
-                            UserID: body.userID,
-                            CompanyID: body.companyID,
-                            Description: body.description,
-                            TimeRemind: body.timeRemind ? body.timeRemind : null,
-                            TimeCreate: new Date().toISOString()
-                        }).then(data => {
-                            if (body.listAssociate) {
-                                let list = JSON.parse(body.listAssociate);
-                                list.forEach(itm => {
-                                    mNoteAssociate(db).create({ NoteID: data.dataValues.ID, UserID: itm });
-                                });
-                            }
-                            var obj = {
-                                id: data.dataValues.ID,
-                                timeCreate: data.dataValues.TimeCreate,
-                                timeRemind: data.dataValues.TimeRemind,
-                                description: data.dataValues.Description,
-                                activityType: Constant.ACTIVITY_TYPE.NOTE,
-                            };
-
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: Constant.MESSAGE.ACTION_SUCCESS,
-                                obj: obj
-                            }
-
-                            res.json(result);
-                        })
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
-                    })
-                })
-            }
-        })
-    },
-
-    getNoteAssociate: (req, res) => {
-        let body = req.body;
-
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-
-                    db.authenticate().then(() => {
-                        mNoteAssociate(db).findAll({ where: { NoteID: body.noteID } }).then(data => {
-                            var array = [];
-
-                            data.forEach(elm => {
-                                array.push({
-                                    noteID: elm['NoteID'],
-                                    userID: elm['UserID'],
-                                })
-                            });
-
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
-                            }
-
-                            res.json(result);
-                        })
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
-                    })
-                })
-            }
-        })
-    },
-
-    updateNoteAssociate: (req, res) => {
-        let body = req.body;
-
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-
-                    db.authenticate().then(() => {
-                        if (body.state == Constant.STATUS.SUCCESS) {
-                            mNoteAssociate(db).create({ NoteID: body.noteID, UserID: body.userID }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        } else {
-                            mNoteAssociate(db).destroy({ where: { NoteID: body.noteID, UserID: body.userID } }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
-                    })
-                })
-            }
-        })
-    },
-
-    deleteNote: (req, res) => {
-        let body = req.body;
-
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-
-                    db.authenticate().then(() => {
-                        mNoteAssociate(db).destroy({ where: { NoteID: body.noteID } }).then(data => {
-                            mNote(db).destroy({ where: { ID: body.noteID, UserID: body.userID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        })
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
-                    })
-                })
-            }
-        })
-    },
-
-    createCall: (req, res) => {
-        let body = req.body;
-
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-
-                    db.authenticate().then(() => {
-                        var call = mCall(db);
-                        call.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
-
-                        call.create({
-                            UserID: body.userID,
-                            CompanyID: body.companyID,
-                            ContactID: body.contactID,
-                            CompanyID: body.companyID,
-                            State: body.outcomeType,
-                            TimeStart: body.timeStart,
-                            TimeRemind: body.timeRemind ? body.timeRemind : null,
-                            TimeCreate: new Date().toISOString(),
-                            Description: body.description,
-                        }, { raw: true, include: [{ model: mContact(db) }] }).then(data => {
-                            var obj = {
-                                id: data.dataValues.ID,
-                                timeCreate: data.dataValues.TimeCreate,
-                                timeRemind: data.dataValues.TimeRemind,
-                                timeStart: data.dataValues.TimeStart,
-                                contactID: data.dataValues.ContactID,
-                                description: data.dataValues.Description,
-                                state: data.dataValues.State,
-                                activityType: Constant.ACTIVITY_TYPE.CALL,
-                            };
-
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: Constant.MESSAGE.ACTION_SUCCESS,
-                                obj: obj
-                            }
-
-                            res.json(result);
-                        })
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
-                    })
-                })
-            }
-        })
-    },
 
 }

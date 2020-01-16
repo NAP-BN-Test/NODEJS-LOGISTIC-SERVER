@@ -9,11 +9,17 @@ module.exports = function (db) {
         },
         Type: Sequelize.INTEGER,
         ContactID: Sequelize.BIGINT,
-        TimeCreate: Sequelize.DATE,
+        CompanyID: Sequelize.BIGINT,
         AssignID: Sequelize.BIGINT,
-        Description: Sequelize.STRING,
+        UserID: Sequelize.BIGINT,
+        Name: Sequelize.STRING,
+
+        TimeCreate: Sequelize.DATE,
+        TimeStart: Sequelize.DATE,
+        TimeAssign: Sequelize.DATE,
         TimeRemind: Sequelize.DATE,
-        UserID: Sequelize.BIGINT
+
+        Description: Sequelize.STRING,
     });
 
     return table;

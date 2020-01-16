@@ -3,7 +3,15 @@ module.exports = function (app) {
     var login = require('./controllers/login');
     var activity = require('./controllers/activity');
     var contact = require('./controllers/contact');
+    var comment = require('./controllers/comment');
     var user = require('./controllers/user');
+
+    var call = require('./controllers/call');
+    var note = require('./controllers/node');
+    var meet = require('./controllers/meet');
+    var email = require('./controllers/email');
+    var task = require('./controllers/task');
+    
     var svController = require('./controllers/server-controller');
 
     // todoList Routes
@@ -29,18 +37,42 @@ module.exports = function (app) {
 
     app.route('/crm/update_activity').post(activity.updateActivity);
 
-    app.route('/crm/get_list_meet_attend').post(activity.getListMeetAttend);
-
     app.route('/crm/get_list_user').post(user.getListUser);
 
-    app.route('/crm/create_note').post(activity.createNote);
 
-    app.route('/crm/get_note_associate').post(activity.getNoteAssociate);
+    app.route('/crm/create_meet').post(meet.createMeet);
 
-    app.route('/crm/update_note_associate').post(activity.updateNoteAssociate);
+    app.route('/crm/get_list_meet_attend').post(meet.getListMeetAttend);
 
-    app.route('/crm/delete_note').post(activity.deleteNote);
+    app.route('/crm/update_meet_attend').post(meet.updateMeetAttend);
 
-    app.route('/crm/create_call').post(activity.createCall);
+
+    app.route('/crm/create_note').post(note.createNote);
+
+    app.route('/crm/get_note_associate').post(note.getNoteAssociate);
+
+    app.route('/crm/update_note_associate').post(note.updateNoteAssociate);
+
+    app.route('/crm/delete_note').post(note.deleteNote);
+
+
+    app.route('/crm/create_call').post(call.createCall);
+
+
+    app.route('/crm/create_email').post(email.createEmail);
+    
+
+    app.route('/crm/add_comment').post(comment.addComment);
+
+    app.route('/crm/edit_comment').post(comment.editComment);
+
+    app.route('/crm/delete_comment').post(comment.deleteComment);
+
+
+    app.route('/crm/create_task').post(task.createTask);
+
+
+    app.route('/crm/add_contact').post(contact.addContact);
+
 
 };

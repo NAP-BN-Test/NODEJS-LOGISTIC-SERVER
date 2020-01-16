@@ -8,11 +8,12 @@ module.exports = function (db) {
             autoIncrement: true
         },
         UserID: Sequelize.BIGINT,
+        CompanyID: Sequelize.BIGINT,
         Duration: Sequelize.FLOAT,
+        TimeCreate: Sequelize.DATE,
         TimeStart: Sequelize.DATE,
-        Description: Sequelize.STRING,
         TimeRemind: Sequelize.DATE,
-        AttendID: Sequelize.BIGINT
+        Description: Sequelize.STRING,
     });
 
     return table;

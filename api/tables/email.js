@@ -7,12 +7,14 @@ module.exports = function (db) {
             primaryKey: true,
             autoIncrement: true
         },
+        UserID: Sequelize.BIGINT,
         ContactID: Sequelize.BIGINT,
+        CompanyID: Sequelize.BIGINT,
         State: Sequelize.INTEGER,
         TimeCreate: Sequelize.DATE,
-        Description: Sequelize.STRING,
         TimeRemind: Sequelize.DATE,
-        UserID: Sequelize.BIGINT
+        TimeStart: Sequelize.DATE,
+        Description: Sequelize.STRING,
     });
 
     return table;
