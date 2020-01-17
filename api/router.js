@@ -11,7 +11,7 @@ module.exports = function (app) {
     var meet = require('./controllers/meet');
     var email = require('./controllers/email');
     var task = require('./controllers/task');
-    
+
     var svController = require('./controllers/server-controller');
 
     // todoList Routes
@@ -19,13 +19,15 @@ module.exports = function (app) {
 
     app.route('/server/add_user').post(svController.addUser);
 
+
     app.route('/crm/get_list_company').post(controller.getListCompany);
 
     app.route('/crm/get_detail_company').post(controller.getDetailCompany);
 
-    app.route('/crm/get_list_quick_contact').post(contact.getListQuickContact);
-
     app.route('/crm/get_list_quick_company').post(controller.getListQuickCompany);
+
+    app.route('/crm/update_company').post(controller.updateCompany);
+
 
     app.route('/crm/get_list_quick_deal').post(controller.getListQuickDeal);
 
@@ -60,7 +62,7 @@ module.exports = function (app) {
 
 
     app.route('/crm/create_email').post(email.createEmail);
-    
+
 
     app.route('/crm/add_comment').post(comment.addComment);
 
@@ -73,6 +75,12 @@ module.exports = function (app) {
 
 
     app.route('/crm/add_contact').post(contact.addContact);
+
+    app.route('/crm/add_contact_by_id').post(contact.addContactByID);
+
+    app.route('/crm/search_contact').post(contact.searchContact);
+
+    app.route('/crm/get_list_quick_contact').post(contact.getListQuickContact);
 
 
 };

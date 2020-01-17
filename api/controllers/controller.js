@@ -1,70 +1,36 @@
-const Sequelize = require('sequelize');
 const Constant = require('../constants/constant');
 const Result = require('../constants/result');
 
 var database = require('../db');
 
-var fcm = require('../tables/fcm');
-var mUser = require('../tables/user');
 var mCompany = require('../tables/company');
 var mCompanyChild = require('../tables/company-child');
 var mDeal = require('../tables/deal');
-var mContact = require('../tables/contact');
 
-var mEmail = require('../tables/email');
-var mCall = require('../tables/call');
-var mMeet = require('../tables/meet');
-var mNote = require('../tables/note');
-var mTask = require('../tables/task');
 
 
 module.exports = {
-    fcm: (req, res) => {
-        let body = req.body;
-
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-                    db.authenticate().then(() => {
-
-                        fcm(db).belongsTo(user(db), { foreignKey: 'UserID' });
-
-                        user(db).findOne({ where: { ID: body.userID } }).then(userItem => {
-                            fcm(db).findAll({ where: { UserID: Number(userItem.ID) } }).then(fcmItem => {
-                                res.json(fcmItem)
-                            })
-                        })
-
-                    }).catch(err => res.json(err))
-                })
-            } else {
-                res.json()
-            }
-
-        })
-
-    },
-
     getListCompany: (req, res) => {
         let body = req.body;
 
         database.serverDB(body.ip, body.username, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-                    
+
                     db.authenticate().then(() => {
 
-                        mCompany(db).findAll({ where: { UserID: body.userID } }).then(data => {
+                        mCompany(db).findAll().then(data => {
                             var array = [];
 
                             data.forEach(elm => {
                                 array.push({
                                     id: elm['ID'],
-                                    name: elm['NameVI'],
+                                    name: elm['Name'],
                                     email: elm['Email'],
                                     address: elm['Address'],
                                     phone: elm['Phone'],
                                     country: elm['Country'],
+                                    assignID: elm['UserID'],
                                 })
                             });
 
@@ -96,7 +62,7 @@ module.exports = {
                         mCompany(db).findOne({ where: { ID: body.companyID } }).then(data => {
                             var obj = {
                                 id: data['ID'],
-                                name: data['NameVI'],
+                                name: data['Name'],
                                 shortName: data['ShortName'],
                                 address: data['Address'],
                                 phone: data['Phone'],
@@ -119,37 +85,6 @@ module.exports = {
         })
     },
 
-    getListQuickContact: (req, res) => {
-        let body = req.body;
-
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-
-                    db.authenticate().then(() => {
-                        mContact(db).findAll({
-                            where: { UserID: body.userID, CompanyID: body.companyID },
-                            attributes: ['ID', 'NameVI', 'Email', 'JobTile']
-                        }).then(data => {
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: data
-                            }
-                            res.json(result)
-                        }).catch(() => {
-                            res.json(Result.SYS_ERROR_RESULT);
-                        })
-                    }).catch(() => {
-                        res.json(Result.SYS_ERROR_RESULT);
-                    })
-                })
-            } else {
-                res.json(Result.SYS_ERROR_RESULT);
-            }
-        })
-    },
-
     getListQuickCompany: (req, res) => {
         let body = req.body;
 
@@ -166,13 +101,16 @@ module.exports = {
 
                         var array = [];
 
-                        company.findOne({ where: { ID: body.parentID } }).then(data => {
-                            array.push({
-                                name: data.NameVI,
-                                address: data.Address,
-                                email: data.Email,
-                                role: 1
-                            });
+                        company.findOne({ where: { ID: body.companyID } }).then(data => {
+                            company.findOne({ where: { ID: data.ParentID } }).then(data1 => {
+                                array.push({
+                                    name: data1.Name,
+                                    address: data1.Address,
+                                    email: data1.Email,
+                                    role: 1
+                                });
+                            })
+
 
                             companyChild.findAll({
                                 where: { ParentID: body.companyID },
@@ -183,7 +121,7 @@ module.exports = {
                                 data.forEach(elm => {
                                     array.push({
                                         id: elm['Company.ID'],
-                                        name: elm['Company.NameVI'],
+                                        name: elm['Company.Name'],
                                         address: elm['Company.Address'],
                                         email: elm['Company.Email'],
                                         role: 2
@@ -241,7 +179,7 @@ module.exports = {
         })
     },
 
-    getListContact: (req, res) => {//take this list for dropdown
+    updateCompany: (req, res) => {
         let body = req.body;
 
         database.serverDB(body.ip, body.username, body.dbName).then(server => {
@@ -249,78 +187,46 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
+                        if (body.companyName) {
+                            mCompany(db).update({ Name: body.companyName }, { where: { ID: body.companyID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.companyShortName) {
+                            mCompany(db).update({ ShortName: body.companyShortName }, { where: { ID: body.companyID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.companyAddress) {
+                            mCompany(db).update({ Address: body.companyAddress }, { where: { ID: body.companyID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.companyPhone) {
+                            mCompany(db).update({ Phone: body.companyPhone }, { where: { ID: body.companyID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.companyEmail) {
+                            mCompany(db).update({ Email: body.companyEmail }, { where: { ID: body.companyID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.companyCountry) {
+                            mCompany(db).update({ Country: body.companyCountry }, { where: { ID: body.companyID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
 
-                        mContact(db).findAll({ where: { CompanyID: body.companyID } }).then(data => {
-                            var array = [];
-
-                            data.forEach(elm => {
-                                array.push({
-                                    id: elm['ID'],
-                                    name: elm['NameVI'],
-                                })
-                            });
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
-                            }
-                            res.json(result)
-                        })
-
-                    }).catch(err => res.json(err))
+                    }).catch(() => {
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
                 })
             } else {
-                res.json()
+                res.json(Result.SYS_ERROR_RESULT);
             }
         })
     },
 
-    getListContactFull: (req, res) => {
-        let body = req.body;
-
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-
-                    db.authenticate().then(() => {
-
-                        var contact = mContact(db);
-
-                        contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
-
-                        contact.findAll({
-                            where: { CompanyID: body.companyID },
-                            raw: true,
-                            include: [{ model: mCompany(db) }]
-                        }).then(data => {
-                            var array = [];
-
-                            data.forEach(elm => {
-                                array.push({
-                                    id: elm['ID'],
-                                    name: elm['NameVI'],
-                                    email: elm['Email'],
-                                    handPhone: elm['HandPhone'],
-                                    owner: elm['Owner'],
-                                    timeCreate: elm['TimeCreate'],
-                                    companyID: elm['Company.ID'],
-                                    companyName: elm['Company.NameVI'],
-                                })
-                            });
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
-                            }
-                            res.json(result)
-                        })
-
-                    }).catch(err => res.json(err))
-                })
-            } else {
-                res.json()
-            }
-        })
-    },
 
 }
