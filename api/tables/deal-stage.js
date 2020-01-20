@@ -1,15 +1,15 @@
 const Sequelize = require('sequelize');
 
 module.exports = function (db) {
-    var table = db.define('NoteAssociate', {
+    var table = db.define('DealStage', {
         ID: {
             type: Sequelize.BIGINT,
             primaryKey: true,
             autoIncrement: true
         },
-        UserID: Sequelize.BIGINT,
-        ActivityID: Sequelize.BIGINT
-
+        Name: Sequelize.STRING,
+        Process: Sequelize.INTEGER,
+        Stage: Sequelize.INTEGER,
     });
 
     return table;

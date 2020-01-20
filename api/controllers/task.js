@@ -6,6 +6,7 @@ var moment = require('moment');
 var database = require('../db');
 
 var mTask = require('../tables/task');
+var mAssociate = require('../tables/task-associate');
 
 module.exports = {
 
@@ -29,6 +30,12 @@ module.exports = {
                             TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
                             Description: body.description,
                         }).then(data => {
+                            if (body.listAssociate) {
+                                let list = JSON.parse(body.listAssociate);
+                                list.forEach(itm => {
+                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, UserID: itm });
+                                });
+                            }
                             var obj = {
                                 id: data.dataValues.ID,
                                 timeCreate: data.dataValues.TimeCreate,
@@ -60,6 +67,65 @@ module.exports = {
         })
     },
 
+    getAssociate: (req, res) => {
+        let body = req.body;
 
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        mAssociate(db).findAll({ where: { ActivityID: body.taskID } }).then(data => {
+                            var array = [];
+
+                            data.forEach(elm => {
+                                array.push({
+                                    taskID: elm['ActivityID'],
+                                    userID: elm['UserID'],
+                                })
+                            });
+
+                            var result = {
+                                status: Constant.STATUS.SUCCESS,
+                                message: '',
+                                array: array
+                            }
+
+                            res.json(result);
+                        })
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
+    updateAssociate: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.state == Constant.STATUS.SUCCESS) {
+                            mAssociate(db).create({ ActivityID: body.taskID, UserID: body.userID }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        } else {
+                            mAssociate(db).destroy({ where: { ActivityID: body.taskID, UserID: body.userID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
 
 }

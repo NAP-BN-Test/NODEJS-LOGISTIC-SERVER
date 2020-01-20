@@ -6,7 +6,7 @@ var moment = require('moment');
 var database = require('../db');
 
 var mNote = require('../tables/note');
-var mNoteAssociate = require('../tables/note-associate');
+var mAssociate = require('../tables/note-associate');
 
 module.exports = {
 
@@ -28,7 +28,7 @@ module.exports = {
                             if (body.listAssociate) {
                                 let list = JSON.parse(body.listAssociate);
                                 list.forEach(itm => {
-                                    mNoteAssociate(db).create({ NoteID: data.dataValues.ID, UserID: itm });
+                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, UserID: itm });
                                 });
                             }
                             var obj = {
@@ -57,7 +57,7 @@ module.exports = {
         })
     },
 
-    getNoteAssociate: (req, res) => {
+    getAssociate: (req, res) => {
         let body = req.body;
 
         database.serverDB(body.ip, body.username, body.dbName).then(server => {
@@ -65,12 +65,12 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        mNoteAssociate(db).findAll({ where: { NoteID: body.noteID } }).then(data => {
+                        mAssociate(db).findAll({ where: { ActivityID: body.noteID } }).then(data => {
                             var array = [];
 
                             data.forEach(elm => {
                                 array.push({
-                                    noteID: elm['NoteID'],
+                                    noteID: elm['ActivityID'],
                                     userID: elm['UserID'],
                                 })
                             });
@@ -92,7 +92,7 @@ module.exports = {
         })
     },
 
-    updateNoteAssociate: (req, res) => {
+    updateAssociate: (req, res) => {
         let body = req.body;
 
         database.serverDB(body.ip, body.username, body.dbName).then(server => {
@@ -101,11 +101,11 @@ module.exports = {
 
                     db.authenticate().then(() => {
                         if (body.state == Constant.STATUS.SUCCESS) {
-                            mNoteAssociate(db).create({ NoteID: body.noteID, UserID: body.userID }).then(data => {
+                            mAssociate(db).create({ ActivityID: body.noteID, UserID: body.userID }).then(data => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         } else {
-                            mNoteAssociate(db).destroy({ where: { NoteID: body.noteID, UserID: body.userID } }).then(data => {
+                            mAssociate(db).destroy({ where: { ActivityID: body.noteID, UserID: body.userID } }).then(data => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
@@ -126,7 +126,7 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        mNoteAssociate(db).destroy({ where: { NoteID: body.noteID } }).then(data => {
+                        mAssociate(db).destroy({ where: { ActivityID: body.noteID } }).then(data => {
                             mNote(db).destroy({ where: { ID: body.noteID, UserID: body.userID } }).then(() => {
                                 res.json(Result.ACTION_SUCCESS)
                             })

@@ -1,13 +1,14 @@
 module.exports = function (app) {
-    var controller = require('./controllers/controller');
+    var company = require('./controllers/company');
     var login = require('./controllers/login');
     var activity = require('./controllers/activity');
     var contact = require('./controllers/contact');
+    var deal = require('./controllers/deal');
     var comment = require('./controllers/comment');
     var user = require('./controllers/user');
 
     var call = require('./controllers/call');
-    var note = require('./controllers/node');
+    var note = require('./controllers/note');
     var meet = require('./controllers/meet');
     var email = require('./controllers/email');
     var task = require('./controllers/task');
@@ -20,16 +21,25 @@ module.exports = function (app) {
     app.route('/server/add_user').post(svController.addUser);
 
 
-    app.route('/crm/get_list_company').post(controller.getListCompany);
+    app.route('/crm/get_list_company').post(company.getListCompany);
 
-    app.route('/crm/get_detail_company').post(controller.getDetailCompany);
+    app.route('/crm/get_detail_company').post(company.getDetailCompany);
 
-    app.route('/crm/get_list_quick_company').post(controller.getListQuickCompany);
+    app.route('/crm/get_list_quick_company').post(company.getListQuickCompany);
 
-    app.route('/crm/update_company').post(controller.updateCompany);
+    app.route('/crm/update_company').post(company.updateCompany);
+
+    app.route('/crm/search_company').post(company.searchCompany);
+
+    app.route('/crm/add_company').post(company.addCompany);
 
 
-    app.route('/crm/get_list_quick_deal').post(controller.getListQuickDeal);
+    app.route('/crm/get_list_quick_deal').post(deal.getListQuickDeal);
+
+    app.route('/crm/get_deal_stage').post(deal.getDealStage);
+
+    app.route('/crm/add_deal').post(deal.addDeal);
+
 
     app.route('/crm/get_list_activity').post(activity.getListActivity);
 
@@ -41,27 +51,39 @@ module.exports = function (app) {
 
     app.route('/crm/get_list_user').post(user.getListUser);
 
-
+    //Meet
     app.route('/crm/create_meet').post(meet.createMeet);
 
     app.route('/crm/get_list_meet_attend').post(meet.getListMeetAttend);
 
     app.route('/crm/update_meet_attend').post(meet.updateMeetAttend);
 
+    app.route('/crm/get_meet_associate').post(meet.getAssociate);
 
+    app.route('/crm/update_meet_associate').post(meet.updateAssociate);
+
+    //Note
     app.route('/crm/create_note').post(note.createNote);
 
-    app.route('/crm/get_note_associate').post(note.getNoteAssociate);
+    app.route('/crm/get_note_associate').post(note.getAssociate);
 
-    app.route('/crm/update_note_associate').post(note.updateNoteAssociate);
+    app.route('/crm/update_note_associate').post(note.updateAssociate);
 
     app.route('/crm/delete_note').post(note.deleteNote);
 
-
+    //Call
     app.route('/crm/create_call').post(call.createCall);
 
+    app.route('/crm/get_call_associate').post(call.getAssociate);
 
+    app.route('/crm/update_call_associate').post(call.updateAssociate);
+
+    //Email
     app.route('/crm/create_email').post(email.createEmail);
+
+    app.route('/crm/get_email_associate').post(email.getAssociate);
+
+    app.route('/crm/update_email_associate').post(email.updateAssociate);
 
 
     app.route('/crm/add_comment').post(comment.addComment);
@@ -70,8 +92,12 @@ module.exports = function (app) {
 
     app.route('/crm/delete_comment').post(comment.deleteComment);
 
-
+    //Task
     app.route('/crm/create_task').post(task.createTask);
+
+    app.route('/crm/get_task_associate').post(task.getAssociate);
+
+    app.route('/crm/update_task_associate').post(task.updateAssociate);
 
 
     app.route('/crm/add_contact').post(contact.addContact);

@@ -12,6 +12,11 @@ const STATUS = {
     FAIL: 0
 }
 
+const COMPANY_ROLE = {
+    PARENT: 1,
+    CHILD: 2
+}
+
 const ACTIVITY_TYPE = {
     ALL: 0,
     CALL: 1,
@@ -24,5 +29,6 @@ const ACTIVITY_TYPE = {
 module.exports = {
     MESSAGE: MESSAGE,
     STATUS: STATUS,
-    ACTIVITY_TYPE: ACTIVITY_TYPE
+    ACTIVITY_TYPE: ACTIVITY_TYPE,
+    COMPANY_ROLE: COMPANY_ROLE,
 }
