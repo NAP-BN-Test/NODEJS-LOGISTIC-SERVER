@@ -1,4 +1,6 @@
 const Constant = require('../constants/constant');
+const Op = require('sequelize').Op;
+
 const Result = require('../constants/result');
 
 var moment = require('moment');
@@ -7,6 +9,7 @@ var database = require('../db');
 
 var mCompany = require('../tables/company');
 var mContact = require('../tables/contact');
+var mUser = require('../tables/user');
 
 
 module.exports = {
@@ -20,7 +23,7 @@ module.exports = {
                     db.authenticate().then(() => {
                         mContact(db).findAll({
                             where: { UserID: body.userID, CompanyID: body.companyID },
-                            
+
                         }).then(data => {
                             let array = [];
 
@@ -32,7 +35,7 @@ module.exports = {
                                     email: elm.dataValues.Email,
                                 })
                             })
-                           
+
                             var result = {
                                 status: Constant.STATUS.SUCCESS,
                                 message: '',
@@ -98,11 +101,11 @@ module.exports = {
                         var contact = mContact(db);
 
                         contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
+                        contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
 
                         contact.findAll({
-                            where: { CompanyID: body.companyID },
                             raw: true,
-                            include: [{ model: mCompany(db) }]
+                            include: [{ model: mCompany(db) }, { model: mUser(db) }]
                         }).then(data => {
                             var array = [];
 
@@ -112,10 +115,11 @@ module.exports = {
                                     name: elm['Name'],
                                     email: elm['Email'],
                                     handPhone: elm['HandPhone'],
-                                    owner: elm['Owner'],
                                     timeCreate: elm['TimeCreate'],
                                     companyID: elm['Company.ID'],
-                                    companyName: elm['Company.NameVI'],
+                                    companyName: elm['Company.Name'],
+                                    ownerID: elm['User.ID'],
+                                    ownerName: elm['User.Name'],
                                 })
                             });
                             var result = {
@@ -152,7 +156,6 @@ module.exports = {
                             HomePhone: body.homePhone,
                             Email: body.email,
                             Address: body.address,
-                            Owner: body.contactOwner,
                             TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
                         }).then(data => {
                             var obj = {
@@ -169,6 +172,78 @@ module.exports = {
                             }
 
                             res.json(result);
+                        })
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    addContactByID: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        mContact(db).update(
+                            { CompanyID: body.companyID },
+                            { where: { ID: body.contactID } }
+                        ).then(result => {
+                            mContact(db).findOne({ where: { ID: body.contactID } }).then(data => {
+                                var obj = {
+                                    id: data.dataValues.ID,
+                                    name: data.dataValues.Name,
+                                    jobTile: data.dataValues.JobTile,
+                                    email: data.dataValues.Email,
+                                };
+
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: Constant.MESSAGE.ACTION_SUCCESS,
+                                    obj: obj
+                                }
+
+                                res.json(result);
+                            })
+                        })
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    searchContact: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        mContact(db).findAll(
+                            { where: { Name: { [Op.like]: "%" + body.searchKey } } }
+                        ).then(data => {
+                            var array = [];
+
+                            data.forEach(elm => {
+                                array.push({
+                                    id: elm['ID'],
+                                    name: elm['Name'],
+                                    handPhone: elm['HandPhone'],
+                                })
+                            });
+                            var result = {
+                                status: Constant.STATUS.SUCCESS,
+                                message: '',
+                                array: array
+                            }
+                            res.json(result)
                         })
                     })
                 })

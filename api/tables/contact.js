@@ -10,7 +10,6 @@ module.exports = function (db) {
         Name: Sequelize.STRING,
         Email: Sequelize.STRING,
         HandPhone: Sequelize.STRING,
-        Owner: Sequelize.STRING,
         TimeCreate: Sequelize.DATE,
         Type: Sequelize.INTEGER,
         UserID: Sequelize.BIGINT,

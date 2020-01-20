@@ -11,7 +11,7 @@ module.exports = function (app) {
     var meet = require('./controllers/meet');
     var email = require('./controllers/email');
     var task = require('./controllers/task');
-    
+
     var svController = require('./controllers/server-controller');
 
     // todoList Routes
@@ -60,7 +60,7 @@ module.exports = function (app) {
 
 
     app.route('/crm/create_email').post(email.createEmail);
-    
+
 
     app.route('/crm/add_comment').post(comment.addComment);
 
@@ -73,6 +73,11 @@ module.exports = function (app) {
 
 
     app.route('/crm/add_contact').post(contact.addContact);
+
+    app.route('/crm/add_contact_by_id').post(contact.addContactByID);
+
+    app.route('/crm/search_contact').post(contact.searchContact);
+
 
 
 };

@@ -7,8 +7,7 @@ module.exports = function (db) {
             primaryKey: true,
             autoIncrement: true
         },
-        NameVI: Sequelize.STRING,
-        NameEN: Sequelize.STRING,
+        Name: Sequelize.STRING,
         Email: Sequelize.STRING,
         Address: Sequelize.STRING,
         ParentID: Sequelize.BIGINT,
