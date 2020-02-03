@@ -7,9 +7,11 @@ module.exports = function (db) {
             primaryKey: true,
             autoIncrement: true
         },
-        State: Sequelize.INTEGER,
+        UserID: Sequelize.INTEGER,
+        StageID: Sequelize.INTEGER,
         TimeCreate: Sequelize.DATE,
         TimeClose: Sequelize.DATE,
+        TimeRemind: Sequelize.DATE,
         Amount: Sequelize.FLOAT,
         CompanyID: Sequelize.BIGINT,
         PipeLine: Sequelize.INTEGER,

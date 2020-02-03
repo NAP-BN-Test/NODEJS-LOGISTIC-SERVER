@@ -5,14 +5,12 @@ var moment = require('moment');
 
 var database = require('../db');
 
-var mContact = require('../tables/contact');
-
-var mEmail = require('../tables/email');
-var mAssociate = require('../tables/email-associate');
+var mNote = require('../tables/note');
+var mAssociate = require('../tables/note-associate');
 
 module.exports = {
 
-    createEmail: (req, res) => {
+    createNote: (req, res) => {
         let body = req.body;
 
         database.serverDB(body.ip, body.username, body.dbName).then(server => {
@@ -20,19 +18,13 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        var email = mEmail(db);
-                        email.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
-
-                        email.create({
+                        mNote(db).create({
                             UserID: body.userID,
                             CompanyID: body.companyID,
-                            ContactID: body.contactID,
-                            State: body.outcomeType,
-                            TimeStart: moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
-                            TimeRemind: body.timeRemind ? moment.utc(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS Z') : null,
-                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
                             Description: body.description,
-                        }, { include: [{ model: mContact(db) }] }).then(data => {
+                            TimeRemind: body.timeRemind ? body.timeRemind : null,
+                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z')
+                        }).then(data => {
                             if (body.listAssociate) {
                                 let list = JSON.parse(body.listAssociate);
                                 list.forEach(itm => {
@@ -43,11 +35,8 @@ module.exports = {
                                 id: data.dataValues.ID,
                                 timeCreate: data.dataValues.TimeCreate,
                                 timeRemind: data.dataValues.TimeRemind,
-                                timeStart: data.dataValues.TimeStart,
-                                contactID: data.dataValues.ContactID,
                                 description: data.dataValues.Description,
-                                state: data.dataValues.State,
-                                activityType: Constant.ACTIVITY_TYPE.EMAIL,
+                                activityType: Constant.ACTIVITY_TYPE.NOTE,
                                 listComment: []
                             };
 
@@ -76,12 +65,12 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        mAssociate(db).findAll({ where: { ActivityID: body.emailID } }).then(data => {
+                        mAssociate(db).findAll({ where: { ActivityID: body.noteID } }).then(data => {
                             var array = [];
 
                             data.forEach(elm => {
                                 array.push({
-                                    emailID: elm['ActivityID'],
+                                    noteID: elm['ActivityID'],
                                     userID: elm['UserID'],
                                 })
                             });
@@ -112,11 +101,11 @@ module.exports = {
 
                     db.authenticate().then(() => {
                         if (body.state == Constant.STATUS.SUCCESS) {
-                            mAssociate(db).create({ ActivityID: body.emailID, UserID: body.userID }).then(data => {
+                            mAssociate(db).create({ ActivityID: body.noteID, UserID: body.userID }).then(data => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         } else {
-                            mAssociate(db).destroy({ where: { ActivityID: body.emailID, UserID: body.userID } }).then(data => {
+                            mAssociate(db).destroy({ where: { ActivityID: body.noteID, UserID: body.userID } }).then(data => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
@@ -128,5 +117,28 @@ module.exports = {
             }
         })
     },
+
+    deleteNote: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        mAssociate(db).destroy({ where: { ActivityID: body.noteID } }).then(data => {
+                            mNote(db).destroy({ where: { ID: body.noteID, UserID: body.userID } }).then(() => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        })
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
 
 }
