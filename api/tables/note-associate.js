@@ -7,7 +7,7 @@ module.exports = function (db) {
             primaryKey: true,
             autoIncrement: true
         },
-        UserID: Sequelize.BIGINT,
+        ContactID: Sequelize.BIGINT,
         ActivityID: Sequelize.BIGINT
 
     });

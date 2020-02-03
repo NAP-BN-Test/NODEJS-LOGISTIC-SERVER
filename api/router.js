@@ -1,7 +1,10 @@
 module.exports = function (app) {
     var company = require('./controllers/company');
     var login = require('./controllers/login');
+    
     var activity = require('./controllers/activity');
+    var activityContact = require('./controllers/activity-contact');
+
     var contact = require('./controllers/contact');
     var deal = require('./controllers/deal');
     var comment = require('./controllers/comment');
@@ -33,8 +36,12 @@ module.exports = function (app) {
 
     app.route('/crm/add_company').post(company.addCompany);
 
+    app.route('/crm/assign_company_owner').post(company.assignCompany);
+
 
     app.route('/crm/get_list_quick_deal').post(deal.getListQuickDeal);
+
+    app.route('/crm/get_list_quick_deal_for_contact').post(deal.getListQuickDealForContact);
 
     app.route('/crm/get_deal_stage').post(deal.getDealStage);
 
@@ -43,11 +50,9 @@ module.exports = function (app) {
 
     app.route('/crm/get_list_activity').post(activity.getListActivity);
 
-    app.route('/crm/get_list_contact').post(contact.getListContact);
-
-    app.route('/crm/get_list_contact_full').post(contact.getListContactFull);
-
     app.route('/crm/update_activity').post(activity.updateActivity);
+
+    app.route('/crm/get_list_activity_for_contact').post(activityContact.getListActivity);
 
     app.route('/crm/get_list_user').post(user.getListUser);
 
@@ -107,6 +112,14 @@ module.exports = function (app) {
     app.route('/crm/search_contact').post(contact.searchContact);
 
     app.route('/crm/get_list_quick_contact').post(contact.getListQuickContact);
+
+    app.route('/crm/get_detail_contact').post(contact.getDetailContact);
+
+    app.route('/crm/get_list_contact').post(contact.getListContact);
+
+    app.route('/crm/get_list_contact_full').post(contact.getListContactFull);
+
+    app.route('/crm/update_contact').post(contact.updateContact);
 
 
 };

@@ -18,22 +18,41 @@ module.exports = {
 
                     db.authenticate().then(() => {
 
-                        mUser(db).findAll({ where: { ID: { [Op.ne]: body.userID } } }).then(data => {
-                            var array = [];
+                        if (body.all) {
+                            mUser(db).findAll().then(data => {
+                                var array = [];
 
-                            data.forEach(elm => {
-                                array.push({
-                                    id: elm['ID'],
-                                    name: elm['Name'],
-                                })
-                            });
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
-                            }
-                            res.json(result)
-                        })
+                                data.forEach(elm => {
+                                    array.push({
+                                        id: elm['ID'],
+                                        name: elm['Name'],
+                                    })
+                                });
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: '',
+                                    array: array
+                                }
+                                res.json(result)
+                            })
+                        } else {
+                            mUser(db).findAll({ where: { ID: { [Op.ne]: body.userID } } }).then(data => {
+                                var array = [];
+
+                                data.forEach(elm => {
+                                    array.push({
+                                        id: elm['ID'],
+                                        name: elm['Name'],
+                                    })
+                                });
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: '',
+                                    array: array
+                                }
+                                res.json(result)
+                            })
+                        }
 
                     }).catch(err => {
                         console.log(err);
