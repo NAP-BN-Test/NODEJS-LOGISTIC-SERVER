@@ -83,7 +83,7 @@ module.exports = {
                             data.forEach(elm => {
                                 array.push({
                                     callID: elm['ActivityID'],
-                                    userID: elm['UserID'],
+                                    contactID: elm['ContactID'],
                                 })
                             });
 
@@ -113,11 +113,11 @@ module.exports = {
 
                     db.authenticate().then(() => {
                         if (body.state == Constant.STATUS.SUCCESS) {
-                            mAssociate(db).create({ ActivityID: body.callID, UserID: body.userID }).then(data => {
+                            mAssociate(db).create({ ActivityID: body.callID, ContactID: body.contactID }).then(data => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         } else {
-                            mAssociate(db).destroy({ where: { ActivityID: body.callID, UserID: body.userID } }).then(data => {
+                            mAssociate(db).destroy({ where: { ActivityID: body.callID, ContactID: body.contactID } }).then(data => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }

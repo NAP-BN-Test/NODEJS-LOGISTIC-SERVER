@@ -7,7 +7,7 @@ var database = require('../db');
 
 var mCompany = require('../tables/company');
 var mCompanyChild = require('../tables/company-child');
-var mDeal = require('../tables/deal');
+var mUser = require('../tables/user');
 
 
 
@@ -21,14 +21,19 @@ module.exports = {
 
                     db.authenticate().then(() => {
 
-                        mCompany(db).findAll().then(data => {
+                        var company = mCompany(db);
+                        company.belongsTo(mUser(db), { foreignKey: 'UserID' });
+
+                        company.findAll({
+                            include: { model: mUser(db) }
+                        }).then(data => {
                             var array = [];
 
                             data.forEach(elm => {
                                 array.push({
                                     id: elm['ID'],
                                     name: elm['Name'],
-                                    email: elm['Email'],
+                                    email: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
                                     address: elm['Address'],
                                     phone: elm['Phone'],
                                     country: elm['Country'],
@@ -380,6 +385,36 @@ module.exports = {
                                 res.json(result);
                             })
                         })
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    assignCompany: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.companyIDs) {
+                            let listCompany = JSON.parse(body.companyIDs);
+                            let listCompanyID = [];
+                            listCompany.forEach(item => {
+                                listCompanyID.push(Number(item + ""));
+                            })
+
+                            mCompany(db).update(
+                                { UserID: body.assignID },
+                                { where: { ID: { [Op.in]: listCompanyID } } }
+                            ).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
                     })
                 })
             } else {

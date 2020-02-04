@@ -253,4 +253,81 @@ module.exports = {
         })
     },
 
+    getDetailContact: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+
+                        mContact(db).findOne({ where: { ID: body.contactID } }).then(data => {
+                            var obj = {
+                                id: data['ID'],
+                                name: data['Name'],
+                                address: data['Address'],
+                                phone: data['HandPhone'],
+                                email: data['Email'],
+                                jobTile: data['JobTile'],
+                            }
+                            var result = {
+                                status: Constant.STATUS.SUCCESS,
+                                message: '',
+                                obj: obj
+                            }
+                            res.json(result)
+                        })
+
+                    }).catch(err => res.json(err))
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    updateContact: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.contactName) {
+                            mContact(db).update({ Name: body.contactName }, { where: { ID: body.contactID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.contactAddress) {
+                            mContact(db).update({ Address: body.contactAddress }, { where: { ID: body.contactID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.contactPhone) {
+                            mContact(db).update({ HandPhone: body.contactPhone }, { where: { ID: body.contactID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.contactEmail) {
+                            mContact(db).update({ Email: body.contactEmail }, { where: { ID: body.contactID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.contactJobTile) {
+                            mContact(db).update({ JobTile: body.contactJobTile }, { where: { ID: body.contactID } }).then(data => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+
+                    }).catch(() => {
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            } else {
+                res.json(Result.SYS_ERROR_RESULT);
+            }
+        })
+    },
 }
