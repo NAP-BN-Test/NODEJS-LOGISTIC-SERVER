@@ -21,6 +21,7 @@ module.exports = {
                         mNote(db).create({
                             UserID: body.userID,
                             CompanyID: body.companyID,
+                            ContactID: body.contactID,
                             Description: body.description,
                             TimeRemind: body.timeRemind ? body.timeRemind : null,
                             TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z')

@@ -23,7 +23,7 @@ module.exports = function (app) {
 
     app.route('/server/add_user').post(svController.addUser);
 
-
+    //Company
     app.route('/crm/get_list_company').post(company.getListCompany);
 
     app.route('/crm/get_detail_company').post(company.getDetailCompany);
@@ -37,6 +37,10 @@ module.exports = function (app) {
     app.route('/crm/add_company').post(company.addCompany);
 
     app.route('/crm/assign_company_owner').post(company.assignCompany);
+
+    app.route('/crm/follow_company').post(company.followCompany);
+
+    app.route('/crm/delete_company').post(company.deleteCompany);
 
 
     app.route('/crm/get_list_quick_deal').post(deal.getListQuickDeal);
@@ -104,8 +108,10 @@ module.exports = function (app) {
 
     app.route('/crm/update_task_associate').post(task.updateAssociate);
 
-
+    //contact
     app.route('/crm/add_contact').post(contact.addContact);
+
+    app.route('/crm/delete_contact').post(contact.deleteContact);
 
     app.route('/crm/add_contact_by_id').post(contact.addContactByID);
 
@@ -120,6 +126,10 @@ module.exports = function (app) {
     app.route('/crm/get_list_contact_full').post(contact.getListContactFull);
 
     app.route('/crm/update_contact').post(contact.updateContact);
+
+    app.route('/crm/assign_contact_owner').post(contact.assignContact);
+
+    app.route('/crm/follow_contact').post(contact.followContact);
 
 
 };

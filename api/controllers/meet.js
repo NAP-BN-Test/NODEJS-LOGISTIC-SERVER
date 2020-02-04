@@ -22,6 +22,7 @@ module.exports = {
                         mMeet(db).create({
                             UserID: body.userID,
                             CompanyID: body.companyID,
+                            ContactID: body.contactID,
                             Duration: body.duration,
                             TimeStart: moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
                             TimeRemind: body.timeRemind ? moment.utc(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS Z') : null,
