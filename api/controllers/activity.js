@@ -57,8 +57,8 @@ function getListActivityCall(db, body) {
                     timeCreate: elm.dataValues.TimeCreate,
                     timeRemind: elm.dataValues.TimeRemind,
                     timeStart: elm.dataValues.TimeStart,
-                    contactID: elm.dataValues.Contact.dataValues.ID,
-                    contactName: elm.dataValues.Contact.dataValues.Name,
+                    contactID: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.ID : -1,
+                    contactName: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.Name : "",
                     state: elm.dataValues.State,
                     description: elm.dataValues.Description,
                     activityType: Constant.ACTIVITY_TYPE.CALL,
@@ -166,28 +166,30 @@ function getListActivityTask(db, body) {
         var task = mTask(db);
         task.belongsTo(mUser(db), { foreignKey: 'AssignID', sourceKey: 'AssignID' });
 
-        task.findAll({ where: { CompanyID: body.companyID }, include: [{ model: mUser(db) }] })
-            .then(data => {
-                var array = [];
+        task.findAll({
+            where: { CompanyID: body.companyID },
+            include: [{ model: mUser(db) }]
+        }).then(data => {
+            var array = [];
 
-                data.forEach(elm => {
-                    array.push({
-                        id: elm.dataValues.ID,
-                        timeCreate: elm.dataValues.TimeCreate,
-                        timeRemind: elm.dataValues.TimeRemind,
-                        timeAssign: elm.dataValues.TimeAssign,
-                        timeStart: elm.dataValues.TimeStart,
-                        description: elm.dataValues.Description,
-                        taskType: elm.dataValues.Type,
-                        taskName: elm.dataValues.Name,
-                        assignID: elm.dataValues.AssignID,
-                        activityType: Constant.ACTIVITY_TYPE.TASK,
-                        listComment: []
-                    })
-                });
+            data.forEach(elm => {
+                array.push({
+                    id: elm.dataValues.ID,
+                    timeCreate: elm.dataValues.TimeCreate,
+                    timeRemind: elm.dataValues.TimeRemind,
+                    timeAssign: elm.dataValues.TimeAssign,
+                    timeStart: elm.dataValues.TimeStart,
+                    description: elm.dataValues.Description,
+                    taskType: elm.dataValues.Type,
+                    taskName: elm.dataValues.Name,
+                    assignID: elm.dataValues.AssignID,
+                    activityType: Constant.ACTIVITY_TYPE.TASK,
+                    listComment: []
+                })
+            });
 
-                res(array);
-            })
+            res(array);
+        })
     })
 }
 
@@ -302,47 +304,47 @@ module.exports = {
                         if (body.activityType == Constant.ACTIVITY_TYPE.CALL) {
 
                             if (body.contactID) {
-                                mCall(db).update({ ContactID: body.contactID }, { where: { ID: body.activityID } }).then(data => {
+                                mCall(db).update({ ContactID: body.contactID }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.activityState) {
-                                mCall(db).update({ State: body.activityState }, { where: { ID: body.activityID } }).then(data => {
+                                mCall(db).update({ State: body.activityState }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.description) {
-                                mCall(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(data => {
+                                mCall(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeStart != null) {
                                 let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
-                                mCall(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(data => {
+                                mCall(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                         }
                         else if (body.activityType == Constant.ACTIVITY_TYPE.EMAIL) {
                             if (body.contactID) {
-                                mEmail(db).update({ ContactID: body.contactID }, { where: { ID: body.activityID } }).then(data => {
+                                mEmail(db).update({ ContactID: body.contactID }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.description) {
-                                mEmail(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(data => {
+                                mEmail(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.activityState) {
-                                mEmail(db).update({ State: body.activityState }, { where: { ID: body.activityID } }).then(data => {
+                                mEmail(db).update({ State: body.activityState }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeStart != null) {
                                 let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
 
-                                mEmail(db).update({ TimeCreate: date }, { where: { ID: body.activityID } }).then(data => {
+                                mEmail(db).update({ TimeCreate: date }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
@@ -350,7 +352,7 @@ module.exports = {
                         else if (body.activityType == Constant.ACTIVITY_TYPE.MEET) {
                             if (body.listAttendID) {
 
-                                mMeetAttend(db).destroy({ where: { MeetID: body.activityID } }).then(data => {
+                                mMeetAttend(db).destroy({ where: { MeetID: body.activityID } }).then(()=> {
                                     let listID = JSON.parse(body.listAttendID);
 
                                     listID.forEach(itm => {
@@ -360,59 +362,59 @@ module.exports = {
                                 })
                             }
                             else if (body.duration) {
-                                mMeet(db).update({ Duration: body.duration }, { where: { ID: body.activityID } }).then(data => {
+                                mMeet(db).update({ Duration: body.duration }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeStart != null) {
                                 let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
-                                mMeet(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(data => {
+                                mMeet(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.description) {
-                                mMeet(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(data => {
+                                mMeet(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                         }
                         else if (body.activityType == Constant.ACTIVITY_TYPE.NOTE) {
                             if (body.description) {
-                                mNote(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(data => {
+                                mNote(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                         }
                         else if (body.activityType == Constant.ACTIVITY_TYPE.TASK) {
                             if (body.assignID) {
-                                mTask(db).update({ AssignID: body.assignID }, { where: { ID: body.activityID } }).then(data => {
+                                mTask(db).update({ AssignID: body.assignID }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.taskName != null) {
-                                mTask(db).update({ Name: body.taskName }, { where: { ID: body.activityID } }).then(data => {
+                                mTask(db).update({ Name: body.taskName }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeStart != null) {
                                 let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
-                                mTask(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(data => {
+                                mTask(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeAssign != null) {
                                 let date = moment.utc(body.timeAssign).format('YYYY-MM-DD HH:mm:ss.SSS Z');
-                                mTask(db).update({ TimeAssign: date }, { where: { ID: body.activityID } }).then(data => {
+                                mTask(db).update({ TimeAssign: date }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.taskType) {
-                                mTask(db).update({ Type: body.taskType }, { where: { ID: body.activityID } }).then(data => {
+                                mTask(db).update({ Type: body.taskType }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.description) {
-                                mTask(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(data => {
+                                mTask(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }

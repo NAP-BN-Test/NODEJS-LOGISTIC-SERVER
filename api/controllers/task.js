@@ -21,6 +21,7 @@ module.exports = {
                         mTask(db).create({
                             UserID: body.userID,
                             CompanyID: body.companyID,
+                            ContactID: body.contactID,
                             AssignID: body.assignID,
                             Type: body.taskType,
                             Name: body.taskName,

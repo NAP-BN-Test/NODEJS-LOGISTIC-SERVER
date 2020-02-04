@@ -10,6 +10,17 @@ var database = require('../db');
 var mCompany = require('../tables/company');
 var mContact = require('../tables/contact');
 var mUser = require('../tables/user');
+var mUserFollow = require('../tables/user-follow');
+
+var rmTaskAssciate = require('../tables/task-associate');
+var rmEmailAssciate = require('../tables/email-associate');
+var rmCallAssciate = require('../tables/call-associate');
+var rmNoteAssciate = require('../tables/note-associate');
+var rmMeetAssciate = require('../tables/meet-associate');
+var rmUserFollow = require('../tables/user-follow');
+var rmMeetContact = require('../tables/meet-contact');
+var rmDeal = require('../tables/deal');
+
 
 
 module.exports = {
@@ -148,7 +159,7 @@ module.exports = {
                     db.authenticate().then(() => {
                         mContact(db).create({
                             UserID: body.userID,
-                            CompanyID: body.companyID,
+                            CompanyID: body.addOut ? null : body.companyID,
                             Name: body.name,
                             Gender: body.gender,
                             JobTile: body.jobTile,
@@ -163,6 +174,12 @@ module.exports = {
                                 name: data.dataValues.Name,
                                 jobTile: data.dataValues.JobTile,
                                 email: data.dataValues.Email,
+                                handPhone: data.dataValues.HandPhone,
+                                timeCreate: data.dataValues.TimeCreate,
+                                companyID: "",
+                                companyName: "",
+                                ownerID: "",
+                                ownerName: "",
                             };
 
                             var result = {
@@ -261,8 +278,17 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
+                        let contact = mContact(db);
+                        contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
 
-                        mContact(db).findOne({ where: { ID: body.contactID } }).then(data => {
+                        contact.findOne({
+                            where: { ID: body.contactID },
+                            include: {
+                                model: mUserFollow(db),
+                                required: false,
+                                where: { UserID: body.userID, Type: 2 }
+                            }
+                        }).then(data => {
                             var obj = {
                                 id: data['ID'],
                                 name: data['Name'],
@@ -270,6 +296,7 @@ module.exports = {
                                 phone: data['HandPhone'],
                                 email: data['Email'],
                                 jobTile: data['JobTile'],
+                                follow: data.dataValues.UserFollows[0] ? data.dataValues.UserFollows[0]['Follow'] : false
                             }
                             var result = {
                                 status: Constant.STATUS.SUCCESS,
@@ -327,6 +354,163 @@ module.exports = {
                 })
             } else {
                 res.json(Result.SYS_ERROR_RESULT);
+            }
+        })
+    },
+
+    assignContact: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.contactIDs) {
+                            let listContact = JSON.parse(body.contactIDs);
+                            let listContactID = [];
+                            listContact.forEach(item => {
+                                listContactID.push(Number(item + ""));
+                            })
+
+                            mContact(db).update(
+                                { UserID: body.assignID },
+                                { where: { ID: { [Op.in]: listContactID } } }
+                            ).then(data => {
+                                if (data) {
+                                    mUser(db).findOne({ where: { ID: body.assignID } }).then(user => {
+                                        var obj = {
+                                            id: user.dataValues.ID,
+                                            name: user.dataValues.Name,
+                                        };
+
+                                        var result = {
+                                            status: Constant.STATUS.SUCCESS,
+                                            message: Constant.MESSAGE.ACTION_SUCCESS,
+                                            obj: obj
+                                        }
+
+                                        res.json(result);
+                                    });
+                                }
+                            })
+                        }
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    deleteContact: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.contactIDs) {
+                            let listContact = JSON.parse(body.contactIDs);
+                            let listContactID = [];
+                            listContact.forEach(item => {
+                                listContactID.push(Number(item + ""));
+                            });
+                            rmCallAssciate(db).update(
+                                { ContactID: null },
+                                { where: { ContactID: { [Op.in]: listContactID } } }
+                            ).then(() => {
+                                rmEmailAssciate(db).update(
+                                    { ContactID: null },
+                                    { where: { ContactID: { [Op.in]: listContactID } } }
+                                ).then(() => {
+                                    rmMeetAssciate(db).update(
+                                        { ContactID: null },
+                                        { where: { ContactID: { [Op.in]: listContactID } } }
+                                    ).then(() => {
+                                        rmNoteAssciate(db).update(
+                                            { ContactID: null },
+                                            { where: { ContactID: { [Op.in]: listContactID } } }
+                                        ).then(() => {
+                                            rmTaskAssciate(db).update(
+                                                { ContactID: null },
+                                                { where: { ContactID: { [Op.in]: listContactID } } }
+                                            ).then(() => {
+                                                rmUserFollow(db).update(
+                                                    { ContactID: null },
+                                                    { where: { ContactID: { [Op.in]: listContactID } } }
+                                                ).then(() => {
+                                                    rmDeal(db).update(
+                                                        { ContactID: null },
+                                                        { where: { ContactID: { [Op.in]: listContactID } } }
+                                                    ).then(() => {
+                                                        rmMeetContact(db).update(
+                                                            { ContactID: null },
+                                                            { where: { ContactID: { [Op.in]: listContactID } } }
+                                                        ).then(() => {
+                                                            mContact(db).destroy({ where: { ID: { [Op.in]: listContactID } } }).then(() => {
+                                                                res.json(Result.ACTION_SUCCESS);
+                                                            })
+                                                        })
+                                                    })
+                                                })
+                                            })
+                                        })
+                                    })
+                                })
+                            })
+                        }
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    followContact: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        mUserFollow(db).findOne({ where: { UserID: body.userID, ContactID: body.contactID, Type: 2 } }).then(data => {
+                            if (data) {
+                                mUserFollow(db).update(
+                                    { Follow: Boolean(body.follow) },
+                                    { where: { UserID: body.userID, ContactID: body.contactID, Type: 2 } }
+                                ).then(() => {
+                                    var result = {
+                                        status: Constant.STATUS.SUCCESS,
+                                        message: Constant.MESSAGE.ACTION_SUCCESS,
+                                        follow: body.follow
+                                    }
+                                    res.json(result)
+                                })
+                            } else {
+                                mUserFollow(db).create({
+                                    UserID: body.userID,
+                                    ContactID: body.contactID,
+                                    Type: 2,
+                                    Follow: true
+                                }).then(() => {
+                                    var result = {
+                                        status: Constant.STATUS.SUCCESS,
+                                        message: Constant.MESSAGE.ACTION_SUCCESS,
+                                        follow: true
+                                    }
+                                    res.json(result)
+                                })
+                            }
+                        })
+
+                    })
+                })
+            } else {
+                res.json()
             }
         })
     },

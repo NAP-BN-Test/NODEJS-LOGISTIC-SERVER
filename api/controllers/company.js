@@ -1,5 +1,7 @@
 const Op = require('sequelize').Op;
 
+var moment = require('moment');
+
 const Constant = require('../constants/constant');
 const Result = require('../constants/result');
 
@@ -8,6 +10,16 @@ var database = require('../db');
 var mCompany = require('../tables/company');
 var mCompanyChild = require('../tables/company-child');
 var mUser = require('../tables/user');
+var mUserFollow = require('../tables/user-follow');
+
+var rmCompanyChild = require('../tables/company-child');
+var rmCall = require('../tables/call');
+var rmEmail = require('../tables/email');
+var rmMeet = require('../tables/meet');
+var rmNote = require('../tables/note');
+var rmContact = require('../tables/contact');
+var rmDeal = require('../tables/deal');
+var rmUserFlow = require('../tables/user-follow');
 
 
 
@@ -33,7 +45,8 @@ module.exports = {
                                 array.push({
                                     id: elm['ID'],
                                     name: elm['Name'],
-                                    email: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                                    ownerID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
+                                    ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
                                     address: elm['Address'],
                                     phone: elm['Phone'],
                                     country: elm['Country'],
@@ -66,7 +79,17 @@ module.exports = {
 
                     db.authenticate().then(() => {
 
-                        mCompany(db).findOne({ where: { ID: body.companyID } }).then(data => {
+                        let company = mCompany(db);
+                        company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
+
+                        company.findOne({
+                            where: { ID: body.companyID },
+                            include: {
+                                model: mUserFollow(db),
+                                required: false,
+                                where: { UserID: body.userID, Type: 1 }
+                            }
+                        }).then(data => {
                             var obj = {
                                 id: data['ID'],
                                 name: data['Name'],
@@ -75,6 +98,7 @@ module.exports = {
                                 phone: data['Phone'],
                                 email: data['Email'],
                                 country: data['Country'],
+                                follow: data.dataValues.UserFollows[0] ? data.dataValues.UserFollows[0]['Follow'] : false
                             }
                             var result = {
                                 status: Constant.STATUS.SUCCESS,
@@ -110,13 +134,15 @@ module.exports = {
 
                         company.findOne({ where: { ID: body.companyID } }).then(data => {
                             company.findOne({ where: { ID: data.ParentID } }).then(data1 => {
-                                array.push({
-                                    id: data1.ID,
-                                    name: data1.Name,
-                                    address: data1.Address,
-                                    email: data1.Email,
-                                    role: 1
-                                });
+                                if (data1) {
+                                    array.push({
+                                        id: data1.dataValues.ID,
+                                        name: data1.dataValues.Name,
+                                        address: data1.dataValues.Address,
+                                        email: data1.dataValues.Email,
+                                        role: 1
+                                    });
+                                }
                             })
 
                             companyChild.findAll({
@@ -272,9 +298,7 @@ module.exports = {
                             Country: body.country,
                             TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
                         }).then(data => {
-
                             var obj;
-
                             if (body.role == Constant.COMPANY_ROLE.PARENT) {
                                 mCompany(db).update(
                                     { ParentID: data.dataValues.ID },
@@ -284,7 +308,11 @@ module.exports = {
                                     name: data.dataValues.Name,
                                     address: data.dataValues.Address,
                                     email: data.dataValues.Email,
-                                    role: Constant.COMPANY_ROLE.PARENT
+                                    role: Constant.COMPANY_ROLE.PARENT,
+                                    phone: data.dataValues.Phone,
+                                    country: data.dataValues.Country,
+                                    ownerID: -1,
+                                    ownerName: ""
                                 }
                             }
                             else if (body.role == Constant.COMPANY_ROLE.CHILD) {
@@ -297,9 +325,26 @@ module.exports = {
                                     name: data.dataValues.Name,
                                     address: data.dataValues.Address,
                                     email: data.dataValues.Email,
-                                    role: Constant.COMPANY_ROLE.CHILD
+                                    role: Constant.COMPANY_ROLE.CHILD,
+                                    phone: data.dataValues.Phone,
+                                    country: data.dataValues.Country,
+                                    ownerID: -1,
+                                    ownerName: ""
+                                }
+                            } else {
+                                obj = {
+                                    id: data.dataValues.ID,
+                                    name: data.dataValues.Name,
+                                    address: data.dataValues.Address,
+                                    email: data.dataValues.Email,
+                                    role: -1,
+                                    phone: data.dataValues.Phone,
+                                    country: data.dataValues.Country,
+                                    ownerID: -1,
+                                    ownerName: ""
                                 }
                             }
+
 
                             var result = {
                                 status: Constant.STATUS.SUCCESS,
@@ -412,7 +457,22 @@ module.exports = {
                                 { UserID: body.assignID },
                                 { where: { ID: { [Op.in]: listCompanyID } } }
                             ).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
+                                if (data) {
+                                    mUser(db).findOne({ where: { ID: body.assignID } }).then(user => {
+                                        var obj = {
+                                            id: user.dataValues.ID,
+                                            name: user.dataValues.Name,
+                                        };
+
+                                        var result = {
+                                            status: Constant.STATUS.SUCCESS,
+                                            message: Constant.MESSAGE.ACTION_SUCCESS,
+                                            obj: obj
+                                        }
+
+                                        res.json(result);
+                                    });
+                                }
                             })
                         }
                     })
@@ -422,4 +482,120 @@ module.exports = {
             }
         })
     },
+
+    followCompany: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        mUserFollow(db).findOne({ where: { UserID: body.userID, CompanyID: body.companyID, Type: 1 } }).then(data => {
+                            if (data) {
+                                mUserFollow(db).update(
+                                    { Follow: Boolean(body.follow) },
+                                    { where: { UserID: body.userID, CompanyID: body.companyID, Type: 1 } }
+                                ).then(() => {
+                                    var result = {
+                                        status: Constant.STATUS.SUCCESS,
+                                        message: Constant.MESSAGE.ACTION_SUCCESS,
+                                        follow: body.follow
+                                    }
+                                    res.json(result)
+                                })
+                            } else {
+                                mUserFollow(db).create({
+                                    UserID: body.userID,
+                                    CompanyID: body.companyID,
+                                    Type: 1,
+                                    Follow: true
+                                }).then(() => {
+                                    var result = {
+                                        status: Constant.STATUS.SUCCESS,
+                                        message: Constant.MESSAGE.ACTION_SUCCESS,
+                                        follow: true
+                                    }
+                                    res.json(result)
+                                })
+                            }
+                        })
+
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    deleteCompany: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.companyIDs) {
+                            let listCompany = JSON.parse(body.companyIDs);
+                            let listcompanyID = [];
+                            listCompany.forEach(item => {
+                                listcompanyID.push(Number(item + ""));
+                            });
+
+                            rmCompanyChild(db).update(
+                                { CompanyID: null },
+                                { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                            ).then(() => {
+                                rmCall(db).update(
+                                    { CompanyID: null },
+                                    { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                                ).then(() => {
+                                    rmEmail(db).update(
+                                        { CompanyID: null },
+                                        { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                                    ).then(() => {
+                                        rmMeet(db).update(
+                                            { CompanyID: null },
+                                            { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                                        ).then(() => {
+                                            rmNote(db).update(
+                                                { CompanyID: null },
+                                                { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                                            ).then(() => {
+                                                rmContact(db).update(
+                                                    { CompanyID: null },
+                                                    { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                                                ).then(() => {
+                                                    rmDeal(db).update(
+                                                        { CompanyID: null },
+                                                        { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                                                    ).then(() => {
+                                                        rmUserFlow(db).update(
+                                                            { CompanyID: null },
+                                                            { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                                                        ).then(() => {
+                                                            mCompany(db).destroy({ where: { ID: { [Op.in]: listcompanyID } } }).then(() => {
+                                                                res.json(Result.ACTION_SUCCESS);
+                                                            })
+                                                        })
+                                                    })
+                                                })
+                                            })
+                                        })
+                                    })
+                                })
+                            })
+
+
+                        }
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
 }
