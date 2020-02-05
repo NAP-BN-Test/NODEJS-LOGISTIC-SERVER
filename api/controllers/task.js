@@ -6,6 +6,7 @@ var moment = require('moment');
 var database = require('../db');
 
 var mTask = require('../tables/task');
+var mUser = require('../tables/user');
 var mAssociate = require('../tables/task-associate');
 
 module.exports = {
@@ -128,5 +129,61 @@ module.exports = {
             }
         })
     },
+
+    getListTask: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+                    db.authenticate().then(() => {
+                        var task = mTask(db);
+                        task.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+
+                        task.findAll({
+                            include: { model: mUser(db), required: false }
+                        }).then(data => {
+                            var array = [];
+                            data.forEach(item => {
+                                array.push({
+                                    id: item.dataValues.ID,
+                                    status: item.dataValues.Status ? item.dataValues.Status : false,
+                                    name: item.dataValues.Name,
+                                    type: item.dataValues.Type,
+                                    timeRemind: item.dataValues.TimeRemind,
+                                    createID: item.User.dataValues ? item.User.dataValues.ID : -1,
+                                    createName: item.User.dataValues ? item.User.dataValues.Name : "",
+                                });
+                            })
+                            var result = {
+                                status: Constant.STATUS.SUCCESS,
+                                message: '',
+                                array: array
+                            }
+                            res.json(result);
+                        })
+                    })
+                })
+            }
+        })
+    },
+
+    updateTask: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+                    db.authenticate().then(() => {
+                        console.log(body);
+                        
+                        mTask(db).update({ Status: body.status ? body.status : false }, { where: { ID: body.taskID } }).then(() => {
+                            res.json(Result.ACTION_SUCCESS)
+                        })
+                    })
+                })
+            }
+        })
+    }
 
 }

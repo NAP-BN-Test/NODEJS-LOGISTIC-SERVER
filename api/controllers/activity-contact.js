@@ -239,6 +239,7 @@ function getListActivityTask(db, body) {
                         taskName: elm.dataValues.Name,
                         assignID: elm.dataValues.AssignID,
                         activityType: Constant.ACTIVITY_TYPE.TASK,
+                        status: elm.dataValues.Status ? elm.dataValues.Status : false,
                         listComment: []
                     })
                 });

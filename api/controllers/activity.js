@@ -184,6 +184,7 @@ function getListActivityTask(db, body) {
                     taskName: elm.dataValues.Name,
                     assignID: elm.dataValues.AssignID,
                     activityType: Constant.ACTIVITY_TYPE.TASK,
+                    status: elm.dataValues.Status ? elm.dataValues.Status : false,
                     listComment: []
                 })
             });
@@ -304,47 +305,47 @@ module.exports = {
                         if (body.activityType == Constant.ACTIVITY_TYPE.CALL) {
 
                             if (body.contactID) {
-                                mCall(db).update({ ContactID: body.contactID }, { where: { ID: body.activityID } }).then(()=> {
+                                mCall(db).update({ ContactID: body.contactID }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.activityState) {
-                                mCall(db).update({ State: body.activityState }, { where: { ID: body.activityID } }).then(()=> {
+                                mCall(db).update({ State: body.activityState }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.description) {
-                                mCall(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
+                                mCall(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeStart != null) {
                                 let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
-                                mCall(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(()=> {
+                                mCall(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                         }
                         else if (body.activityType == Constant.ACTIVITY_TYPE.EMAIL) {
                             if (body.contactID) {
-                                mEmail(db).update({ ContactID: body.contactID }, { where: { ID: body.activityID } }).then(()=> {
+                                mEmail(db).update({ ContactID: body.contactID }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.description) {
-                                mEmail(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
+                                mEmail(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.activityState) {
-                                mEmail(db).update({ State: body.activityState }, { where: { ID: body.activityID } }).then(()=> {
+                                mEmail(db).update({ State: body.activityState }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeStart != null) {
                                 let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
 
-                                mEmail(db).update({ TimeCreate: date }, { where: { ID: body.activityID } }).then(()=> {
+                                mEmail(db).update({ TimeCreate: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
@@ -352,7 +353,7 @@ module.exports = {
                         else if (body.activityType == Constant.ACTIVITY_TYPE.MEET) {
                             if (body.listAttendID) {
 
-                                mMeetAttend(db).destroy({ where: { MeetID: body.activityID } }).then(()=> {
+                                mMeetAttend(db).destroy({ where: { MeetID: body.activityID } }).then(() => {
                                     let listID = JSON.parse(body.listAttendID);
 
                                     listID.forEach(itm => {
@@ -362,59 +363,59 @@ module.exports = {
                                 })
                             }
                             else if (body.duration) {
-                                mMeet(db).update({ Duration: body.duration }, { where: { ID: body.activityID } }).then(()=> {
+                                mMeet(db).update({ Duration: body.duration }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeStart != null) {
                                 let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
-                                mMeet(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(()=> {
+                                mMeet(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.description) {
-                                mMeet(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
+                                mMeet(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                         }
                         else if (body.activityType == Constant.ACTIVITY_TYPE.NOTE) {
                             if (body.description) {
-                                mNote(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
+                                mNote(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                         }
                         else if (body.activityType == Constant.ACTIVITY_TYPE.TASK) {
                             if (body.assignID) {
-                                mTask(db).update({ AssignID: body.assignID }, { where: { ID: body.activityID } }).then(()=> {
+                                mTask(db).update({ AssignID: body.assignID }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.taskName != null) {
-                                mTask(db).update({ Name: body.taskName }, { where: { ID: body.activityID } }).then(()=> {
+                                mTask(db).update({ Name: body.taskName }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeStart != null) {
                                 let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
-                                mTask(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(()=> {
+                                mTask(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeAssign != null) {
                                 let date = moment.utc(body.timeAssign).format('YYYY-MM-DD HH:mm:ss.SSS Z');
-                                mTask(db).update({ TimeAssign: date }, { where: { ID: body.activityID } }).then(()=> {
+                                mTask(db).update({ TimeAssign: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.taskType) {
-                                mTask(db).update({ Type: body.taskType }, { where: { ID: body.activityID } }).then(()=> {
+                                mTask(db).update({ Type: body.taskType }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.description) {
-                                mTask(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(()=> {
+                                mTask(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }

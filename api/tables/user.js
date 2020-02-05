@@ -10,6 +10,7 @@ module.exports = function (db) {
         Username: Sequelize.STRING,
         Password: Sequelize.STRING,
         Name: Sequelize.STRING,
+        Roles: Sequelize.INTEGER,
     });
 
     return table;

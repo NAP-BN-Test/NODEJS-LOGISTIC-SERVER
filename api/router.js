@@ -36,11 +36,19 @@ module.exports = function (app) {
 
     app.route('/crm/add_company').post(company.addCompany);
 
+    app.route('/crm/add_parent_company_by_id').post(company.addParentCompanyByID);
+
+    app.route('/crm/add_child_company_by_id').post(company.addChildCompanyByID);
+
     app.route('/crm/assign_company_owner').post(company.assignCompany);
 
     app.route('/crm/follow_company').post(company.followCompany);
 
     app.route('/crm/delete_company').post(company.deleteCompany);
+
+    app.route('/crm/delete_contact_from_company').post(company.deleteContactFromCompany);
+
+    app.route('/crm/delete_company_from_company').post(company.deleteCompanyFromCompany);
 
 
     app.route('/crm/get_list_quick_deal').post(deal.getListQuickDeal);
@@ -107,6 +115,10 @@ module.exports = function (app) {
     app.route('/crm/get_task_associate').post(task.getAssociate);
 
     app.route('/crm/update_task_associate').post(task.updateAssociate);
+
+    app.route('/crm/get_list_task').post(task.getListTask);
+
+    app.route('/crm/update_task').post(task.updateTask);
 
     //contact
     app.route('/crm/add_contact').post(contact.addContact);

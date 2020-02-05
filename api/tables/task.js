@@ -13,6 +13,7 @@ module.exports = function (db) {
         AssignID: Sequelize.BIGINT,
         UserID: Sequelize.BIGINT,
         Name: Sequelize.STRING,
+        Status: Sequelize.BOOLEAN,
 
         TimeCreate: Sequelize.DATE,
         TimeStart: Sequelize.DATE,
