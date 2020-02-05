@@ -411,7 +411,7 @@ module.exports = {
                         mCompanyChild(db).create({
                             ParentID: body.companyID,
                             ChildID: body.companyAddID,
-                        }).then(result => {
+                        }).then(() => {
                             mCompany(db).findOne({ where: { ID: body.companyAddID } }).then(data => {
                                 var obj = {
                                     id: data.dataValues.ID,
@@ -589,6 +589,59 @@ module.exports = {
                             })
 
 
+                        }
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    deleteContactFromCompany: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        rmContact(db).update(
+                            { CompanyID: null },
+                            { where: { ID: body.contactID } }
+                        ).then(() => {
+                            res.json(Result.ACTION_SUCCESS)
+                        })
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    deleteCompanyFromCompany: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.role == Constant.COMPANY_ROLE.PARENT) {
+                            mCompany(db).update(
+                                { ParentID: null },
+                                { where: { ID: body.companyID } }
+                            ).then(() => {
+                                res.json(Result.ACTION_SUCCESS)
+                            });
+                        }
+                        else if (body.role == Constant.COMPANY_ROLE.CHILD) {
+                            mCompanyChild(db).destroy({
+                                where: { ParentID: body.companyID, ChildID: body.companyIDRemove }
+                            }).then(() => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
                         }
                     })
                 })

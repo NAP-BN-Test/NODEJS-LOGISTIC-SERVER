@@ -33,7 +33,7 @@ module.exports = {
 
                     db.authenticate().then(() => {
                         mContact(db).findAll({
-                            where: { UserID: body.userID, CompanyID: body.companyID },
+                            where: { CompanyID: body.companyID },
 
                         }).then(data => {
                             let array = [];
@@ -206,10 +206,12 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
+                        console.log(body);
+
                         mContact(db).update(
                             { CompanyID: body.companyID },
                             { where: { ID: body.contactID } }
-                        ).then(result => {
+                        ).then(() => {
                             mContact(db).findOne({ where: { ID: body.contactID } }).then(data => {
                                 var obj = {
                                     id: data.dataValues.ID,
