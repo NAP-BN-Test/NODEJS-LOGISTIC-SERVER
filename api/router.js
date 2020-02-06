@@ -50,6 +50,8 @@ module.exports = function (app) {
 
     app.route('/crm/delete_company_from_company').post(company.deleteCompanyFromCompany);
 
+    app.route('/crm/delete_deal_from_company').post(company.deleteDealFromCompany);
+
 
     app.route('/crm/get_list_quick_deal').post(deal.getListQuickDeal);
 
@@ -58,6 +60,8 @@ module.exports = function (app) {
     app.route('/crm/get_deal_stage').post(deal.getDealStage);
 
     app.route('/crm/add_deal').post(deal.addDeal);
+
+    app.route('/crm/update_deal').post(deal.updateDeal);
 
 
     app.route('/crm/get_list_activity').post(activity.getListActivity);
