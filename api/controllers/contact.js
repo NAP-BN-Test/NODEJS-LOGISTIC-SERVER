@@ -109,37 +109,49 @@ module.exports = {
 
                     db.authenticate().then(() => {
 
-                        var contact = mContact(db);
+                        mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
+                            var contact = mContact(db);
 
-                        contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
-                        contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                            contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
+                            contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                            contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
 
-                        contact.findAll({
-                            raw: true,
-                            include: [{ model: mCompany(db) }, { model: mUser(db) }]
-                        }).then(data => {
-                            var array = [];
+                            contact.findAll({
+                                include: [
+                                    { model: mCompany(db), required: false },
+                                    { model: mUser(db), required: false },
+                                    {
+                                        model: mUserFollow(db),
+                                        required: false,
+                                        where: { UserID: body.userID, Type: 2 }
+                                    }
+                                ],
+                                where: user.dataValues.Roles == Constant.USER_ROLE.MANAGER ? null : { UserID: body.userID }
+                            }).then(data => {
+                                var array = [];
 
-                            data.forEach(elm => {
-                                array.push({
-                                    id: elm['ID'],
-                                    name: elm['Name'],
-                                    email: elm['Email'],
-                                    handPhone: elm['HandPhone'],
-                                    timeCreate: elm['TimeCreate'],
-                                    companyID: elm['Company.ID'],
-                                    companyName: elm['Company.Name'],
-                                    ownerID: elm['User.ID'],
-                                    ownerName: elm['User.Name'],
-                                })
-                            });
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
-                            }
-                            res.json(result)
-                        })
+                                data.forEach(elm => {
+                                    array.push({
+                                        id: elm.dataValues.ID,
+                                        name: elm.dataValues.Name,
+                                        email: elm.dataValues.Email,
+                                        handPhone: elm.dataValues.HandPhone,
+                                        timeCreate: elm.dataValues.TimeCreate,
+                                        companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : null,
+                                        companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
+                                        ownerID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : null,
+                                        ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                                        follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
+                                    })
+                                });
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: '',
+                                    array: array
+                                }
+                                res.json(result)
+                            })
+                        });
 
                     }).catch(err => res.json(err))
                 })
@@ -206,8 +218,6 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        console.log(body);
-
                         mContact(db).update(
                             { CompanyID: body.companyID },
                             { where: { ID: body.contactID } }
@@ -419,40 +429,45 @@ module.exports = {
                             listContact.forEach(item => {
                                 listContactID.push(Number(item + ""));
                             });
-                            rmCallAssciate(db).update(
-                                { ContactID: null },
-                                { where: { ContactID: { [Op.in]: listContactID } } }
-                            ).then(() => {
-                                rmEmailAssciate(db).update(
-                                    { ContactID: null },
-                                    { where: { ContactID: { [Op.in]: listContactID } } }
-                                ).then(() => {
-                                    rmMeetAssciate(db).update(
+
+                            mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
+                                if (user.dataValues.Roles == Constant.USER_ROLE.MANAGER) {
+                                    rmCallAssciate(db).update(
                                         { ContactID: null },
                                         { where: { ContactID: { [Op.in]: listContactID } } }
                                     ).then(() => {
-                                        rmNoteAssciate(db).update(
+                                        rmEmailAssciate(db).update(
                                             { ContactID: null },
                                             { where: { ContactID: { [Op.in]: listContactID } } }
                                         ).then(() => {
-                                            rmTaskAssciate(db).update(
+                                            rmMeetAssciate(db).update(
                                                 { ContactID: null },
                                                 { where: { ContactID: { [Op.in]: listContactID } } }
                                             ).then(() => {
-                                                rmUserFollow(db).update(
+                                                rmNoteAssciate(db).update(
                                                     { ContactID: null },
                                                     { where: { ContactID: { [Op.in]: listContactID } } }
                                                 ).then(() => {
-                                                    rmDeal(db).update(
+                                                    rmTaskAssciate(db).update(
                                                         { ContactID: null },
                                                         { where: { ContactID: { [Op.in]: listContactID } } }
                                                     ).then(() => {
-                                                        rmMeetContact(db).update(
+                                                        rmUserFollow(db).update(
                                                             { ContactID: null },
                                                             { where: { ContactID: { [Op.in]: listContactID } } }
                                                         ).then(() => {
-                                                            mContact(db).destroy({ where: { ID: { [Op.in]: listContactID } } }).then(() => {
-                                                                res.json(Result.ACTION_SUCCESS);
+                                                            rmDeal(db).update(
+                                                                { ContactID: null },
+                                                                { where: { ContactID: { [Op.in]: listContactID } } }
+                                                            ).then(() => {
+                                                                rmMeetContact(db).update(
+                                                                    { ContactID: null },
+                                                                    { where: { ContactID: { [Op.in]: listContactID } } }
+                                                                ).then(() => {
+                                                                    mContact(db).destroy({ where: { ID: { [Op.in]: listContactID } } }).then(() => {
+                                                                        res.json(Result.ACTION_SUCCESS);
+                                                                    })
+                                                                })
                                                             })
                                                         })
                                                     })
@@ -460,8 +475,13 @@ module.exports = {
                                             })
                                         })
                                     })
-                                })
-                            })
+                                }
+                                else {
+                                    mContact(db).update({ UserID: null }, { where: { ID: { [Op.in]: listContactID } } }).then(() => {
+                                        res.json(Result.ACTION_SUCCESS);
+                                    })
+                                }
+                            });
                         }
                     })
                 })

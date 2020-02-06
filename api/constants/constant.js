@@ -7,6 +7,10 @@ const MESSAGE = {
     LOGIN_FAIL: "Đăng nhập thất bại!",
 }
 
+const USER_ROLE = {
+    STAFF: 1,
+    MANAGER: 2
+}
 const STATUS = {
     SUCCESS: 1,
     FAIL: 0
@@ -31,4 +35,5 @@ module.exports = {
     STATUS: STATUS,
     ACTIVITY_TYPE: ACTIVITY_TYPE,
     COMPANY_ROLE: COMPANY_ROLE,
+    USER_ROLE: USER_ROLE,
 }

@@ -1,6 +1,8 @@
 const Constant = require('../constants/constant');
 const Result = require('../constants/result');
 
+var moment = require('moment');
+
 var database = require('../db');
 
 var mDeal = require('../tables/deal');
@@ -144,7 +146,7 @@ module.exports = {
                     db.authenticate().then(() => {
                         mDeal(db).create({
                             UserID: body.userID,
-                            CompanyID: body.companyID,
+                            CompanyID: body.companyID ? body.companyID : null,
                             ContactID: body.contactID,
                             StageID: body.stageID,
                             Name: body.name,
@@ -157,8 +159,8 @@ module.exports = {
                                 id: data.dataValues.ID,
                                 timeCreate: data.dataValues.TimeCreate,
                                 timeClose: data.dataValues.TimeClose,
-                                amount: data.dataValues.Amount,
-                                stage: data.dataValues.Stage
+                                amount: body.amount,
+                                stageID: body.stageID
                             }
                             var result = {
                                 status: Constant.STATUS.SUCCESS,
@@ -166,11 +168,31 @@ module.exports = {
                                 obj: obj
                             }
                             res.json(result)
-                        }).catch(() => {
-                            res.json(Result.SYS_ERROR_RESULT);
                         })
-                    }).catch(() => {
-                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            } else {
+                res.json(Result.SYS_ERROR_RESULT);
+            }
+        })
+    },
+
+    updateDeal: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.stageID) {
+                            mDeal(db).update(
+                                { StageID: body.stageID },
+                                { where: { ID: body.dealID } }
+                            ).then(() => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
                     })
                 })
             } else {

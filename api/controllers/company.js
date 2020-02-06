@@ -33,34 +33,50 @@ module.exports = {
 
                     db.authenticate().then(() => {
 
-                        var company = mCompany(db);
-                        company.belongsTo(mUser(db), { foreignKey: 'UserID' });
+                        mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
+                            if (user) {
+                                let company = mCompany(db);
+                                company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                                company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
 
-                        company.findAll({
-                            include: { model: mUser(db) }
-                        }).then(data => {
-                            var array = [];
+                                company.findAll({
+                                    include: [
+                                        { model: mUser(db), required: false },
+                                        {
+                                            model: mUserFollow(db),
+                                            required: false,
+                                            where: { UserID: body.userID, Type: 1 }
+                                        }
+                                    ],
+                                    where: user.dataValues.Roles == Constant.USER_ROLE.MANAGER ? null : { UserID: body.userID }
+                                }).then(data => {
+                                    var array = [];
 
-                            data.forEach(elm => {
-                                array.push({
-                                    id: elm['ID'],
-                                    name: elm['Name'],
-                                    ownerID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                                    ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
-                                    address: elm['Address'],
-                                    phone: elm['Phone'],
-                                    country: elm['Country'],
-                                    assignID: elm['UserID'],
+                                    data.forEach(elm => {
+                                        array.push({
+                                            id: elm.dataValues.ID,
+                                            name: elm.dataValues.Name,
+                                            ownerID: elm.dataValues.UserID,
+                                            ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                                            address: elm.dataValues.Address,
+                                            phone: elm.dataValues.Phone,
+                                            country: elm.dataValues.Country,
+                                            follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
+                                        })
+                                    });
+
+                                    var result = {
+                                        status: Constant.STATUS.SUCCESS,
+                                        message: '',
+                                        array: array
+                                    }
+                                    res.json(result)
                                 })
-                            });
-
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
                             }
-                            res.json(result)
+
                         })
+
+
 
                     }).catch(err => res.json(err))
                 })
@@ -544,40 +560,44 @@ module.exports = {
                                 listcompanyID.push(Number(item + ""));
                             });
 
-                            rmCompanyChild(db).update(
-                                { CompanyID: null },
-                                { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                            ).then(() => {
-                                rmCall(db).update(
-                                    { CompanyID: null },
-                                    { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                                ).then(() => {
-                                    rmEmail(db).update(
+                            mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
+                                if (user.dataValues.Roles == Constant.USER_ROLE.MANAGER) {
+                                    rmCompanyChild(db).update(
                                         { CompanyID: null },
                                         { where: { CompanyID: { [Op.in]: listcompanyID } } }
                                     ).then(() => {
-                                        rmMeet(db).update(
+                                        rmCall(db).update(
                                             { CompanyID: null },
                                             { where: { CompanyID: { [Op.in]: listcompanyID } } }
                                         ).then(() => {
-                                            rmNote(db).update(
+                                            rmEmail(db).update(
                                                 { CompanyID: null },
                                                 { where: { CompanyID: { [Op.in]: listcompanyID } } }
                                             ).then(() => {
-                                                rmContact(db).update(
+                                                rmMeet(db).update(
                                                     { CompanyID: null },
                                                     { where: { CompanyID: { [Op.in]: listcompanyID } } }
                                                 ).then(() => {
-                                                    rmDeal(db).update(
+                                                    rmNote(db).update(
                                                         { CompanyID: null },
                                                         { where: { CompanyID: { [Op.in]: listcompanyID } } }
                                                     ).then(() => {
-                                                        rmUserFlow(db).update(
+                                                        rmContact(db).update(
                                                             { CompanyID: null },
                                                             { where: { CompanyID: { [Op.in]: listcompanyID } } }
                                                         ).then(() => {
-                                                            mCompany(db).destroy({ where: { ID: { [Op.in]: listcompanyID } } }).then(() => {
-                                                                res.json(Result.ACTION_SUCCESS);
+                                                            rmDeal(db).update(
+                                                                { CompanyID: null },
+                                                                { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                                                            ).then(() => {
+                                                                rmUserFlow(db).update(
+                                                                    { CompanyID: null },
+                                                                    { where: { CompanyID: { [Op.in]: listcompanyID } } }
+                                                                ).then(() => {
+                                                                    mCompany(db).destroy({ where: { ID: { [Op.in]: listcompanyID } } }).then(() => {
+                                                                        res.json(Result.ACTION_SUCCESS);
+                                                                    })
+                                                                })
                                                             })
                                                         })
                                                     })
@@ -585,10 +605,12 @@ module.exports = {
                                             })
                                         })
                                     })
-                                })
-                            })
-
-
+                                } else {
+                                    mCompany(db).update({ UserID: null }, { where: { ID: { [Op.in]: listcompanyID } } }).then(() => {
+                                        res.json(Result.ACTION_SUCCESS);
+                                    })
+                                }
+                            });
                         }
                     })
                 })
@@ -643,6 +665,25 @@ module.exports = {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
+                    })
+                })
+            } else {
+                res.json()
+            }
+        })
+    },
+
+    deleteDealFromCompany: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        rmDeal(db).destroy({ where: { ID: body.dealID } }).then(() => {
+                            res.json(Result.ACTION_SUCCESS)
+                        });
                     })
                 })
             } else {
