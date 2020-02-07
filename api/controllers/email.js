@@ -1,3 +1,5 @@
+const Op = require('sequelize').Op;
+
 const Constant = require('../constants/constant');
 const Result = require('../constants/result');
 
@@ -9,6 +11,10 @@ var mContact = require('../tables/contact');
 
 var mEmail = require('../tables/email');
 var mAssociate = require('../tables/email-associate');
+
+var rmAssociate = require('../tables/email-associate');
+var rmComment = require('../tables/email-comment');
+
 
 module.exports = {
 
@@ -118,6 +124,83 @@ module.exports = {
                         } else {
                             mAssociate(db).destroy({ where: { ActivityID: body.emailID, ContactID: body.contactID } }).then(data => {
                                 res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
+    getListEmail: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        var email = mEmail(db);
+                        email.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
+
+                        email.findAll({
+                            where: { UserID: body.userID },
+                            include: { model: mContact(db), required: false }
+                        }).then(data => {
+                            let array = [];
+                            if (data) {
+                                data.forEach(item => {
+                                    array.push({
+                                        id: item.dataValues.ID,
+                                        contactID: item.dataValues.Contact ? item.dataValues.Contact.ID : -1,
+                                        contactName: item.dataValues.Contact ? item.dataValues.Contact.Name : "",
+                                        description: item.dataValues.Description,
+                                        timeRemind: item.dataValues.TimeRemind,
+                                        state: item.dataValues.State
+                                    });
+                                });
+
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: '',
+                                    array: array
+                                }
+
+                                res.json(result);
+                            }
+                        })
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
+    deleteEmail: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.activityIDs) {
+                            let listActivity = JSON.parse(body.activityIDs);
+                            let listActivityID = [];
+                            listActivity.forEach(item => {
+                                listActivityID.push(Number(item + ""));
+                            });
+                            rmAssociate(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
+                                rmComment(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
+                                    mEmail(db).destroy({ where: { ID: { [Op.in]: listActivityID } } }).then(() => {
+                                        res.json(Result.ACTION_SUCCESS);
+                                    })
+                                })
                             })
                         }
                     }).catch((err) => {

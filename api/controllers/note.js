@@ -1,3 +1,5 @@
+const Op = require('sequelize').Op;
+
 const Constant = require('../constants/constant');
 const Result = require('../constants/result');
 
@@ -7,6 +9,10 @@ var database = require('../db');
 
 var mNote = require('../tables/note');
 var mAssociate = require('../tables/note-associate');
+
+var rmAssociate = require('../tables/note-associate');
+var rmComment = require('../tables/note-comment');
+
 
 module.exports = {
 
@@ -119,6 +125,45 @@ module.exports = {
         })
     },
 
+    getListNote: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        mNote(db).findAll({
+                            where: { UserID: body.userID }
+                        }).then(data => {
+                            let array = [];
+                            if (data) {
+                                data.forEach(item => {
+                                    array.push({
+                                        id: item.dataValues.ID,
+                                        description: item.dataValues.Description,
+                                        timeRemind: item.dataValues.TimeRemind,
+                                    });
+                                });
+
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: '',
+                                    array: array
+                                }
+
+                                res.json(result);
+                            }
+                        })
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
     deleteNote: (req, res) => {
         let body = req.body;
 
@@ -127,11 +172,20 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        mAssociate(db).destroy({ where: { ActivityID: body.noteID } }).then(data => {
-                            mNote(db).destroy({ where: { ID: body.noteID, UserID: body.userID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
+                        if (body.activityIDs) {
+                            let listActivity = JSON.parse(body.activityIDs);
+                            let listActivityID = [];
+                            listActivity.forEach(item => {
+                                listActivityID.push(Number(item + ""));
+                            });
+                            rmAssociate(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
+                                rmComment(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
+                                    mNote(db).destroy({ where: { ID: { [Op.in]: listActivityID } } }).then(() => {
+                                        res.json(Result.ACTION_SUCCESS);
+                                    })
+                                })
                             })
-                        })
+                        }
                     }).catch((err) => {
                         console.log(err);
                         res.json(Result.SYS_ERROR_RESULT);
