@@ -126,7 +126,7 @@ module.exports = {
                                         where: { UserID: body.userID, Type: 2 }
                                     }
                                 ],
-                                where: user.dataValues.Roles == Constant.USER_ROLE.MANAGER ? null : { UserID: body.userID }
+                                // where: user.dataValues.Roles == Constant.USER_ROLE.MANAGER ? null : { UserID: body.userID }
                             }).then(data => {
                                 var array = [];
 
