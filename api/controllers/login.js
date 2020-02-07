@@ -25,6 +25,8 @@ module.exports = {
                                 name: data['Name'],
                                 username: data['Username'],
                                 password: data['Password'],
+                                phone: data['Phone'],
+                                email: data['Email'],
                             }
 
                             var result = {
