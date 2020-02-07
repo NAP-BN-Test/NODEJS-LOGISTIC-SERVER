@@ -1,7 +1,7 @@
 module.exports = function (app) {
     var company = require('./controllers/company');
     var login = require('./controllers/login');
-    
+
     var activity = require('./controllers/activity');
     var activityContact = require('./controllers/activity-contact');
 
@@ -83,6 +83,11 @@ module.exports = function (app) {
 
     app.route('/crm/update_meet_associate').post(meet.updateAssociate);
 
+    app.route('/crm/get_list_meet').post(meet.getListMeet);
+
+    app.route('/crm/delete_meet').post(meet.deleteMeet);
+
+
     //Note
     app.route('/crm/create_note').post(note.createNote);
 
@@ -92,6 +97,9 @@ module.exports = function (app) {
 
     app.route('/crm/delete_note').post(note.deleteNote);
 
+    app.route('/crm/get_list_note').post(note.getListNote);
+
+
     //Call
     app.route('/crm/create_call').post(call.createCall);
 
@@ -99,12 +107,21 @@ module.exports = function (app) {
 
     app.route('/crm/update_call_associate').post(call.updateAssociate);
 
+    app.route('/crm/get_list_call').post(call.getListCall);
+
+    app.route('/crm/delete_call').post(call.deleteCall);
+
+
     //Email
     app.route('/crm/create_email').post(email.createEmail);
 
     app.route('/crm/get_email_associate').post(email.getAssociate);
 
     app.route('/crm/update_email_associate').post(email.updateAssociate);
+
+    app.route('/crm/get_list_email').post(email.getListEmail);
+
+    app.route('/crm/delete_email').post(email.deleteEmail);
 
 
     app.route('/crm/add_comment').post(comment.addComment);

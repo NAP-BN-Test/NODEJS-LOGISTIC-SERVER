@@ -1,3 +1,5 @@
+const Op = require('sequelize').Op;
+
 const Constant = require('../constants/constant');
 const Result = require('../constants/result');
 
@@ -8,6 +10,12 @@ var database = require('../db');
 var mMeetAttend = require('../tables/meet-attend');
 var mMeet = require('../tables/meet');
 var mAssociate = require('../tables/meet-associate');
+
+
+var rmAssociate = require('../tables/meet-associate');
+var rmComment = require('../tables/meet-comment');
+var rmAttend = require('../tables/meet-attend');
+var rmMeetContact = require('../tables/meet-contact');
 
 module.exports = {
 
@@ -174,6 +182,83 @@ module.exports = {
                         } else {
                             mAssociate(db).destroy({ where: { ActivityID: body.meetID, ContactID: body.contactID } }).then(data => {
                                 res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
+    getListMeet: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        var meet = mMeet(db);
+
+                        meet.findAll({
+                            where: { UserID: body.userID }
+                        }).then(data => {
+                            let array = [];
+                            if (data) {
+                                data.forEach(item => {
+                                    array.push({
+                                        id: item.dataValues.ID,
+                                        description: item.dataValues.Description,
+                                        timeRemind: item.dataValues.TimeRemind,
+                                        duration: item.dataValues.Duration
+                                    });
+                                });
+
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: '',
+                                    array: array
+                                }
+
+                                res.json(result);
+                            }
+                        })
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
+
+    deleteMeet: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        if (body.activityIDs) {
+                            let listActivity = JSON.parse(body.activityIDs);
+                            let listActivityID = [];
+                            listActivity.forEach(item => {
+                                listActivityID.push(Number(item + ""));
+                            });
+                            rmAssociate(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
+                                rmComment(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
+                                    rmAttend(db).destroy({ where: { MeetID: { [Op.in]: listActivityID } } }).then(() => {
+                                        rmMeetContact(db).destroy({ where: { MeetID: { [Op.in]: listActivityID } } }).then(() => {
+                                            mMeet(db).destroy({ where: { ID: { [Op.in]: listActivityID } } }).then(() => {
+                                                res.json(Result.ACTION_SUCCESS);
+                                            })
+                                        })
+                                    })
+                                })
                             })
                         }
                     }).catch((err) => {
