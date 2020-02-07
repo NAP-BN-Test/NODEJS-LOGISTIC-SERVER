@@ -11,6 +11,8 @@ module.exports = function (db) {
         Password: Sequelize.STRING,
         Name: Sequelize.STRING,
         Roles: Sequelize.INTEGER,
+        Phone: Sequelize.STRING,
+        Email: Sequelize.STRING,
     });
 
     return table;
