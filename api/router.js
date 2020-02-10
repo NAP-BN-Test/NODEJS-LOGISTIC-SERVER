@@ -18,6 +18,9 @@ module.exports = function (app) {
 
     var svController = require('./controllers/server-controller');
 
+    var summary = require('./controllers/summary');
+
+
     // todoList Routes
     app.route('/crm/user_login').post(login.login);
 
@@ -164,5 +167,8 @@ module.exports = function (app) {
 
     app.route('/crm/follow_contact').post(contact.followContact);
 
+
+    //summary
+    app.route('/crm/get_summary_info').post(summary.getListActivity);
 
 };

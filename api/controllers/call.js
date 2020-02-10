@@ -7,7 +7,9 @@ var moment = require('moment');
 
 var database = require('../db');
 
+var mUser = require('../tables/user');
 var mContact = require('../tables/contact');
+var mCompany = require('../tables/company');
 
 var mCall = require('../tables/call');
 var mAssociate = require('../tables/call-associate');
@@ -144,22 +146,38 @@ module.exports = {
 
                     db.authenticate().then(() => {
                         var call = mCall(db);
+                        call.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
                         call.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
+                        call.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
                         call.findAll({
                             where: { UserID: body.userID },
-                            include: { model: mContact(db), required: false }
+                            include: [
+                                { model: mUser(db), required: false },
+                                { model: mContact(db), required: false },
+                                { model: mCompany(db), required: false }
+                            ]
                         }).then(data => {
                             let array = [];
                             if (data) {
                                 data.forEach(item => {
                                     array.push({
                                         id: item.dataValues.ID,
-                                        contactID: item.dataValues.Contact ? item.dataValues.Contact.ID : -1,
-                                        contactName: item.dataValues.Contact ? item.dataValues.Contact.Name : "",
                                         description: item.dataValues.Description,
                                         timeRemind: item.dataValues.TimeRemind,
-                                        state: item.dataValues.State
+                                        state: item.dataValues.State,
+
+                                        createID: item.User.dataValues ? item.User.dataValues.ID : -1,
+                                        createName: item.User.dataValues ? item.User.dataValues.Name : "",
+
+                                        contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
+                                        contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+
+                                        companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
+                                        companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+
+                                        type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                        activityType: Constant.ACTIVITY_TYPE.CALL
                                     });
                                 });
 

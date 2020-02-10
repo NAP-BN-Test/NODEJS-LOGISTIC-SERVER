@@ -13,6 +13,10 @@ var mAssociate = require('../tables/note-associate');
 var rmAssociate = require('../tables/note-associate');
 var rmComment = require('../tables/note-comment');
 
+var mUser = require('../tables/user');
+var mContact = require('../tables/contact');
+var mCompany = require('../tables/company');
+
 
 module.exports = {
 
@@ -133,8 +137,18 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        mNote(db).findAll({
-                            where: { UserID: body.userID }
+                        var note = mNote(db);
+                        note.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                        note.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
+                        note.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
+
+                        note.findAll({
+                            where: { UserID: body.userID },
+                            include: [
+                                { model: mUser(db), required: false },
+                                { model: mContact(db), required: false },
+                                { model: mCompany(db), required: false }
+                            ]
                         }).then(data => {
                             let array = [];
                             if (data) {
@@ -143,6 +157,18 @@ module.exports = {
                                         id: item.dataValues.ID,
                                         description: item.dataValues.Description,
                                         timeRemind: item.dataValues.TimeRemind,
+
+                                        createID: item.User.dataValues ? item.User.dataValues.ID : -1,
+                                        createName: item.User.dataValues ? item.User.dataValues.Name : "",
+
+                                        contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
+                                        contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+
+                                        companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
+                                        companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+
+                                        type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                        activityType: Constant.ACTIVITY_TYPE.NOTE
                                     });
                                 });
 
