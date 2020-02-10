@@ -10,6 +10,8 @@ module.exports = function (app) {
     var comment = require('./controllers/comment');
     var user = require('./controllers/user');
 
+    var city = require('./controllers/city');
+
     var call = require('./controllers/call');
     var note = require('./controllers/note');
     var meet = require('./controllers/meet');
@@ -170,5 +172,8 @@ module.exports = function (app) {
 
     //summary
     app.route('/crm/get_summary_info').post(summary.getListActivity);
+
+    //city
+    app.route('/crm/get_list_city').post(city.getListCity);
 
 };

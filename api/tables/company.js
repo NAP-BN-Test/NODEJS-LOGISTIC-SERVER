@@ -14,7 +14,7 @@ module.exports = function (db) {
         UserID: Sequelize.BIGINT,
         ShortName: Sequelize.STRING,
         Phone: Sequelize.STRING,
-        Country: Sequelize.STRING,
+        CityID: Sequelize.STRING,
     });
 
     return table;

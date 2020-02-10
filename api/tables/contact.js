@@ -9,15 +9,17 @@ module.exports = function (db) {
         },
         Name: Sequelize.STRING,
         Email: Sequelize.STRING,
-        HandPhone: Sequelize.STRING,
         TimeCreate: Sequelize.DATE,
         Type: Sequelize.INTEGER,
         UserID: Sequelize.BIGINT,
         CompanyID: Sequelize.BIGINT,
         JobTile: Sequelize.INTEGER,
         Gender: Sequelize.INTEGER,
-        HomePhone: Sequelize.INTEGER,
-        Address: Sequelize.INTEGER
+        Phone: Sequelize.INTEGER,
+        Address: Sequelize.INTEGER,
+        Zalo: Sequelize.INTEGER,
+        Facebook: Sequelize.INTEGER,
+        Skype: Sequelize.INTEGER
     });
 
     return table;
