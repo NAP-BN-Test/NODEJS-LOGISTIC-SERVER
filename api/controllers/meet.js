@@ -17,6 +17,11 @@ var rmComment = require('../tables/meet-comment');
 var rmAttend = require('../tables/meet-attend');
 var rmMeetContact = require('../tables/meet-contact');
 
+var mUser = require('../tables/user');
+var mContact = require('../tables/contact');
+var mCompany = require('../tables/company');
+
+
 module.exports = {
 
     createMeet: (req, res) => {
@@ -202,9 +207,17 @@ module.exports = {
 
                     db.authenticate().then(() => {
                         var meet = mMeet(db);
+                        meet.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                        meet.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
+                        meet.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
                         meet.findAll({
-                            where: { UserID: body.userID }
+                            where: { UserID: body.userID },
+                            include: [
+                                { model: mUser(db), required: false },
+                                { model: mContact(db), required: false },
+                                { model: mCompany(db), required: false }
+                            ]
                         }).then(data => {
                             let array = [];
                             if (data) {
@@ -213,7 +226,19 @@ module.exports = {
                                         id: item.dataValues.ID,
                                         description: item.dataValues.Description,
                                         timeRemind: item.dataValues.TimeRemind,
-                                        duration: item.dataValues.Duration
+                                        duration: item.dataValues.Duration,
+
+                                        createID: item.User.dataValues ? item.User.dataValues.ID : -1,
+                                        createName: item.User.dataValues ? item.User.dataValues.Name : "",
+
+                                        contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
+                                        contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+
+                                        companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
+                                        companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+
+                                        type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                        activityType: Constant.ACTIVITY_TYPE.MEET
                                     });
                                 });
 

@@ -7,6 +7,8 @@ var database = require('../db');
 
 var mTask = require('../tables/task');
 var mUser = require('../tables/user');
+var mContact = require('../tables/contact');
+var mCompany = require('../tables/company');
 var mAssociate = require('../tables/task-associate');
 
 module.exports = {
@@ -139,9 +141,15 @@ module.exports = {
                     db.authenticate().then(() => {
                         var task = mTask(db);
                         task.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                        task.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
+                        task.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
                         task.findAll({
-                            include: { model: mUser(db), required: false }
+                            include: [
+                                { model: mUser(db), required: false },
+                                { model: mContact(db), required: false },
+                                { model: mCompany(db), required: false }
+                            ]
                         }).then(data => {
                             var array = [];
                             data.forEach(item => {
@@ -153,6 +161,15 @@ module.exports = {
                                     timeRemind: item.dataValues.TimeRemind,
                                     createID: item.User.dataValues ? item.User.dataValues.ID : -1,
                                     createName: item.User.dataValues ? item.User.dataValues.Name : "",
+
+                                    contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
+                                    contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+
+                                    companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
+                                    companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+
+                                    type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                    activityType: Constant.ACTIVITY_TYPE.TASK
                                 });
                             })
                             var result = {
@@ -176,7 +193,7 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
                     db.authenticate().then(() => {
                         console.log(body);
-                        
+
                         mTask(db).update({ Status: body.status ? body.status : false }, { where: { ID: body.taskID } }).then(() => {
                             res.json(Result.ACTION_SUCCESS)
                         })
