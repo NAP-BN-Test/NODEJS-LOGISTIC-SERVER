@@ -7,6 +7,8 @@ const Result = require('../constants/result');
 
 var database = require('../db');
 
+var mCity = require('../tables/ city');
+
 var mCompany = require('../tables/company');
 var mCompanyChild = require('../tables/company-child');
 var mUser = require('../tables/user');
@@ -37,6 +39,7 @@ module.exports = {
                             if (user) {
                                 let company = mCompany(db);
                                 company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                                company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
                                 company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
 
                                 company.findAll({
@@ -46,12 +49,12 @@ module.exports = {
                                             model: mUserFollow(db),
                                             required: false,
                                             where: { UserID: body.userID, Type: 1 }
-                                        }
+                                        },
+                                        { model: mCity(db), required: false }
                                     ],
                                     where: user.dataValues.Roles == Constant.USER_ROLE.MANAGER ? null : { UserID: body.userID }
                                 }).then(data => {
                                     var array = [];
-
                                     data.forEach(elm => {
                                         array.push({
                                             id: elm.dataValues.ID,
@@ -60,7 +63,7 @@ module.exports = {
                                             ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
                                             address: elm.dataValues.Address,
                                             phone: elm.dataValues.Phone,
-                                            country: elm.dataValues.Country,
+                                            city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
                                             follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
                                         })
                                     });
@@ -96,15 +99,19 @@ module.exports = {
                     db.authenticate().then(() => {
 
                         let company = mCompany(db);
+                        company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
                         company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
 
                         company.findOne({
                             where: { ID: body.companyID },
-                            include: {
-                                model: mUserFollow(db),
-                                required: false,
-                                where: { UserID: body.userID, Type: 1 }
-                            }
+                            include: [
+                                {
+                                    model: mUserFollow(db),
+                                    required: false,
+                                    where: { UserID: body.userID, Type: 1 }
+                                },
+                                { model: mCity(db), required: false }
+                            ]
                         }).then(data => {
                             var obj = {
                                 id: data['ID'],
@@ -113,7 +120,7 @@ module.exports = {
                                 address: data['Address'],
                                 phone: data['Phone'],
                                 email: data['Email'],
-                                country: data['Country'],
+                                city: data.dataValues.City ? data.dataValues.City.NameVI : "",
                                 follow: data.dataValues.UserFollows[0] ? data.dataValues.UserFollows[0]['Follow'] : false
                             }
                             var result = {
@@ -304,14 +311,17 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        mCompany(db).create({
+                        var company = mCompany(db);
+                        company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
+
+                        company.create({
                             UserID: body.userID,
                             Name: body.name,
                             ShortName: body.shortName,
                             Phone: body.phone,
                             Email: body.email,
                             Address: body.address,
-                            Country: body.country,
+                            CityID: body.cityID,
                             TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
                         }).then(data => {
                             var obj;
@@ -326,7 +336,7 @@ module.exports = {
                                     email: data.dataValues.Email,
                                     role: Constant.COMPANY_ROLE.PARENT,
                                     phone: data.dataValues.Phone,
-                                    country: data.dataValues.Country,
+                                    city: body.cityName,
                                     ownerID: -1,
                                     ownerName: ""
                                 }
@@ -343,7 +353,7 @@ module.exports = {
                                     email: data.dataValues.Email,
                                     role: Constant.COMPANY_ROLE.CHILD,
                                     phone: data.dataValues.Phone,
-                                    country: data.dataValues.Country,
+                                    city: body.cityName,
                                     ownerID: -1,
                                     ownerName: ""
                                 }
@@ -355,7 +365,7 @@ module.exports = {
                                     email: data.dataValues.Email,
                                     role: -1,
                                     phone: data.dataValues.Phone,
-                                    country: data.dataValues.Country,
+                                    city: body.cityName,
                                     ownerID: -1,
                                     ownerName: ""
                                 }

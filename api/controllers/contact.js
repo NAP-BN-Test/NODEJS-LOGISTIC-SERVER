@@ -135,7 +135,7 @@ module.exports = {
                                         id: elm.dataValues.ID,
                                         name: elm.dataValues.Name,
                                         email: elm.dataValues.Email,
-                                        handPhone: elm.dataValues.HandPhone,
+                                        phone: elm.dataValues.Phone,
                                         timeCreate: elm.dataValues.TimeCreate,
                                         companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : null,
                                         companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
@@ -175,10 +175,12 @@ module.exports = {
                             Name: body.name,
                             Gender: body.gender,
                             JobTile: body.jobTile,
-                            HandPhone: body.handPhone,
-                            HomePhone: body.homePhone,
+                            Phone: body.phone,
                             Email: body.email,
                             Address: body.address,
+                            Zalo: body.zalo,
+                            Facebook: body.facebook,
+                            Skype: body.skype,
                             TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
                         }).then(data => {
                             var obj = {
@@ -186,7 +188,7 @@ module.exports = {
                                 name: data.dataValues.Name,
                                 jobTile: data.dataValues.JobTile,
                                 email: data.dataValues.Email,
-                                handPhone: data.dataValues.HandPhone,
+                                handPhone: data.dataValues.Phone,
                                 timeCreate: data.dataValues.TimeCreate,
                                 companyID: "",
                                 companyName: "",
@@ -264,7 +266,7 @@ module.exports = {
                                 array.push({
                                     id: elm['ID'],
                                     name: elm['Name'],
-                                    handPhone: elm['HandPhone'],
+                                    phone: elm['Phone'],
                                 })
                             });
                             var result = {
@@ -305,7 +307,7 @@ module.exports = {
                                 id: data['ID'],
                                 name: data['Name'],
                                 address: data['Address'],
-                                phone: data['HandPhone'],
+                                phone: data['Phone'],
                                 email: data['Email'],
                                 jobTile: data['JobTile'],
                                 follow: data.dataValues.UserFollows[0] ? data.dataValues.UserFollows[0]['Follow'] : false
@@ -345,7 +347,7 @@ module.exports = {
                             })
                         }
                         else if (body.contactPhone) {
-                            mContact(db).update({ HandPhone: body.contactPhone }, { where: { ID: body.contactID } }).then(data => {
+                            mContact(db).update({ Phone: body.contactPhone }, { where: { ID: body.contactID } }).then(data => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
