@@ -42,39 +42,116 @@ module.exports = {
                                 company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
                                 company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
 
-                                company.findAll({
-                                    include: [
-                                        { model: mUser(db), required: false },
-                                        {
-                                            model: mUserFollow(db),
-                                            required: false,
-                                            where: { UserID: body.userID, Type: 1 }
-                                        },
-                                        { model: mCity(db), required: false }
-                                    ],
-                                    where: user.dataValues.Roles == Constant.USER_ROLE.MANAGER ? null : { UserID: body.userID }
-                                }).then(data => {
-                                    var array = [];
-                                    data.forEach(elm => {
-                                        array.push({
-                                            id: elm.dataValues.ID,
-                                            name: elm.dataValues.Name,
-                                            ownerID: elm.dataValues.UserID,
-                                            ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
-                                            address: elm.dataValues.Address,
-                                            phone: elm.dataValues.Phone,
-                                            city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
-                                            follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
-                                        })
+                                console.log(body);
+
+                                company.count().then(all => {
+                                    company.count({
+                                        where: { UserID: { [Op.eq]: null } }
+                                    }).then(unassign => {
+                                        company.count({
+                                            where: { UserID: body.userID }
+                                        }).then(assign => {
+                                            company.count({
+                                                include: [
+                                                    {
+                                                        model: mUserFollow(db),
+                                                        where: { UserID: body.userID, Type: 1 }
+                                                    }
+                                                ]
+                                            }).then(follow => {
+                                                console.log(body);
+
+                                                company.findAll({
+                                                    include: [
+                                                        { model: mUser(db), required: false },
+                                                        {
+                                                            model: mUserFollow(db),
+                                                            required: body.companyType == 3 ? true : false,
+                                                            where: { UserID: body.userID, Type: 1 }
+                                                        },
+                                                        { model: mCity(db), required: false }
+                                                    ],
+                                                    where: body.companyType == 2 ?
+                                                        { UserID: { [Op.eq]: null } } :
+                                                        body.companyType == 4 ? { UserID: body.userID } : null,
+                                                    offset: 12 * (body.page - 1),
+                                                    limit: 12
+                                                }).then(data => {
+                                                    var array = [];
+                                                    data.forEach(elm => {
+                                                        array.push({
+                                                            id: elm.dataValues.ID,
+                                                            name: elm.dataValues.Name,
+                                                            ownerID: elm.dataValues.UserID,
+                                                            ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                                                            address: elm.dataValues.Address,
+                                                            phone: elm.dataValues.Phone,
+                                                            city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
+                                                            follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
+                                                        })
+                                                    });
+
+                                                    var result = {
+                                                        status: Constant.STATUS.SUCCESS,
+                                                        message: '',
+                                                        array: array,
+                                                        all, unassign, assign, follow
+                                                    }
+                                                    res.json(result)
+                                                });
+                                            });
+                                        });
+                                        // company.count({
+                                        //     include: [
+                                        //         { model: mUser(db), required: false },
+                                        //         {
+                                        //             model: mUserFollow(db),
+                                        //             required: false,
+                                        //             where: { UserID: body.userID, Type: 1 }
+                                        //         },
+                                        //         { model: mCity(db), required: false }
+                                        //     ],
+                                        //     where: { UserID: body.userID }
+                                        // }).then(follow => { });
                                     });
 
-                                    var result = {
-                                        status: Constant.STATUS.SUCCESS,
-                                        message: '',
-                                        array: array
-                                    }
-                                    res.json(result)
-                                })
+                                    // console.log(data);
+
+
+                                });
+
+                                // company.findAll({
+                                //     include: [
+                                //         { model: mUser(db), required: false },
+                                //         {
+                                //             model: mUserFollow(db),
+                                //             required: false,
+                                //             where: { UserID: body.userID, Type: 1 }
+                                //         },
+                                //         { model: mCity(db), required: false }
+                                //     ]
+                                // }).then(data => {
+                                //     var array = [];
+                                //     data.forEach(elm => {
+                                //         array.push({
+                                //             id: elm.dataValues.ID,
+                                //             name: elm.dataValues.Name,
+                                //             ownerID: elm.dataValues.UserID,
+                                //             ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                                //             address: elm.dataValues.Address,
+                                //             phone: elm.dataValues.Phone,
+                                //             city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
+                                //             follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
+                                //         })
+                                //     });
+
+                                //     var result = {
+                                //         status: Constant.STATUS.SUCCESS,
+                                //         message: '',
+                                //         array: array
+                                //     }
+                                //     res.json(result)
+                                // });
                             }
 
                         })
