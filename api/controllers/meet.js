@@ -27,7 +27,7 @@ module.exports = {
     createMeet: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -85,7 +85,7 @@ module.exports = {
     getListMeetAttend: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -117,7 +117,7 @@ module.exports = {
     updateMeetAttend: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -140,7 +140,7 @@ module.exports = {
     getAssociate: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -175,7 +175,7 @@ module.exports = {
     updateAssociate: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -201,7 +201,7 @@ module.exports = {
     getListMeet: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -263,7 +263,7 @@ module.exports = {
     deleteMeet: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 

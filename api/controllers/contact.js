@@ -27,7 +27,7 @@ module.exports = {
     getListQuickContact: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -69,7 +69,7 @@ module.exports = {
     getListContact: (req, res) => {//take this list for dropdown
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -103,7 +103,7 @@ module.exports = {
     getListContactFull: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -164,7 +164,7 @@ module.exports = {
     addContact: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -215,7 +215,7 @@ module.exports = {
     addContactByID: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -252,7 +252,7 @@ module.exports = {
     searchContact: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -287,7 +287,7 @@ module.exports = {
     getDetailContact: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -331,7 +331,7 @@ module.exports = {
     updateContact: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -375,7 +375,7 @@ module.exports = {
     assignContact: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -420,7 +420,7 @@ module.exports = {
     deleteContact: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -496,7 +496,7 @@ module.exports = {
     followContact: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
