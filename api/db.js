@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
 module.exports = {
-  serverDB: function (ip, username, dbName) {
+  serverDB: function (username) {
     return new Promise((resolve) => {
       var dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
         host: '163.44.192.123',
@@ -49,12 +49,10 @@ module.exports = {
           where: { Username: username },
           raw: true,
           include: [{
-            model: serverInfo,
-            where: { IP: ip, DBName: dbName }
+            model: serverInfo
           }]
         }).then(data => {
           if (data) {
-            
             var server = {
               ip: data['LogisticServer.IP'],
               dbName: data['LogisticServer.DBName'],

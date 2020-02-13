@@ -10,7 +10,7 @@ module.exports = {
     login: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.username, body.dbName).then(server => {
+        database.serverDB(body.username).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
