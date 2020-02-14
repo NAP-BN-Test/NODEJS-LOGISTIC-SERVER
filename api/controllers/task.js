@@ -1,3 +1,5 @@
+const Op = require('sequelize').Op;
+
 const Constant = require('../constants/constant');
 const Result = require('../constants/result');
 
@@ -10,6 +12,9 @@ var mUser = require('../tables/user');
 var mContact = require('../tables/contact');
 var mCompany = require('../tables/company');
 var mAssociate = require('../tables/task-associate');
+
+var rmAssociate = require('../tables/task-associate');
+
 
 module.exports = {
 
@@ -192,8 +197,6 @@ module.exports = {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
                     db.authenticate().then(() => {
-                        console.log(body);
-
                         mTask(db).update({ Status: body.status ? body.status : false }, { where: { ID: body.taskID } }).then(() => {
                             res.json(Result.ACTION_SUCCESS)
                         })
@@ -201,6 +204,36 @@ module.exports = {
                 })
             }
         })
-    }
+    },
+
+    deleteTask: (req, res) => {
+        let body = req.body;
+
+        database.serverDB(body.username).then(server => {
+            if (server) {
+                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                    db.authenticate().then(() => {
+                        console.log(body)
+                        if (body.activityIDs) {
+                            let listActivity = JSON.parse(body.activityIDs);
+                            let listActivityID = [];
+                            listActivity.forEach(item => {
+                                listActivityID.push(Number(item + ""));
+                            });
+                            rmAssociate(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
+                                mTask(db).destroy({ where: { ID: { [Op.in]: listActivityID } } }).then(() => {
+                                    res.json(Result.ACTION_SUCCESS);
+                                })
+                            })
+                        }
+                    }).catch((err) => {
+                        console.log(err);
+                        res.json(Result.SYS_ERROR_RESULT);
+                    })
+                })
+            }
+        })
+    },
 
 }
