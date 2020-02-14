@@ -68,14 +68,14 @@ module.exports = {
                                             UserID: { [Op.eq]: null },
                                             [Op.or]: whereSearch
                                         },
-                                        order:[['ID', 'DESC']],
+                                        order: [['ID', 'DESC']],
                                     }).then(unassign => {
                                         company.count({
                                             where: {
                                                 UserID: body.userID,
                                                 [Op.or]: whereSearch
                                             },
-                                            order:[['ID', 'DESC']]
+                                            order: [['ID', 'DESC']]
                                         }).then(assign => {
                                             company.count({
                                                 include: [
@@ -85,7 +85,7 @@ module.exports = {
                                                     }
                                                 ],
                                                 where: { [Op.or]: whereSearch },
-                                                order:[['ID', 'DESC']]
+                                                order: [['ID', 'DESC']]
                                             }).then(follow => {
 
                                                 let where;
@@ -139,6 +139,8 @@ module.exports = {
                                                             ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
                                                             address: elm.dataValues.Address,
                                                             phone: elm.dataValues.Phone,
+                                                            website: elm.dataValues.Website,
+                                                            cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
                                                             city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
                                                             follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
                                                             checked: false
@@ -198,6 +200,8 @@ module.exports = {
                                 address: data['Address'],
                                 phone: data['Phone'],
                                 email: data['Email'],
+                                website: data['Website'],
+                                cityID: data.dataValues.City ? data.dataValues.City.ID : -1,
                                 city: data.dataValues.City ? data.dataValues.City.NameVI : "",
                                 follow: data.dataValues.UserFollows[0] ? data.dataValues.UserFollows[0]['Follow'] : false
                             }
@@ -294,32 +298,37 @@ module.exports = {
 
                     db.authenticate().then(() => {
                         if (body.companyName) {
-                            mCompany(db).update({ Name: body.companyName }, { where: { ID: body.companyID } }).then(data => {
+                            mCompany(db).update({ Name: body.companyName }, { where: { ID: body.companyID } }).then(() => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
                         else if (body.companyShortName) {
-                            mCompany(db).update({ ShortName: body.companyShortName }, { where: { ID: body.companyID } }).then(data => {
+                            mCompany(db).update({ ShortName: body.companyShortName }, { where: { ID: body.companyID } }).then(() => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
                         else if (body.companyAddress) {
-                            mCompany(db).update({ Address: body.companyAddress }, { where: { ID: body.companyID } }).then(data => {
+                            mCompany(db).update({ Address: body.companyAddress }, { where: { ID: body.companyID } }).then(() => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
                         else if (body.companyPhone) {
-                            mCompany(db).update({ Phone: body.companyPhone }, { where: { ID: body.companyID } }).then(data => {
+                            mCompany(db).update({ Phone: body.companyPhone }, { where: { ID: body.companyID } }).then(() => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
                         else if (body.companyEmail) {
-                            mCompany(db).update({ Email: body.companyEmail }, { where: { ID: body.companyID } }).then(data => {
+                            mCompany(db).update({ Email: body.companyEmail }, { where: { ID: body.companyID } }).then(() => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
-                        else if (body.companyCountry) {
-                            mCompany(db).update({ Country: body.companyCountry }, { where: { ID: body.companyID } }).then(data => {
+                        else if (body.companyCity) {
+                            mCompany(db).update({ CityID: body.companyCity }, { where: { ID: body.companyID } }).then(() => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
+                        else if (body.website) {
+                            mCompany(db).update({ Website: body.website }, { where: { ID: body.companyID } }).then(() => {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
@@ -558,24 +567,28 @@ module.exports = {
                             })
 
                             mCompany(db).update(
-                                { UserID: body.assignID },
+                                { UserID: body.assignID != -1 ? body.assignID : null },
                                 { where: { ID: { [Op.in]: listCompanyID } } }
                             ).then(data => {
                                 if (data) {
-                                    mUser(db).findOne({ where: { ID: body.assignID } }).then(user => {
-                                        var obj = {
-                                            id: user.dataValues.ID,
-                                            name: user.dataValues.Name,
-                                        };
+                                    if (body.assignID != -1) {
+                                        mUser(db).findOne({ where: { ID: body.assignID } }).then(user => {
+                                            var obj = {
+                                                id: user.dataValues.ID,
+                                                name: user.dataValues.Name,
+                                            };
 
-                                        var result = {
-                                            status: Constant.STATUS.SUCCESS,
-                                            message: Constant.MESSAGE.ACTION_SUCCESS,
-                                            obj: obj
-                                        }
+                                            var result = {
+                                                status: Constant.STATUS.SUCCESS,
+                                                message: Constant.MESSAGE.ACTION_SUCCESS,
+                                                obj: obj
+                                            }
 
-                                        res.json(result);
-                                    });
+                                            res.json(result);
+                                        });
+                                    } else {
+                                        res.json(Result.ACTION_SUCCESS)
+                                    }
                                 }
                             })
                         }

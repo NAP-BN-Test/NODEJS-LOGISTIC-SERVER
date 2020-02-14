@@ -146,6 +146,8 @@ module.exports = function (app) {
 
     app.route('/crm/update_task').post(task.updateTask);
 
+    app.route('/crm/delete_task').post(task.deleteTask);
+
     //contact
     app.route('/crm/add_contact').post(contact.addContact);
 
