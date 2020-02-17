@@ -5,6 +5,7 @@ const Result = require('../constants/result');
 
 var moment = require('moment');
 
+var user = require('../controllers/user');
 var database = require('../db');
 
 var mNote = require('../tables/note');
@@ -143,45 +144,53 @@ module.exports = {
                         note.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         note.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
-                        note.findAll({
-                            where: { UserID: body.userID },
-                            include: [
-                                { model: mUser(db), required: false },
-                                { model: mContact(db), required: false },
-                                { model: mCompany(db), required: false }
-                            ]
-                        }).then(data => {
-                            let array = [];
-                            if (data) {
-                                data.forEach(item => {
-                                    array.push({
-                                        id: item.dataValues.ID,
-                                        description: item.dataValues.Description,
-                                        timeRemind: item.dataValues.TimeRemind,
-
-                                        createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                        createName: item.User.dataValues ? item.User.dataValues.Name : "",
-
-                                        contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
-                                        contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
-
-                                        companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
-                                        companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
-
-                                        type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
-                                        activityType: Constant.ACTIVITY_TYPE.NOTE
-                                    });
-                                });
-
-                                var result = {
-                                    status: Constant.STATUS.SUCCESS,
-                                    message: '',
-                                    array: array
-                                }
-
-                                res.json(result);
+                        user.checkUser(body.username).then(role => {
+                            let whereRole = null;
+                            if (role == Constant.USER_ROLE.STAFF) {
+                                whereRole = { UserID: body.user }
                             }
-                        })
+
+                            note.findAll({
+                                where: whereRole,
+                                include: [
+                                    { model: mUser(db), required: false },
+                                    { model: mContact(db), required: false },
+                                    { model: mCompany(db), required: false }
+                                ]
+                            }).then(data => {
+                                let array = [];
+                                if (data) {
+                                    data.forEach(item => {
+                                        array.push({
+                                            id: item.dataValues.ID,
+                                            description: item.dataValues.Description,
+                                            timeRemind: item.dataValues.TimeRemind,
+
+                                            createID: item.User.dataValues ? item.User.dataValues.ID : -1,
+                                            createName: item.User.dataValues ? item.User.dataValues.Name : "",
+
+                                            contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
+                                            contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+
+                                            companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
+                                            companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+
+                                            type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                            activityType: Constant.ACTIVITY_TYPE.NOTE
+                                        });
+                                    });
+
+                                    var result = {
+                                        status: Constant.STATUS.SUCCESS,
+                                        message: '',
+                                        array: array
+                                    }
+
+                                    res.json(result);
+                                }
+                            })
+                        });
+
                     }).catch((err) => {
                         console.log(err);
                         res.json(Result.SYS_ERROR_RESULT);

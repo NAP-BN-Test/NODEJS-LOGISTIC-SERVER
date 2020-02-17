@@ -5,6 +5,7 @@ const Result = require('../constants/result');
 
 var moment = require('moment');
 
+var user = require('../controllers/user');
 var database = require('../db');
 
 var mTask = require('../tables/task');
@@ -149,41 +150,50 @@ module.exports = {
                         task.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         task.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
-                        task.findAll({
-                            include: [
-                                { model: mUser(db), required: false },
-                                { model: mContact(db), required: false },
-                                { model: mCompany(db), required: false }
-                            ]
-                        }).then(data => {
-                            var array = [];
-                            data.forEach(item => {
-                                array.push({
-                                    id: item.dataValues.ID,
-                                    status: item.dataValues.Status ? item.dataValues.Status : false,
-                                    name: item.dataValues.Name,
-                                    type: item.dataValues.Type,
-                                    timeRemind: item.dataValues.TimeRemind,
-                                    createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                    createName: item.User.dataValues ? item.User.dataValues.Name : "",
-
-                                    contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
-                                    contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
-
-                                    companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
-                                    companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
-
-                                    type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
-                                    activityType: Constant.ACTIVITY_TYPE.TASK
-                                });
-                            })
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
+                        user.checkUser(body.username).then(role => {
+                            let whereRole = null;
+                            if (role == Constant.USER_ROLE.STAFF) {
+                                whereRole = { UserID: body.user }
                             }
-                            res.json(result);
-                        })
+
+                            task.findAll({
+                                where: whereRole,
+                                include: [
+                                    { model: mUser(db), required: false },
+                                    { model: mContact(db), required: false },
+                                    { model: mCompany(db), required: false }
+                                ]
+                            }).then(data => {
+                                var array = [];
+                                data.forEach(item => {
+                                    array.push({
+                                        id: item.dataValues.ID,
+                                        status: item.dataValues.Status ? item.dataValues.Status : false,
+                                        name: item.dataValues.Name,
+                                        type: item.dataValues.Type,
+                                        timeRemind: item.dataValues.TimeRemind,
+                                        createID: item.User.dataValues ? item.User.dataValues.ID : -1,
+                                        createName: item.User.dataValues ? item.User.dataValues.Name : "",
+
+                                        contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
+                                        contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+
+                                        companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
+                                        companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+
+                                        type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                        activityType: Constant.ACTIVITY_TYPE.TASK
+                                    });
+                                })
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: '',
+                                    array: array
+                                }
+                                res.json(result);
+                            })
+                        });
+
                     })
                 })
             }
