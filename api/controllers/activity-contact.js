@@ -388,6 +388,8 @@ module.exports = {
                                 })
                             }
                             else if (body.description) {
+                                console.log(body.description);
+                                
                                 mEmail(db).update({ Description: body.description }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })

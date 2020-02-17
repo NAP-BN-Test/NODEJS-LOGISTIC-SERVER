@@ -64,6 +64,27 @@ module.exports = {
                 res.json()
             }
         })
+    },
+
+    checkUser: (username) => {
+        return new Promise((resolve, reject) => {
+            database.serverDB(username).then(server => {
+                if (server) {
+                    database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+
+                        db.authenticate().then(() => {
+                            mUser(db).findOne().then(data => {
+                                resolve(data['Roles'])
+                            })
+                        }).catch(err => {
+                            reject();
+                        })
+                    })
+                } else {
+                    reject();
+                }
+            })
+        })
     }
 
 }
