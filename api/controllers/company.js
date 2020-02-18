@@ -14,6 +14,8 @@ var mContact = require('../tables/contact');
 var mCompanyChild = require('../tables/company-child');
 var mUser = require('../tables/user');
 var mUserFollow = require('../tables/user-follow');
+var mDeal = require('../tables/deal');
+var mDealStage = require('../tables/deal-stage');
 
 var rmCompanyChild = require('../tables/company-child');
 var rmCall = require('../tables/call');
@@ -42,6 +44,10 @@ module.exports = {
                                 company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
                                 company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
                                 company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
+
+                                company.hasMany(mDeal(db), { foreignKey: 'CompanyID' });
+                                let deal = mDeal(db);
+                                deal.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' })
 
                                 let whereSearch = [];
                                 if (body.searchKey) {
@@ -73,92 +79,111 @@ module.exports = {
                                     }).then(unassign => {
                                         company.count({
                                             where: {
-                                                UserID: body.userID,
+                                                UserID: { [Op.ne]: null },
                                                 [Op.or]: whereSearch
-                                            },
-                                            order: [['ID', 'DESC']]
-                                        }).then(assign => {
+                                            }
+                                        }).then(assignAll => {
                                             company.count({
-                                                include: [
-                                                    {
-                                                        model: mUserFollow(db),
-                                                        where: { UserID: body.userID, Type: 1 }
-                                                    }
-                                                ],
-                                                where: { [Op.or]: whereSearch },
+                                                where: {
+                                                    UserID: body.userID,
+                                                    [Op.or]: whereSearch
+                                                },
                                                 order: [['ID', 'DESC']]
-                                            }).then(follow => {
-
-                                                let where;
-                                                if (body.searchKey) {
-                                                    if (body.companyType == 2) {
-                                                        where = {
-                                                            UserID: { [Op.eq]: null },
-                                                            [Op.or]: whereSearch
-                                                        }
-                                                    } else if (body.companyType == 4) {
-                                                        where = {
-                                                            UserID: body.userID,
-                                                            [Op.or]: whereSearch
-                                                        }
-                                                    } else {
-                                                        where = {
-                                                            [Op.or]: whereSearch
-                                                        }
-                                                    }
-                                                } else {
-                                                    if (body.companyType == 2) {
-                                                        where = { UserID: { [Op.eq]: null } }
-                                                    } else if (body.companyType == 4) {
-                                                        where = { UserID: body.userID }
-                                                    } else {
-                                                        where = null
-                                                    }
-                                                }
-
-                                                company.findAll({
+                                            }).then(assign => {
+                                                company.count({
                                                     include: [
-                                                        { model: mUser(db), required: false },
                                                         {
                                                             model: mUserFollow(db),
-                                                            required: body.companyType == 3 ? true : false,
                                                             where: { UserID: body.userID, Type: 1 }
-                                                        },
-                                                        { model: mCity(db), required: false }
+                                                        }
                                                     ],
-                                                    where: where,
-                                                    order: [['ID', 'DESC']],
-                                                    offset: 12 * (body.page - 1),
-                                                    limit: 12
-                                                }).then(data => {
-                                                    var array = [];
-                                                    data.forEach(elm => {
-                                                        array.push({
-                                                            id: elm.dataValues.ID,
-                                                            name: elm.dataValues.Name,
-                                                            ownerID: elm.dataValues.UserID,
-                                                            ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
-                                                            address: elm.dataValues.Address,
-                                                            phone: elm.dataValues.Phone,
-                                                            website: elm.dataValues.Website,
-                                                            cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
-                                                            city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
-                                                            follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
-                                                            checked: false,
-                                                            type: elm.dataValues.Type,
-                                                        })
-                                                    });
+                                                    where: { [Op.or]: whereSearch },
+                                                    order: [['ID', 'DESC']]
+                                                }).then(follow => {
 
-                                                    var result = {
-                                                        status: Constant.STATUS.SUCCESS,
-                                                        message: '',
-                                                        array: array,
-                                                        all, unassign, assign, follow
+                                                    let where;
+                                                    if (body.searchKey) {
+                                                        if (body.companyType == 2) {
+                                                            where = {
+                                                                UserID: { [Op.eq]: null },
+                                                                [Op.or]: whereSearch
+                                                            }
+                                                        } else if (body.companyType == 4) {
+                                                            where = {
+                                                                UserID: body.userID,
+                                                                [Op.or]: whereSearch
+                                                            }
+                                                        } else if (body.companyType == 5) {
+                                                            where = {
+                                                                UserID: { [Op.ne]: null },
+                                                                [Op.or]: whereSearch
+                                                            }
+                                                        } else {
+                                                            where = {
+                                                                [Op.or]: whereSearch
+                                                            }
+                                                        }
+                                                    } else {
+                                                        if (body.companyType == 2) {
+                                                            where = { UserID: { [Op.eq]: null } }
+                                                        } else if (body.companyType == 4) {
+                                                            where = { UserID: body.userID }
+                                                        } else {
+                                                            where = null
+                                                        }
                                                     }
-                                                    res.json(result)
+
+                                                    company.findAll({
+                                                        include: [
+                                                            { model: mUser(db), required: false },
+                                                            {
+                                                                model: mUserFollow(db),
+                                                                required: body.companyType == 3 ? true : false,
+                                                                where: { UserID: body.userID, Type: 1 }
+                                                            },
+                                                            { model: mCity(db), required: false },
+                                                            {
+                                                                model: deal,
+                                                                required: false,
+                                                                include: { model: mDealStage(db), required: false }
+                                                            }
+                                                        ],
+                                                        where: where,
+                                                        order: [['ID', 'DESC']],
+                                                        offset: 12 * (body.page - 1),
+                                                        limit: 12
+                                                    }).then(data => {
+                                                        var array = [];
+                                                        data.forEach(elm => {
+                                                            array.push({
+                                                                id: elm.dataValues.ID,
+                                                                name: elm.dataValues.Name,
+                                                                ownerID: elm.dataValues.UserID,
+                                                                ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                                                                address: elm.dataValues.Address,
+                                                                phone: elm.dataValues.Phone,
+                                                                website: elm.dataValues.Website,
+                                                                cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
+                                                                city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
+                                                                follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
+                                                                checked: false,
+                                                                companyType: elm.dataValues.Type,
+                                                                dealID: elm.Deals[0] ? elm.Deals[0].DealStage.dataValues.ID : -1,
+                                                                dealName: elm.Deals[0] ? elm.Deals[0].DealStage.dataValues.Name : ""
+                                                            })
+                                                        });
+
+                                                        var result = {
+                                                            status: Constant.STATUS.SUCCESS,
+                                                            message: '',
+                                                            array: array,
+                                                            all, unassign, assign, follow, assignAll
+                                                        }
+                                                        res.json(result)
+                                                    });
                                                 });
                                             });
-                                        });
+                                        })
                                     });
                                 });
                             }
@@ -179,7 +204,6 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-
                         let company = mCompany(db);
                         company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
                         company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
@@ -806,6 +830,7 @@ module.exports = {
                     if (!company) {
                         mCompany(db).create({
                             Name: body.companyName,
+                            Email: body.companyEmail,
                             Address: body.companyAddress,
                             Type: 0
                         }).then(data => {
