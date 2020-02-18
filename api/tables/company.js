@@ -16,6 +16,7 @@ module.exports = function (db) {
         Phone: Sequelize.STRING,
         CityID: Sequelize.STRING,
         Website: Sequelize.STRING,
+        Type: Sequelize.INTEGER,
     });
 
     return table;

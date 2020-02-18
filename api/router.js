@@ -57,6 +57,8 @@ module.exports = function (app) {
 
     app.route('/crm/delete_deal_from_company').post(company.deleteDealFromCompany);
 
+    app.route('/trailer/create_company').post(company.createCompanyTrailer);
+
 
     app.route('/crm/get_list_quick_deal').post(deal.getListQuickDeal);
 
