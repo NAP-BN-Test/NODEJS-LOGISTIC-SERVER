@@ -5,6 +5,7 @@ const MESSAGE = {
     LOGIN_SUCCESS: "Đăng nhập thành công!",
     DATA_NOT_FOUND: "Không tìm thấy dữ liệu!",
     LOGIN_FAIL: "Đăng nhập thất bại!",
+    INVALID_COMPANY: "Công ty đã tồn tại!",
 }
 
 const USER_ROLE = {

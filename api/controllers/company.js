@@ -10,6 +10,7 @@ var database = require('../db');
 var mCity = require('../tables/ city');
 
 var mCompany = require('../tables/company');
+var mContact = require('../tables/contact');
 var mCompanyChild = require('../tables/company-child');
 var mUser = require('../tables/user');
 var mUserFollow = require('../tables/user-follow');
@@ -143,7 +144,8 @@ module.exports = {
                                                             cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
                                                             city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
                                                             follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
-                                                            checked: false
+                                                            checked: false,
+                                                            type: elm.dataValues.Type,
                                                         })
                                                     });
 
@@ -410,6 +412,7 @@ module.exports = {
                             Address: body.address,
                             CityID: body.cityID,
                             TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                            Type: 1
                         }).then(data => {
                             var obj;
                             if (body.role == Constant.COMPANY_ROLE.PARENT) {
@@ -790,6 +793,49 @@ module.exports = {
             } else {
                 res.json()
             }
+        })
+    },
+
+    createCompanyTrailer: (req, res) => {
+        let body = req.body;
+
+        database.mainDB('163.44.192.123', 'LOGISTIC_CRM', 'logistic_crm', '123456a$').then(db => {
+
+            db.authenticate().then(() => {
+                mCompany(db).findOne({ where: { Name: body.companyName } }).then(company => {
+                    if (!company) {
+                        mCompany(db).create({
+                            Name: body.companyName,
+                            Address: body.companyAddress,
+                            Type: 0
+                        }).then(data => {
+                            mContact(db).create({
+                                Name: body.contactName,
+                                Phone: body.contactPhone,
+                                CompanyID: data.dataValues.ID
+                            }).then(() => {
+                                res.json(Result.ACTION_SUCCESS)
+                            }).catch(() => {
+                                res.json(Result.SYS_ERROR_RESULT)
+                            })
+                        }).catch(() => {
+                            res.json(Result.SYS_ERROR_RESULT)
+                        })
+                    } else {
+                        let result = {
+                            status: Constant.STATUS.FAIL,
+                            message: Constant.MESSAGE.INVALID_COMPANY,
+                        }
+                        res.json(result)
+                    }
+                }).catch(() => {
+                    res.json(Result.SYS_ERROR_RESULT)
+                })
+            }).catch(() => {
+                res.json(Result.SYS_ERROR_RESULT)
+            })
+        }).catch(() => {
+            res.json(Result.SYS_ERROR_RESULT)
         })
     },
 
