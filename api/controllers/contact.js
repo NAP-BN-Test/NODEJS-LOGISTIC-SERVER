@@ -132,26 +132,82 @@ module.exports = {
                                     ];
                                 }
 
+                                let userFind = {};
+                                if (body.userIDFind) {
+                                    userFind = { UserID: body.userIDFind }
+                                }
+
+                                let whereAll;
+                                let whereAllAssign;
+                                let whereAssign;
+                                let whereUnAssign;
+                                let whereFollow
+                                if (body.timeFrom) {
+                                    whereAll = {
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereAllAssign = {
+                                        UserID: { [Op.ne]: null },
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                    whereAssign = {
+                                        UserID: body.userID,
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                    whereUnAssign = {
+                                        UserID: { [Op.eq]: null },
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                    whereFollow = {
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    }
+                                } else {
+                                    whereAll = {
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereAllAssign = {
+                                        UserID: { [Op.ne]: null },
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereAssign = {
+                                        UserID: body.userID,
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereUnAssign = {
+                                        UserID: { [Op.eq]: null },
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereFollow = {
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    }
+                                }
+
                                 contact.count({
-                                    where: { [Op.or]: whereSearch }
+                                    where: whereAll
                                 }).then(all => {
                                     contact.count({
-                                        where: {
-                                            UserID: { [Op.ne]: null },
-                                            [Op.or]: whereSearch
-                                        }
+                                        where: whereUnAssign,
                                     }).then(assignAll => {
                                         contact.count({
-                                            where: {
-                                                UserID: body.userID,
-                                                [Op.or]: whereSearch
-                                            }
+                                            where: whereAllAssign
                                         }).then(assign => {
                                             contact.count({
-                                                where: {
-                                                    UserID: { [Op.eq]: null },
-                                                    [Op.or]: whereSearch
-                                                }
+                                                where: whereAssign,
                                             }).then(unassign => {
                                                 contact.count({
                                                     include: [
@@ -160,37 +216,27 @@ module.exports = {
                                                             where: { UserID: body.userID, Type: 2 }
                                                         }
                                                     ],
-                                                    where: { [Op.or]: whereSearch },
+                                                    where: whereFollow,
                                                 }).then(follow => {
+                                                    
                                                     let where;
                                                     if (body.searchKey) {
-                                                        if (body.contactType == 2) {//unassign
-                                                            where = {
-                                                                UserID: { [Op.eq]: null },
-                                                                [Op.or]: whereSearch
-                                                            }
-                                                        } else if (body.contactType == 4) {//my assign
-                                                            where = {
-                                                                UserID: body.userID,
-                                                                [Op.or]: whereSearch
-                                                            }
-                                                        } else if (body.contactType == 5) {//all assign
-                                                            where = {
-                                                                UserID: { [Op.ne]: null },
-                                                                [Op.or]: whereSearch
-                                                            }
+                                                        if (body.companyType == 2) {//unassign
+                                                            where = whereUnAssign
+                                                        } else if (body.companyType == 4) {//assign
+                                                            where = whereAssign
+                                                        } else if (body.companyType == 5) {//assign all
+                                                            where = whereAllAssign
                                                         } else { // all
-                                                            where = {
-                                                                [Op.or]: whereSearch
-                                                            }
+                                                            where = whereAll
                                                         }
                                                     } else {
-                                                        if (body.contactType == 2) {
-                                                            where = { UserID: { [Op.eq]: null } }
-                                                        } else if (body.contactType == 4) {
-                                                            where = { UserID: body.userID }
-                                                        } else {
-                                                            where = null
+                                                        if (body.companyType == 2) {//unassign
+                                                            where = whereUnAssign
+                                                        } else if (body.companyType == 4) {//assign
+                                                            where = whereAssign
+                                                        } else {// all
+                                                            where = whereAll
                                                         }
                                                     }
 
