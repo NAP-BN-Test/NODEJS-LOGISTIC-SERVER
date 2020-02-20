@@ -42,11 +42,16 @@ function getListActivityCall(db, body) {
     return new Promise((res) => {
         var call = mCall(db);
         call.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
+        call.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
         call.hasMany(mCallComment(db), { foreignKey: 'ActivityID' })
 
         call.findAll({
             where: { CompanyID: body.companyID },
-            include: [{ model: mContact(db) }, { model: mCallComment(db) }]
+            include: [
+                { model: mContact(db) },
+                { model: mCallComment(db) },
+                { model: mUser(db), required: false }
+            ]
         }).then(data => {
             var array = [];
 
@@ -59,6 +64,8 @@ function getListActivityCall(db, body) {
                     timeStart: elm.dataValues.TimeStart,
                     contactID: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.ID : -1,
                     contactName: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.Name : "",
+                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
+                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
                     state: elm.dataValues.State,
                     description: elm.dataValues.Description,
                     activityType: Constant.ACTIVITY_TYPE.CALL,
@@ -75,11 +82,15 @@ function getListActivityEmail(db, body) {
     return new Promise((res) => {
         var email = mEmail(db);
         email.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
+        email.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
         email.hasMany(mEmailComment(db), { foreignKey: 'ActivityID' })
 
         email.findAll({
             where: { CompanyID: body.companyID },
-            include: [{ model: mContact(db) }, { model: mEmailComment(db) }]
+            include: [
+                { model: mContact(db) },
+                { model: mEmailComment(db) },
+                { model: mUser(db), required: false }]
         }).then(data => {
             var array = [];
 
@@ -94,7 +105,9 @@ function getListActivityEmail(db, body) {
                     state: elm.dataValues.State,
                     description: elm.dataValues.Description,
                     activityType: Constant.ACTIVITY_TYPE.EMAIL,
-                    listComment: getListCmt(elm.EmailComments)
+                    listComment: getListCmt(elm.EmailComments),
+                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
+                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : ""
                 })
             });
 
@@ -124,7 +137,9 @@ function getListActivityMeet(db, body) {
                     description: elm.dataValues.Description,
                     duration: elm.dataValues.Duration,
                     activityType: Constant.ACTIVITY_TYPE.MEET,
-                    listComment: getListCmt(elm.MeetComments)
+                    listComment: getListCmt(elm.MeetComments),
+                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
+                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : ""
                 })
             });
 
@@ -137,6 +152,7 @@ function getListActivityNote(db, body) {
     return new Promise((res) => {
         var note = mNote(db);
         note.hasMany(mNoteComment(db), { foreignKey: 'ActivityID' });
+        note.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
 
         note.findAll({
             where: { CompanyID: body.companyID },
@@ -151,7 +167,9 @@ function getListActivityNote(db, body) {
                     timeRemind: elm.dataValues.TimeRemind,
                     description: elm.dataValues.Description,
                     activityType: Constant.ACTIVITY_TYPE.NOTE,
-                    listComment: getListCmt(elm.NoteComments)
+                    listComment: getListCmt(elm.NoteComments),
+                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
+                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : ""
                 })
             });
 
@@ -165,6 +183,7 @@ function getListActivityTask(db, body) {
 
         var task = mTask(db);
         task.belongsTo(mUser(db), { foreignKey: 'AssignID', sourceKey: 'AssignID' });
+        task.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
 
         task.findAll({
             where: { CompanyID: body.companyID },
@@ -185,7 +204,9 @@ function getListActivityTask(db, body) {
                     assignID: elm.dataValues.AssignID,
                     activityType: Constant.ACTIVITY_TYPE.TASK,
                     status: elm.dataValues.Status ? elm.dataValues.Status : false,
-                    listComment: []
+                    listComment: [],
+                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
+                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : ""
                 })
             });
 
