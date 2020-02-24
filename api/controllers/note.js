@@ -145,49 +145,70 @@ module.exports = {
                         note.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
                         user.checkUser(body.username).then(role => {
-                            let whereRole = null;
+
+                            let userFind = [];
+                            if (body.userIDFind) {
+                                userFind.push({ UserID: body.userIDFind })
+                            }
                             if (role == Constant.USER_ROLE.STAFF) {
-                                whereRole = { UserID: body.user }
+                                userFind.push({ UserID: body.userID })
                             }
 
-                            note.findAll({
-                                where: whereRole,
-                                include: [
-                                    { model: mUser(db), required: false },
-                                    { model: mContact(db), required: false },
-                                    { model: mCompany(db), required: false }
-                                ]
-                            }).then(data => {
-                                let array = [];
-                                if (data) {
-                                    data.forEach(item => {
-                                        array.push({
-                                            id: item.dataValues.ID,
-                                            description: item.dataValues.Description,
-                                            timeRemind: item.dataValues.TimeRemind,
+                            let whereAll;
+                            if (body.timeFrom) {
+                                whereAll = {
+                                    TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                    [Op.and]: userFind
+                                };
+                            } else {
+                                whereAll = {
+                                    [Op.and]: userFind
+                                };
+                            }
 
-                                            createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                            createName: item.User.dataValues ? item.User.dataValues.Name : "",
+                            note.count({ where: whereAll }).then(all => {
+                                note.findAll({
+                                    where: whereAll,
+                                    include: [
+                                        { model: mUser(db), required: false },
+                                        { model: mContact(db), required: false },
+                                        { model: mCompany(db), required: false }
+                                    ],
+                                    order: [['TimeCreate', 'DESC']],
+                                    offset: 12 * (body.page - 1),
+                                    limit: 12
+                                }).then(data => {
+                                    let array = [];
+                                    if (data) {
+                                        data.forEach(item => {
+                                            array.push({
+                                                id: item.dataValues.ID,
+                                                description: item.dataValues.Description,
+                                                timeRemind: item.dataValues.TimeRemind,
 
-                                            contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
-                                            contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+                                                createID: item.User.dataValues ? item.User.dataValues.ID : -1,
+                                                createName: item.User.dataValues ? item.User.dataValues.Name : "",
 
-                                            companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
-                                            companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+                                                contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
+                                                contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
 
-                                            type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
-                                            activityType: Constant.ACTIVITY_TYPE.NOTE
+                                                companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
+                                                companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+
+                                                type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                                activityType: Constant.ACTIVITY_TYPE.NOTE
+                                            });
                                         });
-                                    });
 
-                                    var result = {
-                                        status: Constant.STATUS.SUCCESS,
-                                        message: '',
-                                        array: array
+                                        var result = {
+                                            status: Constant.STATUS.SUCCESS,
+                                            message: '',
+                                            array, all
+                                        }
+
+                                        res.json(result);
                                     }
-
-                                    res.json(result);
-                                }
+                                })
                             })
                         });
 

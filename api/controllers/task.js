@@ -151,49 +151,68 @@ module.exports = {
                         task.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
                         user.checkUser(body.username).then(role => {
-                            let whereRole = null;
+
+                            let userFind = [];
+                            if (body.userIDFind) {
+                                userFind.push({ UserID: body.userIDFind })
+                            }
                             if (role == Constant.USER_ROLE.STAFF) {
-                                whereRole = { UserID: body.user }
+                                userFind.push({ UserID: body.userID })
                             }
 
-                            task.findAll({
-                                where: whereRole,
-                                include: [
-                                    { model: mUser(db), required: false },
-                                    { model: mContact(db), required: false },
-                                    { model: mCompany(db), required: false }
-                                ]
-                            }).then(data => {
-                                var array = [];
-                                data.forEach(item => {
-                                    array.push({
-                                        id: item.dataValues.ID,
-                                        status: item.dataValues.Status ? item.dataValues.Status : false,
-                                        name: item.dataValues.Name,
-                                        type: item.dataValues.Type,
-                                        timeRemind: item.dataValues.TimeRemind,
-                                        createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                        createName: item.User.dataValues ? item.User.dataValues.Name : "",
+                            let whereAll;
+                            if (body.timeFrom) {
+                                whereAll = {
+                                    TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                    [Op.and]: userFind
+                                };
+                            } else {
+                                whereAll = {
+                                    [Op.and]: userFind
+                                };
+                            }
+                            task.count({ where: whereAll }).then(all => {
+                                task.findAll({
+                                    where: whereAll,
+                                    include: [
+                                        { model: mUser(db), required: false },
+                                        { model: mContact(db), required: false },
+                                        { model: mCompany(db), required: false }
+                                    ],
+                                    order: [['TimeCreate', 'DESC']],
+                                    offset: 12 * (body.page - 1),
+                                    limit: 12
+                                }).then(data => {
+                                    var array = [];
+                                    data.forEach(item => {
+                                        array.push({
+                                            id: item.dataValues.ID,
+                                            status: item.dataValues.Status ? item.dataValues.Status : false,
+                                            name: item.dataValues.Name,
+                                            type: item.dataValues.Type,
+                                            timeRemind: item.dataValues.TimeRemind,
+                                            createID: item.User.dataValues ? item.User.dataValues.ID : -1,
+                                            createName: item.User.dataValues ? item.User.dataValues.Name : "",
 
-                                        contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
-                                        contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+                                            contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
+                                            contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
 
-                                        companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
-                                        companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+                                            companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
+                                            companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
 
-                                        type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
-                                        activityType: Constant.ACTIVITY_TYPE.TASK
-                                    });
+                                            type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                            activityType: Constant.ACTIVITY_TYPE.TASK
+                                        });
+                                    })
+                                    var result = {
+                                        status: Constant.STATUS.SUCCESS,
+                                        message: '',
+                                        array, all
+                                    }
+                                    res.json(result);
                                 })
-                                var result = {
-                                    status: Constant.STATUS.SUCCESS,
-                                    message: '',
-                                    array: array
-                                }
-                                res.json(result);
                             })
                         });
-
                     })
                 })
             }
