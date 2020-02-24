@@ -65,9 +65,15 @@ module.exports = {
                                     ];
                                 }
 
-                                let userFind = {};
+                                let userFind = [];
                                 if (body.userIDFind) {
-                                    userFind = { UserID: body.userIDFind }
+                                    userFind.push({ UserID: body.userIDFind })
+                                }
+                                if (body.stageID) {
+                                    userFind.push({ StageID: body.stageID })
+                                }
+                                if (body.cityID) {
+                                    userFind.push({ CityID: body.cityID })
                                 }
 
                                 let whereAll;
@@ -146,7 +152,7 @@ module.exports = {
                                                     include: [
                                                         {
                                                             model: mUserFollow(db),
-                                                            where: { UserID: body.userID, Type: 1 }
+                                                            where: { UserID: body.userID, Type: 1, Follow: true }
                                                         }
                                                     ],
                                                     where: whereFollow,
@@ -178,7 +184,7 @@ module.exports = {
                                                             {
                                                                 model: mUserFollow(db),
                                                                 required: body.companyType == 3 ? true : false,
-                                                                where: { UserID: body.userID, Type: 1 }
+                                                                where: { UserID: body.userID, Type: 1, Follow: true }
                                                             },
                                                             { model: mCity(db), required: false },
                                                             {
@@ -887,12 +893,14 @@ module.exports = {
                             Name: body.companyName,
                             Email: body.companyEmail,
                             Address: body.companyAddress,
+                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
                             Type: 0
                         }).then(data => {
                             mContact(db).create({
                                 Name: body.contactName,
                                 Phone: body.contactPhone,
-                                CompanyID: data.dataValues.ID
+                                CompanyID: data.dataValues.ID,
+                                TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
                             }).then(() => {
                                 res.json(Result.ACTION_SUCCESS)
                             }).catch(() => {

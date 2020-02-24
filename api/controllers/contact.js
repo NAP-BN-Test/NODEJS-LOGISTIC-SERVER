@@ -213,12 +213,12 @@ module.exports = {
                                                     include: [
                                                         {
                                                             model: mUserFollow(db),
-                                                            where: { UserID: body.userID, Type: 2 }
+                                                            where: { UserID: body.userID, Type: 2, Follow: true }
                                                         }
                                                     ],
                                                     where: whereFollow,
                                                 }).then(follow => {
-                                                    
+
                                                     let where;
                                                     if (body.searchKey) {
                                                         if (body.companyType == 2) {//unassign
@@ -246,7 +246,7 @@ module.exports = {
                                                             {
                                                                 model: mUserFollow(db),
                                                                 required: body.contactType == 3 ? true : false,
-                                                                where: { UserID: body.userID, Type: 1 }
+                                                                where: { UserID: body.userID, Type: 1,Follow: true }
                                                             }
                                                         ],
                                                         where: where,
