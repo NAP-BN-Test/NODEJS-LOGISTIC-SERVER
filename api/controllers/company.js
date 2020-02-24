@@ -43,11 +43,10 @@ module.exports = {
                                 let company = mCompany(db);
                                 company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
                                 company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
-                                company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
+                                company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
 
+                                company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
                                 company.hasMany(mDeal(db), { foreignKey: 'CompanyID' });
-                                let deal = mDeal(db);
-                                deal.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' })
 
                                 let whereSearch = [];
                                 if (body.searchKey) {
@@ -66,29 +65,82 @@ module.exports = {
                                     ];
                                 }
 
+                                let userFind = {};
+                                if (body.userIDFind) {
+                                    userFind = { UserID: body.userIDFind }
+                                }
+
+                                let whereAll;
+                                let whereAllAssign;
+                                let whereAssign;
+                                let whereUnAssign;
+                                let whereFollow
+                                if (body.timeFrom) {
+                                    whereAll = {
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereAllAssign = {
+                                        UserID: { [Op.ne]: null },
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                    whereAssign = {
+                                        UserID: body.userID,
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                    whereUnAssign = {
+                                        UserID: { [Op.eq]: null },
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                    whereFollow = {
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    }
+                                } else {
+                                    whereAll = {
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereAllAssign = {
+                                        UserID: { [Op.ne]: null },
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereAssign = {
+                                        UserID: body.userID,
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereUnAssign = {
+                                        UserID: { [Op.eq]: null },
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereFollow = {
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    }
+                                }
+
                                 company.count({
-                                    where: { [Op.or]: whereSearch },
-                                    order: [['ID', 'DESC']]
+                                    where: whereAll
                                 }).then(all => {
                                     company.count({
-                                        where: {
-                                            UserID: { [Op.eq]: null },
-                                            [Op.or]: whereSearch
-                                        },
-                                        order: [['ID', 'DESC']],
+                                        where: whereUnAssign,
                                     }).then(unassign => {
                                         company.count({
-                                            where: {
-                                                UserID: { [Op.ne]: null },
-                                                [Op.or]: whereSearch
-                                            }
+                                            where: whereAllAssign
                                         }).then(assignAll => {
                                             company.count({
-                                                where: {
-                                                    UserID: body.userID,
-                                                    [Op.or]: whereSearch
-                                                },
-                                                order: [['ID', 'DESC']]
+                                                where: whereAssign,
                                             }).then(assign => {
                                                 company.count({
                                                     include: [
@@ -97,42 +149,29 @@ module.exports = {
                                                             where: { UserID: body.userID, Type: 1 }
                                                         }
                                                     ],
-                                                    where: { [Op.or]: whereSearch },
-                                                    order: [['ID', 'DESC']]
+                                                    where: whereFollow,
                                                 }).then(follow => {
 
                                                     let where;
                                                     if (body.searchKey) {
-                                                        if (body.companyType == 2) {
-                                                            where = {
-                                                                UserID: { [Op.eq]: null },
-                                                                [Op.or]: whereSearch
-                                                            }
-                                                        } else if (body.companyType == 4) {
-                                                            where = {
-                                                                UserID: body.userID,
-                                                                [Op.or]: whereSearch
-                                                            }
-                                                        } else if (body.companyType == 5) {
-                                                            where = {
-                                                                UserID: { [Op.ne]: null },
-                                                                [Op.or]: whereSearch
-                                                            }
-                                                        } else {
-                                                            where = {
-                                                                [Op.or]: whereSearch
-                                                            }
+                                                        if (body.companyType == 2) {//unassign
+                                                            where = whereUnAssign
+                                                        } else if (body.companyType == 4) {//assign
+                                                            where = whereAssign
+                                                        } else if (body.companyType == 5) {//assign all
+                                                            where = whereAllAssign
+                                                        } else { // all
+                                                            where = whereAll
                                                         }
                                                     } else {
-                                                        if (body.companyType == 2) {
-                                                            where = { UserID: { [Op.eq]: null } }
-                                                        } else if (body.companyType == 4) {
-                                                            where = { UserID: body.userID }
-                                                        } else {
-                                                            where = null
+                                                        if (body.companyType == 2) {//unassign
+                                                            where = whereUnAssign
+                                                        } else if (body.companyType == 4) {//assign
+                                                            where = whereAssign
+                                                        } else {// all
+                                                            where = whereAll
                                                         }
                                                     }
-
                                                     company.findAll({
                                                         include: [
                                                             { model: mUser(db), required: false },
@@ -143,9 +182,8 @@ module.exports = {
                                                             },
                                                             { model: mCity(db), required: false },
                                                             {
-                                                                model: deal,
+                                                                model: mDealStage(db),
                                                                 required: false,
-                                                                include: { model: mDealStage(db), required: false }
                                                             }
                                                         ],
                                                         where: where,
@@ -163,13 +201,14 @@ module.exports = {
                                                                 address: elm.dataValues.Address,
                                                                 phone: elm.dataValues.Phone,
                                                                 website: elm.dataValues.Website,
+                                                                timeCreate: elm.dataValues.TimeCreate,
                                                                 cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
                                                                 city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
                                                                 follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
                                                                 checked: false,
                                                                 companyType: elm.dataValues.Type,
-                                                                dealID: elm.Deals[0] ? elm.Deals[0].DealStage.dataValues.ID : -1,
-                                                                dealName: elm.Deals[0] ? elm.Deals[0].DealStage.dataValues.Name : ""
+                                                                stageID: elm.DealStage ? elm.DealStage.dataValues.ID : -1,
+                                                                stageName: elm.DealStage ? elm.DealStage.dataValues.Name : ""
                                                             })
                                                         });
 
@@ -206,6 +245,8 @@ module.exports = {
                     db.authenticate().then(() => {
                         let company = mCompany(db);
                         company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
+                        company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
+
                         company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
 
                         company.findOne({
@@ -216,7 +257,11 @@ module.exports = {
                                     required: false,
                                     where: { UserID: body.userID, Type: 1 }
                                 },
-                                { model: mCity(db), required: false }
+                                { model: mCity(db), required: false },
+                                {
+                                    model: mDealStage(db),
+                                    required: false,
+                                }
                             ]
                         }).then(data => {
                             var obj = {
@@ -229,7 +274,9 @@ module.exports = {
                                 website: data['Website'],
                                 cityID: data.dataValues.City ? data.dataValues.City.ID : -1,
                                 city: data.dataValues.City ? data.dataValues.City.NameVI : "",
-                                follow: data.dataValues.UserFollows[0] ? data.dataValues.UserFollows[0]['Follow'] : false
+                                follow: data.dataValues.UserFollows[0] ? data.dataValues.UserFollows[0]['Follow'] : false,
+                                stageID: data.DealStage ? data.DealStage.dataValues.ID : -1,
+                                stageName: data.DealStage ? data.DealStage.dataValues.Name : ""
                             }
                             var result = {
                                 status: Constant.STATUS.SUCCESS,
@@ -358,6 +405,11 @@ module.exports = {
                                 res.json(Result.ACTION_SUCCESS)
                             })
                         }
+                        else if (body.stageID) {
+                            mCompany(db).update({ StageID: body.stageID }, { where: { ID: body.companyID } }).then(() => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
 
                     }).catch(() => {
                         res.json(Result.SYS_ERROR_RESULT);
@@ -452,7 +504,8 @@ module.exports = {
                                     phone: data.dataValues.Phone,
                                     city: body.cityName,
                                     ownerID: -1,
-                                    ownerName: ""
+                                    ownerName: "",
+                                    companyType: data.dataValues.Type
                                 }
                             }
                             else if (body.role == Constant.COMPANY_ROLE.CHILD) {
@@ -469,7 +522,8 @@ module.exports = {
                                     phone: data.dataValues.Phone,
                                     city: body.cityName,
                                     ownerID: -1,
-                                    ownerName: ""
+                                    ownerName: "",
+                                    companyType: data.dataValues.Type
                                 }
                             } else {
                                 obj = {
@@ -481,7 +535,8 @@ module.exports = {
                                     phone: data.dataValues.Phone,
                                     city: body.cityName,
                                     ownerID: -1,
-                                    ownerName: ""
+                                    ownerName: "",
+                                    companyType: data.dataValues.Type
                                 }
                             }
 

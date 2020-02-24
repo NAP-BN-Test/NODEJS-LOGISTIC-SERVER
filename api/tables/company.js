@@ -17,6 +17,8 @@ module.exports = function (db) {
         CityID: Sequelize.STRING,
         Website: Sequelize.STRING,
         Type: Sequelize.INTEGER,
+        TimeCreate: Sequelize.DATE,
+        StageID: Sequelize.BIGINT,
     });
 
     return table;

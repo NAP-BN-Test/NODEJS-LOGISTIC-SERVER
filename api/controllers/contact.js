@@ -110,47 +110,180 @@ module.exports = {
                     db.authenticate().then(() => {
 
                         mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
-                            var contact = mContact(db);
+                            if (user) {
+                                var contact = mContact(db);
 
-                            contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
-                            contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
-                            contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
+                                contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
+                                contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                                contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
 
-                            contact.findAll({
-                                include: [
-                                    { model: mCompany(db), required: false },
-                                    { model: mUser(db), required: false },
-                                    {
-                                        model: mUserFollow(db),
-                                        required: false,
-                                        where: { UserID: body.userID, Type: 2 }
-                                    }
-                                ],
-                                // where: user.dataValues.Roles == Constant.USER_ROLE.MANAGER ? null : { UserID: body.userID }
-                            }).then(data => {
-                                var array = [];
-
-                                data.forEach(elm => {
-                                    array.push({
-                                        id: elm.dataValues.ID,
-                                        name: elm.dataValues.Name,
-                                        email: elm.dataValues.Email,
-                                        phone: elm.dataValues.Phone,
-                                        timeCreate: elm.dataValues.TimeCreate,
-                                        companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : null,
-                                        companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
-                                        ownerID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : null,
-                                        ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
-                                        follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
-                                    })
-                                });
-                                var result = {
-                                    status: Constant.STATUS.SUCCESS,
-                                    message: '',
-                                    array: array
+                                let whereSearch = [];
+                                if (body.searchKey) {
+                                    whereSearch = [
+                                        { Name: { [Op.like]: '%' + body.searchKey + '%' } },
+                                        { Address: { [Op.like]: '%' + body.searchKey + '%' } },
+                                        { Phone: { [Op.like]: '%' + body.searchKey + '%' } },
+                                    ];
+                                } else {
+                                    whereSearch = [
+                                        { Name: { [Op.ne]: '%%' } },
+                                        { Address: { [Op.like]: '%%' } },
+                                        { Phone: { [Op.like]: '%%' } },
+                                    ];
                                 }
-                                res.json(result)
-                            })
+
+                                let userFind = {};
+                                if (body.userIDFind) {
+                                    userFind = { UserID: body.userIDFind }
+                                }
+
+                                let whereAll;
+                                let whereAllAssign;
+                                let whereAssign;
+                                let whereUnAssign;
+                                let whereFollow
+                                if (body.timeFrom) {
+                                    whereAll = {
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereAllAssign = {
+                                        UserID: { [Op.ne]: null },
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                    whereAssign = {
+                                        UserID: body.userID,
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                    whereUnAssign = {
+                                        UserID: { [Op.eq]: null },
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                    whereFollow = {
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    }
+                                } else {
+                                    whereAll = {
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereAllAssign = {
+                                        UserID: { [Op.ne]: null },
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereAssign = {
+                                        UserID: body.userID,
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereUnAssign = {
+                                        UserID: { [Op.eq]: null },
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    };
+                                    whereFollow = {
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    }
+                                }
+
+                                contact.count({
+                                    where: whereAll
+                                }).then(all => {
+                                    contact.count({
+                                        where: whereUnAssign,
+                                    }).then(assignAll => {
+                                        contact.count({
+                                            where: whereAllAssign
+                                        }).then(assign => {
+                                            contact.count({
+                                                where: whereAssign,
+                                            }).then(unassign => {
+                                                contact.count({
+                                                    include: [
+                                                        {
+                                                            model: mUserFollow(db),
+                                                            where: { UserID: body.userID, Type: 2 }
+                                                        }
+                                                    ],
+                                                    where: whereFollow,
+                                                }).then(follow => {
+                                                    
+                                                    let where;
+                                                    if (body.searchKey) {
+                                                        if (body.companyType == 2) {//unassign
+                                                            where = whereUnAssign
+                                                        } else if (body.companyType == 4) {//assign
+                                                            where = whereAssign
+                                                        } else if (body.companyType == 5) {//assign all
+                                                            where = whereAllAssign
+                                                        } else { // all
+                                                            where = whereAll
+                                                        }
+                                                    } else {
+                                                        if (body.companyType == 2) {//unassign
+                                                            where = whereUnAssign
+                                                        } else if (body.companyType == 4) {//assign
+                                                            where = whereAssign
+                                                        } else {// all
+                                                            where = whereAll
+                                                        }
+                                                    }
+
+                                                    contact.findAll({
+                                                        include: [
+                                                            { model: mUser(db), required: false },
+                                                            {
+                                                                model: mUserFollow(db),
+                                                                required: body.contactType == 3 ? true : false,
+                                                                where: { UserID: body.userID, Type: 1 }
+                                                            }
+                                                        ],
+                                                        where: where,
+                                                        order: [['ID', 'DESC']],
+                                                        offset: 12 * (body.page - 1),
+                                                        limit: 12
+                                                    }).then(data => {
+                                                        var array = [];
+
+                                                        data.forEach(elm => {
+                                                            array.push({
+                                                                id: elm.dataValues.ID,
+                                                                name: elm.dataValues.Name,
+                                                                email: elm.dataValues.Email,
+                                                                phone: elm.dataValues.Phone,
+                                                                timeCreate: elm.dataValues.TimeCreate,
+                                                                companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : null,
+                                                                companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
+                                                                ownerID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : null,
+                                                                ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                                                                follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
+                                                            })
+                                                        });
+                                                        var result = {
+                                                            status: Constant.STATUS.SUCCESS,
+                                                            message: '',
+                                                            array: array,
+                                                            all, unassign, assign, follow, assignAll
+                                                        }
+                                                        res.json(result)
+                                                    })
+                                                })
+                                            })
+                                        })
+                                    })
+                                })
+                            }
                         });
 
                     }).catch(err => res.json(err))
