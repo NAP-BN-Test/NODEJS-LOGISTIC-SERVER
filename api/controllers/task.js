@@ -162,10 +162,17 @@ module.exports = {
 
                             let whereAll;
                             if (body.timeFrom) {
-                                whereAll = {
-                                    TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
-                                    [Op.and]: userFind
-                                };
+                                if (body.timeType == 2) {
+                                    whereAll = {
+                                        TimeRemind: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                } else {
+                                    whereAll = {
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                }
                             } else {
                                 whereAll = {
                                     [Op.and]: userFind
@@ -190,6 +197,7 @@ module.exports = {
                                             status: item.dataValues.Status ? item.dataValues.Status : false,
                                             name: item.dataValues.Name,
                                             type: item.dataValues.Type,
+                                            timeCreate: item.dataValues.TimeCreate,
                                             timeRemind: item.dataValues.TimeRemind,
                                             createID: item.User.dataValues ? item.User.dataValues.ID : -1,
                                             createName: item.User.dataValues ? item.User.dataValues.Name : "",
