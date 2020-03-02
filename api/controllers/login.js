@@ -10,7 +10,7 @@ module.exports = {
     login: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -34,7 +34,7 @@ module.exports = {
                                 message: '',
                                 obj: obj
                             }
-                            
+
                             res.json(result);
                         }).catch(() => {
                             res.json(Result.LOGIN_FAIL)

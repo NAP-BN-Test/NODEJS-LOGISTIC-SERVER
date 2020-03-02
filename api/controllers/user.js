@@ -12,7 +12,7 @@ module.exports = {
     getListUser: (req, res) => {//take this list for dropdown
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
