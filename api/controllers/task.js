@@ -150,7 +150,7 @@ module.exports = {
                         task.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         task.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
-                        user.checkUser(body.username).then(role => {
+                        user.checkUser(body.ip, body.dbName).then(role => {
 
                             let userFind = [];
                             if (body.userIDFind) {
