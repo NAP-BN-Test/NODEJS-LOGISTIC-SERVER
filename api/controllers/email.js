@@ -164,10 +164,17 @@ module.exports = {
 
                             let whereAll;
                             if (body.timeFrom) {
-                                whereAll = {
-                                    TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
-                                    [Op.and]: userFind
-                                };
+                                if (body.timeType == 2) {
+                                    whereAll = {
+                                        TimeRemind: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                } else {
+                                    whereAll = {
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    };
+                                }
                             } else {
                                 whereAll = {
                                     [Op.and]: userFind
@@ -191,6 +198,7 @@ module.exports = {
                                             array.push({
                                                 id: item.dataValues.ID,
                                                 description: item.dataValues.Description,
+                                                timeCreate: item.dataValues.TimeCreate,
                                                 timeRemind: item.dataValues.TimeRemind,
                                                 state: item.dataValues.State,
 
