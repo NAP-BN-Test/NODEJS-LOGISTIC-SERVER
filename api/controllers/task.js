@@ -22,7 +22,7 @@ module.exports = {
     createTask: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -80,7 +80,7 @@ module.exports = {
     getAssociate: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -115,7 +115,7 @@ module.exports = {
     updateAssociate: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -141,7 +141,7 @@ module.exports = {
     getListTask: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
                     db.authenticate().then(() => {
@@ -230,7 +230,7 @@ module.exports = {
     updateTask: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
                     db.authenticate().then(() => {
@@ -246,7 +246,7 @@ module.exports = {
     deleteTask: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 

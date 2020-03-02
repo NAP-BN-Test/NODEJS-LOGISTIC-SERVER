@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
 module.exports = {
-  serverDB: function (username) {
+  serverDB: function (ip, dbName) {
     return new Promise((resolve) => {
       var dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
         host: '163.44.192.123',
@@ -20,44 +20,27 @@ module.exports = {
       });
 
       dbServer.authenticate().then(() => {
-        var serverInfo = dbServer.define('LogisticServer', {
+        var serverInfo = dbServer.define('Customer', {
           ID: {
             type: Sequelize.BIGINT,
             primaryKey: true,
             autoIncrement: true
           },
-          IP: Sequelize.STRING,
+          ServerIP: Sequelize.STRING,
           Username: Sequelize.STRING,
           Password: Sequelize.STRING,
-          DBName: Sequelize.STRING,
+          DatabaseName: Sequelize.STRING,
         });
 
-        var serverUser = dbServer.define('LogisticUser', {
-          ID: {
-            type: Sequelize.BIGINT,
-            primaryKey: true,
-            autoIncrement: true
-          },
-          Username: Sequelize.STRING,
-          ServerID: Sequelize.BIGINT
-        });
-
-
-        serverUser.belongsTo(serverInfo, { foreignKey: 'ServerID' });
-
-        serverUser.findOne({
-          where: { Username: username },
-          raw: true,
-          include: [{
-            model: serverInfo
-          }]
+        serverInfo.findOne({
+          where: { ServerIP: ip, DatabaseName: dbName }
         }).then(data => {
           if (data) {
             var server = {
-              ip: data['LogisticServer.IP'],
-              dbName: data['LogisticServer.DBName'],
-              username: data['LogisticServer.Username'],
-              password: data['LogisticServer.Password']
+              ip: data['ServerIP'],
+              dbName: data['DatabaseName'],
+              username: data['Username'],
+              password: data['Password']
             };
             resolve(server);
           }

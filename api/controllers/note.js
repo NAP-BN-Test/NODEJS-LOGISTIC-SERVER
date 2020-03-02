@@ -24,7 +24,7 @@ module.exports = {
     createNote: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -73,7 +73,7 @@ module.exports = {
     getAssociate: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -108,7 +108,7 @@ module.exports = {
     updateAssociate: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -134,7 +134,7 @@ module.exports = {
     getListNote: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -232,7 +232,7 @@ module.exports = {
     deleteNote: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 

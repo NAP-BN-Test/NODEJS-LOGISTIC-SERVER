@@ -32,7 +32,7 @@ module.exports = {
     getListCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -244,7 +244,7 @@ module.exports = {
     getDetailCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -303,7 +303,7 @@ module.exports = {
     getListQuickCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -371,7 +371,7 @@ module.exports = {
     updateCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -430,7 +430,7 @@ module.exports = {
     searchCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -477,7 +477,7 @@ module.exports = {
     addCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -566,7 +566,7 @@ module.exports = {
     addParentCompanyByID: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -604,7 +604,7 @@ module.exports = {
     addChildCompanyByID: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -642,7 +642,7 @@ module.exports = {
     assignCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -691,7 +691,7 @@ module.exports = {
     followCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -737,7 +737,7 @@ module.exports = {
     deleteCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -812,7 +812,7 @@ module.exports = {
     deleteContactFromCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -834,7 +834,7 @@ module.exports = {
     deleteCompanyFromCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
@@ -865,7 +865,7 @@ module.exports = {
     deleteDealFromCompany: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.username).then(server => {
+        database.serverDB(body.ip, body.dbName).then(server => {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
