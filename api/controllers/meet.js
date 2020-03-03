@@ -212,7 +212,7 @@ module.exports = {
                         meet.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         meet.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
-                        user.checkUser(body.username).then(role => {
+                        user.checkUser(body.ip, body.dbName).then(role => {
                             let userFind = [];
                             if (body.userIDFind) {
                                 userFind.push({ UserID: body.userIDFind })
