@@ -6,6 +6,8 @@ const Constant = require('../constants/constant');
 const Result = require('../constants/result');
 
 var database = require('../db');
+var user = require('../controllers/user');
+
 
 var mCity = require('../tables/ city');
 
@@ -74,6 +76,9 @@ module.exports = {
                                 }
                                 if (body.cityID) {
                                     userFind.push({ CityID: body.cityID })
+                                }
+                                if (user['Roles'] == Constant.USER_ROLE.GUEST) {
+                                    userFind.push({ UserID: body.userID })
                                 }
 
                                 let whereAll;
@@ -435,35 +440,43 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        mCompany(db).findAll(
-                            { where: { Name: { [Op.like]: "%" + body.searchKey } } }
-                        ).then(data => {
-                            var array = [];
+                        user.checkUser(body.ip, body.dbName, body.username).then(role => {
 
-                            data.forEach(elm => {
-                                array.push({
-                                    id: elm['ID'],
-                                    name: elm['Name'],
-                                    phone: elm['Phone'],
-                                })
-                            });
+                            let where = [{ Name: { [Op.like]: "%" + body.searchKey } }]
+                            if (role != Constant.USER_ROLE.MANAGER) {
+                                where.push({ UserID: body.userID })
+                            }
 
-                            mCompanyChild(db).findAll({ raw: true, attributes: ['ChildID'], where: { ParentID: body.companyID } }).then(data1 => {
-                                array = array.filter(item => {
-                                    let index = data1.findIndex(it1 => {
-                                        return it1.ChildID == item.id;
-                                    });
-                                    if (index > -1)
-                                        return false;
-                                    else
-                                        return true;
+                            mCompany(db).findAll(
+                                { where: where }
+                            ).then(data => {
+                                var array = [];
+
+                                data.forEach(elm => {
+                                    array.push({
+                                        id: elm['ID'],
+                                        name: elm['Name'],
+                                        phone: elm['Phone'],
+                                    })
                                 });
-                                var result = {
-                                    status: Constant.STATUS.SUCCESS,
-                                    message: '',
-                                    array: array
-                                }
-                                res.json(result)
+
+                                mCompanyChild(db).findAll({ raw: true, attributes: ['ChildID'], where: { ParentID: body.companyID } }).then(data1 => {
+                                    array = array.filter(item => {
+                                        let index = data1.findIndex(it1 => {
+                                            return it1.ChildID == item.id;
+                                        });
+                                        if (index > -1)
+                                            return false;
+                                        else
+                                            return true;
+                                    });
+                                    var result = {
+                                        status: Constant.STATUS.SUCCESS,
+                                        message: '',
+                                        array: array
+                                    }
+                                    res.json(result)
+                                })
                             })
                         })
                     })

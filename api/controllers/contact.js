@@ -6,6 +6,7 @@ const Result = require('../constants/result');
 var moment = require('moment');
 
 var database = require('../db');
+var user = require('../controllers/user');
 
 var mCompany = require('../tables/company');
 var mContact = require('../tables/contact');
@@ -132,9 +133,12 @@ module.exports = {
                                     ];
                                 }
 
-                                let userFind = {};
+                                let userFind = [];
                                 if (body.userIDFind) {
-                                    userFind = { UserID: body.userIDFind }
+                                    userFind.push({ UserID: body.userIDFind })
+                                }
+                                if (user['Roles'] == Constant.USER_ROLE.GUEST) {
+                                    userFind.push({ UserID: body.userID })
                                 }
 
                                 let whereAll;
@@ -246,7 +250,7 @@ module.exports = {
                                                             {
                                                                 model: mUserFollow(db),
                                                                 required: body.contactType == 3 ? true : false,
-                                                                where: { UserID: body.userID, Type: 1,Follow: true }
+                                                                where: { UserID: body.userID, Type: 1, Follow: true }
                                                             }
                                                         ],
                                                         where: where,
@@ -390,25 +394,34 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        mContact(db).findAll(
-                            { where: { Name: { [Op.like]: "%" + body.searchKey } } }
-                        ).then(data => {
-                            var array = [];
 
-                            data.forEach(elm => {
-                                array.push({
-                                    id: elm['ID'],
-                                    name: elm['Name'],
-                                    phone: elm['Phone'],
-                                })
-                            });
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
+                        user.checkUser(body.ip, body.dbName, body.username).then(role => {
+                            let where = [{ Name: { [Op.like]: "%" + body.searchKey } }];
+
+                            if (role != Constant.USER_ROLE.MANAGER) {
+                                where.push({ UserID: body.userID })
                             }
-                            res.json(result)
-                        })
+
+                            mContact(db).findAll(
+                                { where: where }
+                            ).then(data => {
+                                var array = [];
+
+                                data.forEach(elm => {
+                                    array.push({
+                                        id: elm['ID'],
+                                        name: elm['Name'],
+                                        phone: elm['Phone'],
+                                    })
+                                });
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: '',
+                                    array: array
+                                }
+                                res.json(result)
+                            })
+                        });
                     })
                 })
             } else {

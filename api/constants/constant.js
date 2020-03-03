@@ -9,6 +9,7 @@ const MESSAGE = {
 }
 
 const USER_ROLE = {
+    GUEST: 0,
     STAFF: 1,
     MANAGER: 2
 }

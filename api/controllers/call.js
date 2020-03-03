@@ -152,13 +152,13 @@ module.exports = {
                         call.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         call.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
-                        user.checkUser(body.ip, body.dbName).then(role => {
+                        user.checkUser(body.ip, body.dbName, body.username).then(role => {
 
                             let userFind = [];
                             if (body.userIDFind) {
                                 userFind.push({ UserID: body.userIDFind })
                             }
-                            if (role == Constant.USER_ROLE.STAFF) {
+                            if (role != Constant.USER_ROLE.MANAGER) {
                                 userFind.push({ UserID: body.userID })
                             }
 
