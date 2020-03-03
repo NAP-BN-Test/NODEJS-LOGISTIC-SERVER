@@ -5,7 +5,7 @@ const Result = require('../constants/result');
 
 var moment = require('moment');
 
-var user = require('../controllers/user');
+var user = require('../controllers/user');  
 var database = require('../db');
 
 var mTask = require('../tables/task');
@@ -150,13 +150,13 @@ module.exports = {
                         task.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         task.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
-                        user.checkUser(body.ip, body.dbName).then(role => {
+                        user.checkUser(body.ip, body.dbName, body.username).then(role => {
 
                             let userFind = [];
                             if (body.userIDFind) {
                                 userFind.push({ UserID: body.userIDFind })
                             }
-                            if (role == Constant.USER_ROLE.STAFF) {
+                            if (role != Constant.USER_ROLE.MANAGER) {
                                 userFind.push({ UserID: body.userID })
                             }
 

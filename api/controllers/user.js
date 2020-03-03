@@ -66,18 +66,14 @@ module.exports = {
         })
     },
 
-    checkUser: (ip, dbName) => {
+    checkUser: (ip, dbName, username) => {
         return new Promise((resolve, reject) => {
-            console.log(ip, dbName);
-            
             database.serverDB(ip, dbName).then(server => {
-                console.log(server);
-                
                 if (server) {
                     database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                         db.authenticate().then(() => {
-                            mUser(db).findOne().then(data => {
+                            mUser(db).findOne({ where: { Username: username } }).then(data => {
                                 resolve(data['Roles'])
                             })
                         }).catch(err => {
