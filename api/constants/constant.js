@@ -6,6 +6,8 @@ const MESSAGE = {
     DATA_NOT_FOUND: "Không tìm thấy dữ liệu!",
     LOGIN_FAIL: "Đăng nhập thất bại!",
     INVALID_COMPANY: "Công ty đã tồn tại!",
+    NO_PERMISSION: "Bạn không có quyền thực hiện thao tác này!",
+    INVALID_USER: "Tên đăng nhập đã tồn tại!",
 }
 
 const USER_ROLE = {

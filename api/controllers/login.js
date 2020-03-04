@@ -27,6 +27,7 @@ module.exports = {
                                 password: data['Password'],
                                 phone: data['Phone'],
                                 email: data['Email'],
+                                role: data['Roles'],
                             }
 
                             var result = {

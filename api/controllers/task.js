@@ -5,7 +5,7 @@ const Result = require('../constants/result');
 
 var moment = require('moment');
 
-var user = require('../controllers/user');  
+var user = require('../controllers/user');
 var database = require('../db');
 
 var mTask = require('../tables/task');
@@ -43,7 +43,7 @@ module.exports = {
                             if (body.listAssociate) {
                                 let list = JSON.parse(body.listAssociate);
                                 list.forEach(itm => {
-                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, UserID: itm });
+                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, ContactID: itm });
                                 });
                             }
                             var obj = {
@@ -146,7 +146,8 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
                     db.authenticate().then(() => {
                         var task = mTask(db);
-                        task.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                        task.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'UserCreate' });
+                        task.belongsTo(mUser(db), { foreignKey: 'AssignID', sourceKey: 'AssignID', as: 'UserAssign' });
                         task.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         task.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
@@ -182,9 +183,10 @@ module.exports = {
                                 task.findAll({
                                     where: whereAll,
                                     include: [
-                                        { model: mUser(db), required: false },
+                                        { model: mUser(db), as: 'UserCreate', required: false },
+                                        { model: mUser(db), as: 'UserAssign', required: false },
                                         { model: mContact(db), required: false },
-                                        { model: mCompany(db), required: false }
+                                        { model: mCompany(db), required: false },
                                     ],
                                     order: [['TimeCreate', 'DESC']],
                                     offset: 12 * (body.page - 1),
@@ -196,11 +198,15 @@ module.exports = {
                                             id: item.dataValues.ID,
                                             status: item.dataValues.Status ? item.dataValues.Status : false,
                                             name: item.dataValues.Name,
+                                            description: item.dataValues.Description,
                                             type: item.dataValues.Type,
                                             timeCreate: item.dataValues.TimeCreate,
                                             timeRemind: item.dataValues.TimeRemind,
-                                            createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                            createName: item.User.dataValues ? item.User.dataValues.Name : "",
+                                            createID: item.UserCreate.dataValues ? item.UserCreate.dataValues.ID : -1,
+                                            createName: item.UserCreate.dataValues ? item.UserCreate.dataValues.Username : "",
+
+                                            assignID: item.UserAssign.dataValues ? item.UserAssign.dataValues.ID : -1,
+                                            assignName: item.UserAssign.dataValues ? item.UserAssign.dataValues.Username : "",
 
                                             contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
                                             contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",

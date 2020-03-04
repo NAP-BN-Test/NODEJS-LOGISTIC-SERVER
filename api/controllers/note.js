@@ -10,6 +10,7 @@ var database = require('../db');
 
 var mNote = require('../tables/note');
 var mAssociate = require('../tables/note-associate');
+var mComment = require('../tables/note-comment');
 
 var rmAssociate = require('../tables/note-associate');
 var rmComment = require('../tables/note-comment');
@@ -29,7 +30,6 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        console.log(body);
                         mNote(db).create({
                             UserID: body.userID,
                             CompanyID: body.companyID,
@@ -41,7 +41,7 @@ module.exports = {
                             if (body.listAssociate) {
                                 let list = JSON.parse(body.listAssociate);
                                 list.forEach(itm => {
-                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, UserID: itm });
+                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, ContactID: itm });
                                 });
                             }
                             var obj = {
@@ -144,6 +144,8 @@ module.exports = {
                         note.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         note.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
+                        note.hasMany(mComment(db), { foreignKey: 'ActivityID', as: 'Comments' });
+
                         user.checkUser(body.ip, body.dbName, body.username).then(role => {
 
                             let userFind = [];
@@ -179,7 +181,8 @@ module.exports = {
                                     include: [
                                         { model: mUser(db), required: false },
                                         { model: mContact(db), required: false },
-                                        { model: mCompany(db), required: false }
+                                        { model: mCompany(db), required: false },
+                                        { model: mComment(db), required: false, as: 'Comments' }
                                     ],
                                     order: [['TimeCreate', 'DESC']],
                                     offset: 12 * (body.page - 1),
@@ -195,7 +198,7 @@ module.exports = {
                                                 timeRemind: item.dataValues.TimeRemind,
 
                                                 createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                                createName: item.User.dataValues ? item.User.dataValues.Name : "",
+                                                createName: item.User.dataValues ? item.User.dataValues.Username : "",
 
                                                 contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
                                                 contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
@@ -204,7 +207,10 @@ module.exports = {
                                                 companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
 
                                                 type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
-                                                activityType: Constant.ACTIVITY_TYPE.NOTE
+                                                activityType: Constant.ACTIVITY_TYPE.NOTE,
+
+                                                comment: item.Comments.length > 0 ? item.Comments[0].Contents : ""
+
                                             });
                                         });
 
