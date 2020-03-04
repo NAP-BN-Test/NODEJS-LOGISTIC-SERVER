@@ -11,6 +11,8 @@ var database = require('../db');
 var mMeetAttend = require('../tables/meet-attend');
 var mMeet = require('../tables/meet');
 var mAssociate = require('../tables/meet-associate');
+var mComment = require('../tables/meet-comment');
+
 
 
 var rmAssociate = require('../tables/meet-associate');
@@ -52,7 +54,7 @@ module.exports = {
                             if (body.listAssociate) {
                                 let list = JSON.parse(body.listAssociate);
                                 list.forEach(itm => {
-                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, UserID: itm });
+                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, ContactID: itm });
                                 });
                             }
                             var obj = {
@@ -212,6 +214,8 @@ module.exports = {
                         meet.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         meet.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
+                        meet.hasMany(mComment(db), { foreignKey: 'ActivityID', as: 'Comments' });
+
                         user.checkUser(body.ip, body.dbName, body.username).then(role => {
                             let userFind = [];
                             if (body.userIDFind) {
@@ -246,7 +250,8 @@ module.exports = {
                                     include: [
                                         { model: mUser(db), required: false },
                                         { model: mContact(db), required: false },
-                                        { model: mCompany(db), required: false }
+                                        { model: mCompany(db), required: false },
+                                        { model: mComment(db), required: false, as: 'Comments' }
                                     ],
                                     order: [['TimeCreate', 'DESC']],
                                     offset: 12 * (body.page - 1),
@@ -272,7 +277,10 @@ module.exports = {
                                                 companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
 
                                                 type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
-                                                activityType: Constant.ACTIVITY_TYPE.MEET
+                                                activityType: Constant.ACTIVITY_TYPE.MEET,
+
+                                                comment: item.Comments.length > 0 ? item.Comments[0].Contents : ""
+
                                             });
                                         });
 

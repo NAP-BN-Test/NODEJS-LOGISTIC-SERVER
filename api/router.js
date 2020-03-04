@@ -18,15 +18,13 @@ module.exports = function (app) {
     var email = require('./controllers/email');
     var task = require('./controllers/task');
 
-    var svController = require('./controllers/server-controller');
-
     var summary = require('./controllers/summary');
 
 
     // todoList Routes
     app.route('/crm/user_login').post(login.login);
 
-    app.route('/server/add_user').post(svController.addUser);
+    app.route('/crm/add_user').post(user.addUser);
 
     //Company
     app.route('/crm/get_list_company').post(company.getListCompany);

@@ -14,6 +14,7 @@ var mCompany = require('../tables/company');
 
 var mCall = require('../tables/call');
 var mAssociate = require('../tables/call-associate');
+var mComment = require('../tables/call-comment');
 
 var rmAssociate = require('../tables/call-associate');
 var rmComment = require('../tables/call-comment');
@@ -45,7 +46,7 @@ module.exports = {
                             if (body.listAssociate) {
                                 let list = JSON.parse(body.listAssociate);
                                 list.forEach(itm => {
-                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, UserID: itm });
+                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, ContactID: itm });
                                 });
                             }
                             var obj = {
@@ -152,6 +153,9 @@ module.exports = {
                         call.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
                         call.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
+                        call.hasMany(mComment(db), { foreignKey: 'ActivityID', as: 'Comments' });
+
+
                         user.checkUser(body.ip, body.dbName, body.username).then(role => {
 
                             let userFind = [];
@@ -187,7 +191,8 @@ module.exports = {
                                     include: [
                                         { model: mUser(db), required: false },
                                         { model: mContact(db), required: false },
-                                        { model: mCompany(db), required: false }
+                                        { model: mCompany(db), required: false },
+                                        { model: mComment(db), required: false, as: 'Comments' }
                                     ],
                                     order: [['TimeCreate', 'DESC']],
                                     offset: 12 * (body.page - 1),
@@ -204,7 +209,7 @@ module.exports = {
                                                 state: item.dataValues.State,
 
                                                 createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                                createName: item.User.dataValues ? item.User.dataValues.Name : "",
+                                                createName: item.User.dataValues ? item.User.dataValues.Username : "",
 
                                                 contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
                                                 contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
@@ -213,7 +218,9 @@ module.exports = {
                                                 companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
 
                                                 type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
-                                                activityType: Constant.ACTIVITY_TYPE.CALL
+                                                activityType: Constant.ACTIVITY_TYPE.CALL,
+
+                                                comment: item.Comments.length > 0 ? item.Comments[0].Contents : ""
                                             });
                                         });
 
