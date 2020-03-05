@@ -207,14 +207,18 @@ module.exports = {
                                                             array.push({
                                                                 id: elm.dataValues.ID,
                                                                 name: elm.dataValues.Name,
+
                                                                 ownerID: elm.dataValues.UserID,
-                                                                ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                                                                ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Username : "",
+                                                                
                                                                 address: elm.dataValues.Address,
                                                                 phone: elm.dataValues.Phone,
                                                                 website: elm.dataValues.Website,
                                                                 timeCreate: elm.dataValues.TimeCreate,
+                                                                
                                                                 cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
                                                                 city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
+                                                                
                                                                 follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
                                                                 checked: false,
                                                                 companyType: elm.dataValues.Type,

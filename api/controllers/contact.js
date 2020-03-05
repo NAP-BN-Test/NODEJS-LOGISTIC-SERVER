@@ -251,7 +251,8 @@ module.exports = {
                                                                 model: mUserFollow(db),
                                                                 required: body.contactType == 3 ? true : false,
                                                                 where: { UserID: body.userID, Type: 1, Follow: true }
-                                                            }
+                                                            },
+                                                            { model: mCompany(db), required: false }
                                                         ],
                                                         where: where,
                                                         order: [['ID', 'DESC']],
@@ -267,10 +268,13 @@ module.exports = {
                                                                 email: elm.dataValues.Email,
                                                                 phone: elm.dataValues.Phone,
                                                                 timeCreate: elm.dataValues.TimeCreate,
+
                                                                 companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : null,
                                                                 companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
+
                                                                 ownerID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : null,
-                                                                ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                                                                ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Username : "",
+                                                                
                                                                 follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
                                                             })
                                                         });
