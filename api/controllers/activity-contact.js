@@ -210,14 +210,16 @@ function getListActivityTask(db, body) {
     return new Promise((res) => {
 
         var task = mTask(db);
-        task.belongsTo(mUser(db), { foreignKey: 'AssignID', sourceKey: 'AssignID' });
+        task.belongsTo(mUser(db), { foreignKey: 'AssignID', sourceKey: 'AssignID', as: 'AssignUser' });
+        task.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
         task.hasMany(mTaskAssociate(db), { foreignKey: 'ActivityID' })
 
         task.findAll({
             where: { ContactID: body.contactID },
             include: [{
                 model: mUser(db),
-                required: false
+                required: false,
+                as: 'CreateUser'
             }, {
                 model: mTaskAssociate(db),
                 required: false,
@@ -240,7 +242,10 @@ function getListActivityTask(db, body) {
                         assignID: elm.dataValues.AssignID,
                         activityType: Constant.ACTIVITY_TYPE.TASK,
                         status: elm.dataValues.Status ? elm.dataValues.Status : false,
-                        listComment: []
+                        listComment: [],
+
+                        userID: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.ID : -1,
+                        userName: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.Name : ""
                     })
                 });
 

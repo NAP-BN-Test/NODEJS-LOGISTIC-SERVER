@@ -197,11 +197,14 @@ module.exports = {
                                         array.push({
                                             id: item.dataValues.ID,
                                             status: item.dataValues.Status ? item.dataValues.Status : false,
-                                            name: item.dataValues.Name,
+                                            taskName: item.dataValues.Name,
                                             description: item.dataValues.Description,
                                             type: item.dataValues.Type,
                                             timeCreate: item.dataValues.TimeCreate,
                                             timeRemind: item.dataValues.TimeRemind,
+
+                                            userID: item.UserCreate.dataValues ? item.UserCreate.dataValues.ID : -1,
+                                            userName: item.UserCreate.dataValues ? item.UserCreate.dataValues.Name : "",
                                             createID: item.UserCreate.dataValues ? item.UserCreate.dataValues.ID : -1,
                                             createName: item.UserCreate.dataValues ? item.UserCreate.dataValues.Username : "",
 
@@ -240,9 +243,19 @@ module.exports = {
             if (server) {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
                     db.authenticate().then(() => {
-                        mTask(db).update({ Status: body.status ? body.status : false }, { where: { ID: body.taskID } }).then(() => {
-                            res.json(Result.ACTION_SUCCESS)
-                        })
+                        if (body.taskIDs) {
+                            let listTask = JSON.parse(body.taskIDs);
+                            let listTaskID = [];
+                            listTask.forEach(item => {
+                                listTaskID.push(Number(item + ""));
+                            });
+                            mTask(db).update(
+                                { Status: body.status ? body.status : false },
+                                { where: { ID: { [Op.in]: listTaskID } } }
+                            ).then(() => {
+                                res.json(Result.ACTION_SUCCESS)
+                            })
+                        }
                     })
                 })
             }
@@ -257,7 +270,6 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        console.log(body)
                         if (body.activityIDs) {
                             let listActivity = JSON.parse(body.activityIDs);
                             let listActivityID = [];
