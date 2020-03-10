@@ -27,6 +27,8 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
+                        console.log(body);
+                        
                         mTask(db).create({
                             UserID: body.userID,
                             CompanyID: body.companyID,

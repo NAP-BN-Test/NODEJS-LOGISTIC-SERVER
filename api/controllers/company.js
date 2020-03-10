@@ -39,7 +39,8 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-
+                        console.log(body);
+                        
                         mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
                             if (user) {
                                 let company = mCompany(db);
