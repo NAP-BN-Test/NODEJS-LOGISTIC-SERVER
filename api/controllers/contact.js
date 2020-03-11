@@ -206,13 +206,13 @@ module.exports = {
                                 }).then(all => {
                                     contact.count({
                                         where: whereUnAssign,
-                                    }).then(assignAll => {
+                                    }).then(unassign => {
                                         contact.count({
                                             where: whereAllAssign
-                                        }).then(assign => {
+                                        }).then(assignAll => {
                                             contact.count({
                                                 where: whereAssign,
-                                            }).then(unassign => {
+                                            }).then(assign => {
                                                 contact.count({
                                                     include: [
                                                         {
@@ -222,35 +222,33 @@ module.exports = {
                                                     ],
                                                     where: whereFollow,
                                                 }).then(follow => {
-
                                                     let where;
                                                     if (body.searchKey) {
-                                                        if (body.companyType == 2) {//unassign
+                                                        if (body.contactType == 2) {//unassign
                                                             where = whereUnAssign
-                                                        } else if (body.companyType == 4) {//assign
+                                                        } else if (body.contactType == 4) {//assign
                                                             where = whereAssign
-                                                        } else if (body.companyType == 5) {//assign all
+                                                        } else if (body.contactType == 5) {//assign all
                                                             where = whereAllAssign
                                                         } else { // all
                                                             where = whereAll
                                                         }
                                                     } else {
-                                                        if (body.companyType == 2) {//unassign
+                                                        if (body.contactType == 2) {//unassign
                                                             where = whereUnAssign
-                                                        } else if (body.companyType == 4) {//assign
+                                                        } else if (body.contactType == 4) {//assign
                                                             where = whereAssign
                                                         } else {// all
                                                             where = whereAll
                                                         }
                                                     }
-
                                                     contact.findAll({
                                                         include: [
                                                             { model: mUser(db), required: false },
                                                             {
                                                                 model: mUserFollow(db),
                                                                 required: body.contactType == 3 ? true : false,
-                                                                where: { UserID: body.userID, Type: 1, Follow: true }
+                                                                where: { UserID: body.userID, Type: 2, Follow: true }
                                                             },
                                                             { model: mCompany(db), required: false }
                                                         ],
@@ -274,7 +272,7 @@ module.exports = {
 
                                                                 ownerID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : null,
                                                                 ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Username : "",
-                                                                
+
                                                                 follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
                                                             })
                                                         });
@@ -322,7 +320,7 @@ module.exports = {
                             Zalo: body.zalo,
                             Facebook: body.facebook,
                             Skype: body.skype,
-                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                         }).then(data => {
                             var obj = {
                                 id: data.dataValues.ID,
@@ -406,9 +404,7 @@ module.exports = {
                                 where.push({ UserID: body.userID })
                             }
 
-                            mContact(db).findAll(
-                                { where: where }
-                            ).then(data => {
+                            mContact(db).findAll({ where: where, limit: 20 }).then(data => {
                                 var array = [];
 
                                 data.forEach(elm => {
@@ -486,31 +482,34 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        if (body.contactName) {
-                            mContact(db).update({ Name: body.contactName }, { where: { ID: body.contactID } }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
+
+                        let listUpdate = [];
+
+                        if (body.contactName)
+                            listUpdate.push({ key: 'Name', value: body.contactName });
+
+                        if (body.contactAddress)
+                            listUpdate.push({ key: 'Address', value: body.contactAddress });
+
+                        if (body.contactPhone)
+                            listUpdate.push({ key: 'Phone', value: body.contactPhone });
+
+                        if (body.contactEmail)
+                            listUpdate.push({ key: 'Email', value: body.contactEmail });
+
+                        if (body.contactJobTile)
+                            listUpdate.push({ key: 'JobTile', value: body.contactJobTile });
+
+
+                        let update = {};
+                        for (let field of listUpdate) {
+                            update[field.key] = field.value
                         }
-                        else if (body.contactAddress) {
-                            mContact(db).update({ Address: body.contactAddress }, { where: { ID: body.contactID } }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.contactPhone) {
-                            mContact(db).update({ Phone: body.contactPhone }, { where: { ID: body.contactID } }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.contactEmail) {
-                            mContact(db).update({ Email: body.contactEmail }, { where: { ID: body.contactID } }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.contactJobTile) {
-                            mContact(db).update({ JobTile: body.contactJobTile }, { where: { ID: body.contactID } }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
+                        mContact(db).update(update, { where: { ID: body.contactID } }).then(() => {
+                            res.json(Result.ACTION_SUCCESS)
+                        }).catch(() => {
+                            res.json(Result.SYS_ERROR_RESULT);
+                        })
 
                     }).catch(() => {
                         res.json(Result.SYS_ERROR_RESULT);

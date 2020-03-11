@@ -36,7 +36,7 @@ module.exports = {
                             ContactID: body.contactID,
                             Description: body.description,
                             TimeRemind: body.timeRemind ? body.timeRemind : null,
-                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z')
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS')
                         }).then(data => {
                             if (body.listAssociate) {
                                 let list = JSON.parse(body.listAssociate);

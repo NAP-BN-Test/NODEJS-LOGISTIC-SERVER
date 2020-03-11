@@ -380,7 +380,7 @@ module.exports = {
                                 })
                             }
                             else if (body.timeStart != null) {
-                                let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+                                let date = moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS');
                                 mCall(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
@@ -403,7 +403,7 @@ module.exports = {
                                 })
                             }
                             else if (body.timeStart != null) {
-                                let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+                                let date = moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS');
 
                                 mEmail(db).update({ TimeCreate: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
@@ -428,7 +428,7 @@ module.exports = {
                                 })
                             }
                             else if (body.timeStart != null) {
-                                let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+                                let date = moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS');
                                 mMeet(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
@@ -458,13 +458,13 @@ module.exports = {
                                 })
                             }
                             else if (body.timeStart != null) {
-                                let date = moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+                                let date = moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS');
                                 mTask(db).update({ TimeStart: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })
                             }
                             else if (body.timeAssign != null) {
-                                let date = moment.utc(body.timeAssign).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+                                let date = moment(body.timeAssign).format('YYYY-MM-DD HH:mm:ss.SSS');
                                 mTask(db).update({ TimeAssign: date }, { where: { ID: body.activityID } }).then(() => {
                                     res.json(Result.ACTION_SUCCESS)
                                 })

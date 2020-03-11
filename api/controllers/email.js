@@ -39,9 +39,9 @@ module.exports = {
                             CompanyID: body.companyID,
                             ContactID: body.contactID,
                             State: body.outcomeType,
-                            TimeStart: moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
-                            TimeRemind: body.timeRemind ? moment.utc(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS Z') : null,
-                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                            TimeStart: moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS'),
+                            TimeRemind: body.timeRemind ? moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                             Description: body.description,
                         }, { include: [{ model: mContact(db) }] }).then(data => {
                             if (body.listAssociate) {

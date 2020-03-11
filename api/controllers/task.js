@@ -36,10 +36,10 @@ module.exports = {
                             AssignID: body.assignID,
                             Type: body.taskType,
                             Name: body.taskName,
-                            TimeStart: moment.utc(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
-                            TimeAssign: moment.utc(body.timeAssign).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
-                            TimeRemind: body.timeRemind ? moment.utc(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS Z') : null,
-                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                            TimeStart: moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS'),
+                            TimeAssign: moment(body.timeAssign).format('YYYY-MM-DD HH:mm:ss.SSS'),
+                            TimeRemind: body.timeRemind ? moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                             Description: body.description,
                         }).then(data => {
                             if (body.listAssociate) {

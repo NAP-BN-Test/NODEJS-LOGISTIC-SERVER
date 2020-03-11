@@ -9,7 +9,7 @@ module.exports = function (db) {
         },
         Name: Sequelize.STRING,
         Email: Sequelize.STRING,
-        TimeCreate: Sequelize.DATE,
+        TimeCreate: Sequelize.NOW,
         Type: Sequelize.INTEGER,
         UserID: Sequelize.BIGINT,
         CompanyID: Sequelize.BIGINT,

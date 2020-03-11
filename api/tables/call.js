@@ -10,10 +10,10 @@ module.exports = function (db) {
         ContactID: Sequelize.BIGINT,
         CompanyID: Sequelize.BIGINT,
         State: Sequelize.INTEGER,
-        TimeCreate: Sequelize.DATE,
-        TimeStart: Sequelize.DATE,
+        TimeCreate: Sequelize.NOW,
+        TimeStart: Sequelize.NOW,
         Description: Sequelize.STRING,
-        TimeRemind: Sequelize.DATE,
+        TimeRemind: Sequelize.NOW,
         UserID: Sequelize.BIGINT
     });
 

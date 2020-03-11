@@ -15,10 +15,10 @@ module.exports = function (db) {
         Name: Sequelize.STRING,
         Status: Sequelize.BOOLEAN,
 
-        TimeCreate: Sequelize.DATE,
-        TimeStart: Sequelize.DATE,
-        TimeAssign: Sequelize.DATE,
-        TimeRemind: Sequelize.DATE,
+        TimeCreate: Sequelize.NOW,
+        TimeStart: Sequelize.NOW,
+        TimeAssign: Sequelize.NOW,
+        TimeRemind: Sequelize.NOW,
 
         Description: Sequelize.STRING,
     });

@@ -40,7 +40,7 @@ module.exports = {
 
                     db.authenticate().then(() => {
                         console.log(body);
-                        
+
                         mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
                             if (user) {
                                 let company = mCompany(db);
@@ -211,15 +211,15 @@ module.exports = {
 
                                                                 ownerID: elm.dataValues.UserID,
                                                                 ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Username : "",
-                                                                
+
                                                                 address: elm.dataValues.Address,
                                                                 phone: elm.dataValues.Phone,
                                                                 website: elm.dataValues.Website,
                                                                 timeCreate: elm.dataValues.TimeCreate,
-                                                                
+
                                                                 cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
                                                                 city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
-                                                                
+
                                                                 follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
                                                                 checked: false,
                                                                 companyType: elm.dataValues.Type,
@@ -386,47 +386,43 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        if (body.companyName) {
-                            mCompany(db).update({ Name: body.companyName }, { where: { ID: body.companyID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.companyShortName) {
-                            mCompany(db).update({ ShortName: body.companyShortName }, { where: { ID: body.companyID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.companyAddress) {
-                            mCompany(db).update({ Address: body.companyAddress }, { where: { ID: body.companyID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.companyPhone) {
-                            mCompany(db).update({ Phone: body.companyPhone }, { where: { ID: body.companyID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.companyEmail) {
-                            mCompany(db).update({ Email: body.companyEmail }, { where: { ID: body.companyID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.companyCity) {
-                            mCompany(db).update({ CityID: body.companyCity }, { where: { ID: body.companyID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.website) {
-                            mCompany(db).update({ Website: body.website }, { where: { ID: body.companyID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                        else if (body.stageID) {
-                            mCompany(db).update({ StageID: body.stageID }, { where: { ID: body.companyID } }).then(() => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
+
+                        let listUpdate = [];
+
+                        if (body.companyName)
+                            listUpdate.push({ key: 'Name', value: body.companyName });
+
+                        if (body.companyShortName)
+                            listUpdate.push({ key: 'ShortName', value: body.companyShortName });
+
+                        if (body.companyAddress)
+                            listUpdate.push({ key: 'Address', value: body.companyAddress });
+
+                        if (body.companyPhone)
+                            listUpdate.push({ key: 'Phone', value: body.companyPhone });
+
+                        if (body.companyEmail)
+                            listUpdate.push({ key: 'Email', value: body.companyEmail });
+
+                        if (body.companyCity)
+                            listUpdate.push({ key: 'CityID', value: body.companyCity });
+
+                        if (body.website)
+                            listUpdate.push({ key: 'Website', value: body.website });
+
+                        if (body.stageID)
+                            listUpdate.push({ key: 'StageID', value: body.stageID });
+
+                        let update = {};
+                        for (let field of listUpdate) {
+                            update[field.key] = field.value
                         }
 
+                        mCompany(db).update(update, { where: { ID: body.companyID } }).then(() => {
+                            res.json(Result.ACTION_SUCCESS)
+                        }).catch(() => {
+                            res.json(Result.SYS_ERROR_RESULT);
+                        })
                     }).catch(() => {
                         res.json(Result.SYS_ERROR_RESULT);
                     })
@@ -452,9 +448,7 @@ module.exports = {
                                 where.push({ UserID: body.userID })
                             }
 
-                            mCompany(db).findAll(
-                                { where: where }
-                            ).then(data => {
+                            mCompany(db).findAll({ where: where, limit: 20 }).then(data => {
                                 var array = [];
 
                                 data.forEach(elm => {
@@ -511,7 +505,7 @@ module.exports = {
                             Email: body.email,
                             Address: body.address,
                             CityID: body.cityID,
-                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                             Type: 1
                         }).then(data => {
                             var obj;
@@ -911,14 +905,14 @@ module.exports = {
                             Name: body.companyName,
                             Email: body.companyEmail,
                             Address: body.companyAddress,
-                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                             Type: 0
                         }).then(data => {
                             mContact(db).create({
                                 Name: body.contactName,
                                 Phone: body.contactPhone,
                                 CompanyID: data.dataValues.ID,
-                                TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                                TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                             }).then(() => {
                                 res.json(Result.ACTION_SUCCESS)
                             }).catch(() => {
