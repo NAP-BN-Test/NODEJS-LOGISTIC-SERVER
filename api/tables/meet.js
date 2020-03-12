@@ -11,9 +11,9 @@ module.exports = function (db) {
         CompanyID: Sequelize.BIGINT,
         ContactID: Sequelize.BIGINT,
         Duration: Sequelize.FLOAT,
-        TimeCreate: Sequelize.DATE,
-        TimeStart: Sequelize.DATE,
-        TimeRemind: Sequelize.DATE,
+        TimeCreate: Sequelize.NOW,
+        TimeStart: Sequelize.NOW,
+        TimeRemind: Sequelize.NOW,
         Description: Sequelize.STRING,
     });
 

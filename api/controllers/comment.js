@@ -24,7 +24,7 @@ module.exports = {
                             mCallComment(db).create({
                                 ActivityID: body.activityID,
                                 Contents: body.content,
-                                TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                                TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                                 UserID: body.userID,
                                 UserName: body.userName
                             }).then(data => {
@@ -48,7 +48,7 @@ module.exports = {
                             mNoteComment(db).create({
                                 ActivityID: body.activityID,
                                 Contents: body.content,
-                                TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                                TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                                 UserID: body.userID,
                                 UserName: body.userName
                             }).then(data => {
@@ -72,7 +72,7 @@ module.exports = {
                             mEmailComment(db).create({
                                 ActivityID: body.activityID,
                                 Contents: body.content,
-                                TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                                TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                                 UserID: body.userID,
                                 UserName: body.userName
                             }).then(data => {
@@ -96,7 +96,7 @@ module.exports = {
                             mMeetComment(db).create({
                                 ActivityID: body.activityID,
                                 Contents: body.content,
-                                TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                                TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                                 UserID: body.userID,
                                 UserName: body.userName
                             }).then(data => {

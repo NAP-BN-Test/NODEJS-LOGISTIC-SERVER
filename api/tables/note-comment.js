@@ -8,7 +8,7 @@ module.exports = function (db) {
             autoIncrement: true
         },
         ActivityID: Sequelize.BIGINT,
-        TimeCreate: Sequelize.DATE,
+        TimeCreate: Sequelize.NOW,
         Contents: Sequelize.STRING,
         UserID: Sequelize.BIGINT,
         UserName: Sequelize.STRING

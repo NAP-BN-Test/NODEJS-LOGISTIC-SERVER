@@ -56,7 +56,7 @@ function getListActivityCall(db, body) {
         call.findAll({
             where: {
                 UserID: body.userID,
-                TimeCreate: { [Op.gt]: new Date(moment.utc().valueOf() - 604800000) }
+                TimeCreate: { [Op.gt]: new Date(moment().valueOf() - 604800000) }
             },
             include: [{
                 model: mContact(db),
@@ -116,7 +116,7 @@ function getListActivityEmail(db, body) {
         email.findAll({
             where: {
                 UserID: body.userID,
-                TimeCreate: { [Op.gt]: new Date(moment.utc().valueOf() - 604800000) }
+                TimeCreate: { [Op.gt]: new Date(moment().valueOf() - 604800000) }
             },
             include: [
                 {
@@ -176,7 +176,7 @@ function getListActivityMeet(db, body) {
         meet.findAll({
             where: {
                 UserID: body.userID,
-                TimeCreate: { [Op.gt]: new Date(moment.utc().valueOf() - 604800000) }
+                TimeCreate: { [Op.gt]: new Date(moment().valueOf() - 604800000) }
             },
             include: [{
                 model: mUser(db),
@@ -235,7 +235,7 @@ function getListActivityNote(db, body) {
         note.findAll({
             where: {
                 UserID: body.userID,
-                TimeCreate: { [Op.gt]: new Date(moment.utc().valueOf() - 604800000) }
+                TimeCreate: { [Op.gt]: new Date(moment().valueOf() - 604800000) }
             },
             include: [{
                 model: mContact(db),
@@ -293,7 +293,7 @@ function getListActivityTask(db, body) {
         task.findAll({
             where: {
                 UserID: body.userID,
-                TimeCreate: { [Op.gt]: new Date(moment.utc().valueOf() - 604800000) }
+                TimeCreate: { [Op.gt]: new Date(moment().valueOf() - 604800000) }
             },
             include: [{
                 model: mUser(db),

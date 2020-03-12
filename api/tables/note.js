@@ -8,9 +8,9 @@ module.exports = function (db) {
             autoIncrement: true
         },
         Description: Sequelize.STRING,
-        TimeRemind: Sequelize.DATE,
+        TimeRemind: Sequelize.NOW,
         UserID: Sequelize.BIGINT,
-        TimeCreate: Sequelize.DATE,
+        TimeCreate: Sequelize.NOW,
         ContactID: Sequelize.BIGINT,
         CompanyID: Sequelize.BIGINT
 

@@ -150,9 +150,9 @@ module.exports = {
                             ContactID: body.contactID,
                             StageID: body.stageID,
                             Name: body.name,
-                            TimeClose: moment.utc(body.timeClose).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
-                            TimeRemind: body.timeRemind ? moment.utc(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS Z') : null,
-                            TimeCreate: moment.utc(moment().format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss.SSS Z'),
+                            TimeClose: moment(body.timeClose).format('YYYY-MM-DD HH:mm:ss.SSS'),
+                            TimeRemind: body.timeRemind ? moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                             Amount: body.amount,
                         }).then(data => {
                             var obj = {
