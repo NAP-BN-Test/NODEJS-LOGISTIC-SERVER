@@ -115,7 +115,8 @@ module.exports = {
                                 var contact = mContact(db);
 
                                 contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
-                                contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                                contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
+                                contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'AssignUser' });
                                 contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
 
                                 let whereSearch = [];
@@ -244,7 +245,8 @@ module.exports = {
                                                     }
                                                     contact.findAll({
                                                         include: [
-                                                            { model: mUser(db), required: false },
+                                                            { model: mUser(db), required: false, as: 'CreateUser' },
+                                                            { model: mUser(db), required: false, as: 'AssignUser' },
                                                             {
                                                                 model: mUserFollow(db),
                                                                 required: body.contactType == 3 ? true : false,
@@ -270,8 +272,11 @@ module.exports = {
                                                                 companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : null,
                                                                 companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
 
-                                                                ownerID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : null,
-                                                                ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Username : "",
+                                                                ownerID: elm.dataValues.UserID,
+                                                                ownerName: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.Username : "",
+
+                                                                assignID: elm.dataValues.AssignID,
+                                                                assignName: elm.dataValues.AssignUser ? elm.dataValues.AssignUser.dataValues.Username : "",
 
                                                                 follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
                                                             })
@@ -397,8 +402,11 @@ module.exports = {
 
                     db.authenticate().then(() => {
 
+                        console.log(body);
+
+
                         user.checkUser(body.ip, body.dbName, body.username).then(role => {
-                            let where = [{ Name: { [Op.like]: "%" + body.searchKey } }];
+                            let where = [{ Name: { [Op.like]: "%" + body.searchKey + "%" } }];
 
                             if (role != Constant.USER_ROLE.MANAGER) {
                                 where.push({ UserID: body.userID })
@@ -537,7 +545,7 @@ module.exports = {
                             })
 
                             mContact(db).update(
-                                { UserID: body.assignID },
+                                { AssignID: body.assignID },
                                 { where: { ID: { [Op.in]: listContactID } } }
                             ).then(data => {
                                 if (data) {

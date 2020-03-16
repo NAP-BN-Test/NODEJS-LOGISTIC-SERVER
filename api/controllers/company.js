@@ -44,7 +44,8 @@ module.exports = {
                         mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
                             if (user) {
                                 let company = mCompany(db);
-                                company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+                                company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
+                                company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'AssignUser' });
                                 company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
                                 company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
 
@@ -186,7 +187,8 @@ module.exports = {
                                                     }
                                                     company.findAll({
                                                         include: [
-                                                            { model: mUser(db), required: false },
+                                                            { model: mUser(db), required: false, as: 'CreateUser' },
+                                                            { model: mUser(db), required: false, as: 'AssignUser' },
                                                             {
                                                                 model: mUserFollow(db),
                                                                 required: body.companyType == 3 ? true : false,
@@ -210,7 +212,10 @@ module.exports = {
                                                                 name: elm.dataValues.Name,
 
                                                                 ownerID: elm.dataValues.UserID,
-                                                                ownerName: elm.dataValues.User ? elm.dataValues.User.dataValues.Username : "",
+                                                                ownerName: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.Username : "",
+
+                                                                assignID: elm.dataValues.AssignID,
+                                                                assignName: elm.dataValues.AssignUser ? elm.dataValues.AssignUser.dataValues.Username : "",
 
                                                                 address: elm.dataValues.Address,
                                                                 phone: elm.dataValues.Phone,
@@ -443,7 +448,7 @@ module.exports = {
                     db.authenticate().then(() => {
                         user.checkUser(body.ip, body.dbName, body.username).then(role => {
 
-                            let where = [{ Name: { [Op.like]: "%" + body.searchKey } }]
+                            let where = [{ Name: { [Op.like]: "%" + body.searchKey + "%" } }]
                             if (role != Constant.USER_ROLE.MANAGER) {
                                 where.push({ UserID: body.userID })
                             }
@@ -667,7 +672,7 @@ module.exports = {
                             })
 
                             mCompany(db).update(
-                                { UserID: body.assignID != -1 ? body.assignID : null },
+                                { AssignID: body.assignID != -1 ? body.assignID : null },
                                 { where: { ID: { [Op.in]: listCompanyID } } }
                             ).then(data => {
                                 if (data) {
