@@ -116,7 +116,7 @@ module.exports = {
 
                                 contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
                                 contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
-                                contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'AssignUser' });
+                                contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
                                 contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
 
                                 let whereSearch = [];
