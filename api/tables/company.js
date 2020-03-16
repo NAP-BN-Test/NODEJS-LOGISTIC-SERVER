@@ -19,6 +19,7 @@ module.exports = function (db) {
         Type: Sequelize.INTEGER,
         TimeCreate: Sequelize.NOW,
         StageID: Sequelize.BIGINT,
+        AssignID: Sequelize.BIGINT
     });
 
     return table;

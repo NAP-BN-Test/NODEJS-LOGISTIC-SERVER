@@ -19,7 +19,8 @@ module.exports = function (db) {
         Address: Sequelize.INTEGER,
         Zalo: Sequelize.INTEGER,
         Facebook: Sequelize.INTEGER,
-        Skype: Sequelize.INTEGER
+        Skype: Sequelize.INTEGER,
+        AssignID: Sequelize.BIGINT
     });
 
     return table;
