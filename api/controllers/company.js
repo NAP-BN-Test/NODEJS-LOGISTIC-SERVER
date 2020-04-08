@@ -45,7 +45,7 @@ module.exports = {
                             if (user) {
                                 let company = mCompany(db);
                                 company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
-                                company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
+                                company.belongsTo(mUser(db), { foreignKey: 'AssignID', sourceKey: 'AssignID', as: 'AssignUser' });
                                 company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
                                 company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
 
