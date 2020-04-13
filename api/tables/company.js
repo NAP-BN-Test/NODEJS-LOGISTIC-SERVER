@@ -19,7 +19,9 @@ module.exports = function (db) {
         Type: Sequelize.INTEGER,
         TimeCreate: Sequelize.NOW,
         StageID: Sequelize.BIGINT,
-        AssignID: Sequelize.BIGINT
+        AssignID: Sequelize.BIGINT,
+        TimeActive: Sequelize.NOW,
+        LastActivity: Sequelize.NOW
     });
 
     return table;

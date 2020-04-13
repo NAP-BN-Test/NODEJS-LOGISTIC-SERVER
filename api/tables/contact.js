@@ -20,7 +20,8 @@ module.exports = function (db) {
         Zalo: Sequelize.INTEGER,
         Facebook: Sequelize.INTEGER,
         Skype: Sequelize.INTEGER,
-        AssignID: Sequelize.BIGINT
+        AssignID: Sequelize.BIGINT,
+        LastActivity: Sequelize.NOW
     });
 
     return table;

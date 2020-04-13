@@ -8,6 +8,7 @@ var database = require('../db');
 
 var mUser = require('../tables/user');
 var mContact = require('../tables/contact');
+var mCompany = require('../tables/company');
 
 var mEmail = require('../tables/email');
 var mCall = require('../tables/call');
@@ -38,15 +39,27 @@ function getListCmt(listData) {
     return array;
 }
 
-function updateActi(listObj, table, id) {
+function updateActi(listObj, table, id, db) {
     return new Promise(res => {
         let updateObj = {};
         for (let field of listObj) {
             updateObj[field.key] = field.value
         }
-
         table.update(updateObj, { where: { ID: id } })
             .then(() => {
+                table.findOne({ where: { ID: id } }).then(activity => {
+                    if (activity) {
+                        if (activity.dataValues.CompanyID) {
+                            var company = mCompany(db);
+                            company.update({ LastActivity: updateObj.TimeUpdate }, { where: { ID: activity.dataValues.CompanyID } })
+                        }
+                        if (activity.dataValues.ContactID) {
+                            var contact = mContact(db);
+                            contact.update({ LastActivity: updateObj.TimeUpdate }, { where: { ID: activity.dataValues.ContactID } })
+                        }
+                    }
+                })
+
                 res(Result.ACTION_SUCCESS);
             }).catch(() => {
                 res(Result.SYS_ERROR_RESULT);
@@ -361,8 +374,10 @@ module.exports = {
                                 let date = moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS');
                                 update.push({ key: 'TimeRemind', value: date });
                             }
+                            let updateTime = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+                            update.push({ key: 'TimeUpdate', value: updateTime })
 
-                            updateActi(update, mCall(db), body.activityID).then(result => {
+                            updateActi(update, mCall(db), body.activityID, db).then(result => {
                                 res.json(result)
                             });
                         }
@@ -384,8 +399,10 @@ module.exports = {
                                 let date = moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS');
                                 update.push({ key: 'TimeRemind', value: date });
                             }
+                            let updateTime = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+                            update.push({ key: 'TimeUpdate', value: updateTime })
 
-                            updateActi(update, mEmail(db), body.activityID).then(result => {
+                            updateActi(update, mEmail(db), body.activityID, db).then(result => {
                                 res.json(result)
                             });
                         }
@@ -413,7 +430,10 @@ module.exports = {
                             if (body.description)
                                 update.push({ key: 'Description', value: body.description });
 
-                            updateActi(update, mMeet(db), body.activityID).then(result => {
+                            let updateTime = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+                            update.push({ key: 'TimeUpdate', value: updateTime })
+
+                            updateActi(update, mMeet(db), body.activityID, db).then(result => {
                                 res.json(result)
                             });
                         }
@@ -421,7 +441,10 @@ module.exports = {
                             if (body.description)
                                 update.push({ key: 'Description', value: body.description });
 
-                            updateActi(update, mNote(db), body.activityID).then(result => {
+                            let updateTime = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+                            update.push({ key: 'TimeUpdate', value: updateTime })
+
+                            updateActi(update, mNote(db), body.activityID, db).then(result => {
                                 res.json(result)
                             });
                         }
@@ -446,7 +469,10 @@ module.exports = {
                             if (body.description)
                                 update.push({ key: 'Description', value: body.description });
 
-                            updateActi(update, mTask(db), body.activityID).then(result => {
+                            let updateTime = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+                            update.push({ key: 'TimeUpdate', value: updateTime })
+
+                            updateActi(update, mTask(db), body.activityID, db).then(result => {
                                 res.json(result)
                             });
                         }
@@ -460,6 +486,5 @@ module.exports = {
             }
         })
     },
-
 
 }
