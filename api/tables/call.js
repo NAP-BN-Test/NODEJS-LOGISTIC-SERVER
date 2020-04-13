@@ -14,7 +14,8 @@ module.exports = function (db) {
         TimeStart: Sequelize.NOW,
         Description: Sequelize.STRING,
         TimeRemind: Sequelize.NOW,
-        UserID: Sequelize.BIGINT
+        UserID: Sequelize.BIGINT,
+        TimeUpdate: Sequelize.NOW
     });
 
     return table;

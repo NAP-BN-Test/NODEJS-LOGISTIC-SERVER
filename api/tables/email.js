@@ -15,6 +15,7 @@ module.exports = function (db) {
         TimeRemind: Sequelize.NOW,
         TimeStart: Sequelize.NOW,
         Description: Sequelize.STRING,
+        TimeUpdate: Sequelize.NOW
     });
 
     return table;

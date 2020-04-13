@@ -11,6 +11,8 @@ var user = require('../controllers/user');
 
 var mCity = require('../tables/ city');
 
+var mActivity = require('../controllers/activity');
+
 var mCompany = require('../tables/company');
 var mContact = require('../tables/contact');
 var mCompanyChild = require('../tables/company-child');
@@ -28,6 +30,21 @@ var rmContact = require('../tables/contact');
 var rmDeal = require('../tables/deal');
 var rmUserFlow = require('../tables/user-follow');
 
+function getLastActivity(companyID) {
+    return new Promise(res => {
+        let updateObj = {};
+        for (let field of listObj) {
+            updateObj[field.key] = field.value
+        }
+
+        table.update(updateObj, { where: { ID: id } })
+            .then(() => {
+                res(Result.ACTION_SUCCESS);
+            }).catch(() => {
+                res(Result.SYS_ERROR_RESULT);
+            })
+    })
+}
 
 
 module.exports = {
@@ -87,7 +104,9 @@ module.exports = {
                                 let whereAllAssign;
                                 let whereAssign;
                                 let whereUnAssign;
-                                let whereFollow
+                                let whereFollow;
+                                let whereCustomer;
+
                                 if (body.timeFrom) {
                                     whereAll = {
                                         TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
@@ -117,6 +136,12 @@ module.exports = {
                                         TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
                                         [Op.and]: userFind
                                     }
+                                    whereCustomer = {
+                                        StageID: 8,
+                                        [Op.or]: whereSearch,
+                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                                        [Op.and]: userFind
+                                    }
                                 } else {
                                     whereAll = {
                                         [Op.or]: whereSearch,
@@ -138,6 +163,11 @@ module.exports = {
                                         [Op.and]: userFind
                                     };
                                     whereFollow = {
+                                        [Op.or]: whereSearch,
+                                        [Op.and]: userFind
+                                    }
+                                    whereCustomer = {
+                                        StageID: 8,
                                         [Op.or]: whereSearch,
                                         [Op.and]: userFind
                                     }
@@ -164,83 +194,91 @@ module.exports = {
                                                     ],
                                                     where: whereFollow,
                                                 }).then(follow => {
+                                                    company.count({
+                                                        where: whereCustomer
+                                                    }).then(customer => {
 
-                                                    let where;
-                                                    if (body.searchKey) {
-                                                        if (body.companyType == 2) {//unassign
-                                                            where = whereUnAssign
-                                                        } else if (body.companyType == 4) {//assign
-                                                            where = whereAssign
-                                                        } else if (body.companyType == 5) {//assign all
-                                                            where = whereAllAssign
-                                                        } else { // all
-                                                            where = whereAll
-                                                        }
-                                                    } else {
-                                                        if (body.companyType == 2) {//unassign
-                                                            where = whereUnAssign
-                                                        } else if (body.companyType == 4) {//assign
-                                                            where = whereAssign
-                                                        } else {// all
-                                                            where = whereAll
-                                                        }
-                                                    }
-                                                    company.findAll({
-                                                        include: [
-                                                            { model: mUser(db), required: false, as: 'CreateUser' },
-                                                            { model: mUser(db), required: false, as: 'AssignUser' },
-                                                            {
-                                                                model: mUserFollow(db),
-                                                                required: body.companyType == 3 ? true : false,
-                                                                where: { UserID: body.userID, Type: 1, Follow: true }
-                                                            },
-                                                            { model: mCity(db), required: false },
-                                                            {
-                                                                model: mDealStage(db),
-                                                                required: false,
+                                                        let where;
+                                                        if (body.searchKey) {
+                                                            if (body.companyType == 2) {//unassign
+                                                                where = whereUnAssign
+                                                            } else if (body.companyType == 4) {//assign
+                                                                where = whereAssign
+                                                            } else if (body.companyType == 5) {//assign all
+                                                                where = whereAllAssign
+                                                            } else if (body.companyType == 6) {//assign all
+                                                                where = whereCustomer
+                                                            } else { // all
+                                                                where = whereAll
                                                             }
-                                                        ],
-                                                        where: where,
-                                                        order: [['ID', 'DESC']],
-                                                        offset: 12 * (body.page - 1),
-                                                        limit: 12
-                                                    }).then(data => {
-                                                        var array = [];
-                                                        data.forEach(elm => {
-                                                            array.push({
-                                                                id: elm.dataValues.ID,
-                                                                name: elm.dataValues.Name,
-
-                                                                ownerID: elm.dataValues.UserID,
-                                                                ownerName: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.Username : "",
-
-                                                                assignID: elm.dataValues.AssignID,
-                                                                assignName: elm.dataValues.AssignUser ? elm.dataValues.AssignUser.dataValues.Username : "",
-
-                                                                address: elm.dataValues.Address,
-                                                                phone: elm.dataValues.Phone,
-                                                                website: elm.dataValues.Website,
-                                                                timeCreate: elm.dataValues.TimeCreate,
-
-                                                                cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
-                                                                city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
-
-                                                                follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
-                                                                checked: false,
-                                                                companyType: elm.dataValues.Type,
-                                                                stageID: elm.DealStage ? elm.DealStage.dataValues.ID : -1,
-                                                                stageName: elm.DealStage ? elm.DealStage.dataValues.Name : ""
-                                                            })
-                                                        });
-
-                                                        var result = {
-                                                            status: Constant.STATUS.SUCCESS,
-                                                            message: '',
-                                                            array: array,
-                                                            all, unassign, assign, follow, assignAll
+                                                        } else {
+                                                            if (body.companyType == 2) {//unassign
+                                                                where = whereUnAssign
+                                                            } else if (body.companyType == 4) {//assign
+                                                                where = whereAssign
+                                                            } else {// all
+                                                                where = whereAll
+                                                            }
                                                         }
-                                                        res.json(result)
-                                                    });
+                                                        company.findAll({
+                                                            include: [
+                                                                { model: mUser(db), required: false, as: 'CreateUser' },
+                                                                { model: mUser(db), required: false, as: 'AssignUser' },
+                                                                {
+                                                                    model: mUserFollow(db),
+                                                                    required: body.companyType == 3 ? true : false,
+                                                                    where: { UserID: body.userID, Type: 1, Follow: true }
+                                                                },
+                                                                { model: mCity(db), required: false },
+                                                                {
+                                                                    model: mDealStage(db),
+                                                                    required: false,
+                                                                }
+                                                            ],
+                                                            where: where,
+                                                            order: [['ID', 'DESC']],
+                                                            offset: 12 * (body.page - 1),
+                                                            limit: 12
+                                                        }).then(data => {
+                                                            var array = [];
+                                                            data.forEach(elm => {
+                                                                array.push({
+                                                                    id: elm.dataValues.ID,
+                                                                    name: elm.dataValues.Name,
+
+                                                                    ownerID: elm.dataValues.UserID,
+                                                                    ownerName: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.Username : "",
+
+                                                                    assignID: elm.dataValues.AssignID,
+                                                                    assignName: elm.dataValues.AssignUser ? elm.dataValues.AssignUser.dataValues.Username : "",
+
+                                                                    address: elm.dataValues.Address,
+                                                                    phone: elm.dataValues.Phone,
+                                                                    website: elm.dataValues.Website,
+                                                                    timeCreate: elm.dataValues.TimeCreate,
+
+                                                                    cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
+                                                                    city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
+
+                                                                    follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
+                                                                    checked: false,
+                                                                    companyType: elm.dataValues.Type,
+                                                                    stageID: elm.DealStage ? elm.DealStage.dataValues.ID : -1,
+                                                                    stageName: elm.DealStage ? elm.DealStage.dataValues.Name : "",
+
+                                                                    lastActivity: elm.dataValues.LastActivity
+                                                                })
+                                                            });
+
+                                                            var result = {
+                                                                status: Constant.STATUS.SUCCESS,
+                                                                message: '',
+                                                                array: array,
+                                                                all, unassign, assign, follow, assignAll, customer
+                                                            }
+                                                            res.json(result)
+                                                        });
+                                                    })
                                                 });
                                             });
                                         })
@@ -292,6 +330,7 @@ module.exports = {
                                 address: data['Address'],
                                 phone: data['Phone'],
                                 email: data['Email'],
+                                timeActive: data['TimeActive'],
                                 website: data['Website'],
                                 cityID: data.dataValues.City ? data.dataValues.City.ID : -1,
                                 city: data.dataValues.City ? data.dataValues.City.NameVI : "",
@@ -408,6 +447,9 @@ module.exports = {
 
                         if (body.companyEmail)
                             listUpdate.push({ key: 'Email', value: body.companyEmail });
+
+                        if (body.timeActive)
+                            listUpdate.push({ key: 'TimeActive', value: body.timeActive });
 
                         if (body.companyCity)
                             listUpdate.push({ key: 'CityID', value: body.companyCity });

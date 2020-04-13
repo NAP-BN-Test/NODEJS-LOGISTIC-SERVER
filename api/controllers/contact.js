@@ -278,7 +278,9 @@ module.exports = {
                                                                 assignID: elm.dataValues.AssignID,
                                                                 assignName: elm.dataValues.AssignUser ? elm.dataValues.AssignUser.dataValues.Username : "",
 
-                                                                follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false
+                                                                follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
+
+                                                                lastActivity: elm.dataValues.LastActivity
                                                             })
                                                         });
                                                         var result = {
