@@ -35,6 +35,9 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
+
+                        let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+
                         mMeet(db).create({
                             UserID: body.userID,
                             CompanyID: body.companyID,
@@ -42,9 +45,20 @@ module.exports = {
                             Duration: body.duration,
                             TimeStart: moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS'),
                             TimeRemind: body.timeRemind ? moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
-                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                            TimeCreate: now,
+                            TimeUpdate: now,
                             Description: body.description,
                         }).then(data => {
+
+                            if(body.companyID){
+                                var company = mCompany(db);
+                                company.update({ LastActivity: now }, { where: { ID: body.CompanyID } })
+                            }
+                            if(body.contactID){
+                                var contact = mContact(db);
+                                contact.update({ LastActivity: now }, { where: { ID: body.ContactID } })
+                            }
+
                             if (body.listAttendID) {
                                 let list = JSON.parse(body.listAttendID);
                                 list.forEach(itm => {
