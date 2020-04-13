@@ -9,7 +9,7 @@ var database = require('../db');
 var user = require('../controllers/user');
 
 
-var mCity = require('../tables/ city');
+var mCity = require('../tables/city');
 
 var mCompany = require('../tables/company');
 var mContact = require('../tables/contact');

@@ -5,7 +5,7 @@ const Result = require('../constants/result');
 
 var database = require('../db');
 
-var mCity = require('../tables/ city');
+var mCity = require('../tables/city');
 
 
 module.exports = {
