@@ -27,7 +27,8 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        console.log(body);
+
+                        let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
                         
                         mTask(db).create({
                             UserID: body.userID,
@@ -39,9 +40,20 @@ module.exports = {
                             TimeStart: moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS'),
                             TimeAssign: moment(body.timeAssign).format('YYYY-MM-DD HH:mm:ss.SSS'),
                             TimeRemind: body.timeRemind ? moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
-                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                            TimeCreate: now,
+                            TimeUpdate: now,
                             Description: body.description,
                         }).then(data => {
+
+                            if(body.companyID){
+                                var company = mCompany(db);
+                                company.update({ LastActivity: now }, { where: { ID: body.CompanyID } })
+                            }
+                            if(body.contactID){
+                                var contact = mContact(db);
+                                contact.update({ LastActivity: now }, { where: { ID: body.ContactID } })
+                            }
+
                             if (body.listAssociate) {
                                 let list = JSON.parse(body.listAssociate);
                                 list.forEach(itm => {
