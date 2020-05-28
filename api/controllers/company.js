@@ -49,6 +49,9 @@ function getLastActivity(companyID) {
 
 module.exports = {
     getListCompany: (req, res) => {
+
+        console.log("ngu session", req.session.User);
+
         let body = req.body;
 
         database.serverDB(body.ip, body.dbName).then(server => {
@@ -56,8 +59,6 @@ module.exports = {
                 database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
 
                     db.authenticate().then(() => {
-                        console.log(body);
-
                         mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
                             if (user) {
                                 let company = mCompany(db);
@@ -99,6 +100,12 @@ module.exports = {
                                 if (user['Roles'] == Constant.USER_ROLE.GUEST) {
                                     userFind.push({ UserID: body.userID })
                                 }
+
+                                if (body.logistic)
+                                    userFind.push({ Name: { [Op.like]: '%logistic%' } })
+
+                                if (body.transport)
+                                    userFind.push({ Name: { [Op.like]: '%transport%' } })
 
                                 let whereAll;
                                 let whereAllAssign;
