@@ -20,6 +20,12 @@ module.exports = {
                             where: { Username: body.username, Password: body.password },
                             raw: true
                         }).then(data => {
+
+
+                            // console.log(req.sessionID);
+                            // console.log(req.session);
+                            
+
                             var obj = {
                                 id: data['ID'],
                                 name: data['Name'],
