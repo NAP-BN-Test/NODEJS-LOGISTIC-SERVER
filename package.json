@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "express-session": "^1.17.1",
     "mssql": "^6.2.0",

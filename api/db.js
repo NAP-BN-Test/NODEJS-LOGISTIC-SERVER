@@ -1,3 +1,4 @@
+const Result = require('./constants/result');
 const Sequelize = require('sequelize');
 
 async function checkServer(ip, dbName) {
@@ -48,58 +49,8 @@ async function checkServer(ip, dbName) {
 }
 
 module.exports = {
-  serverDB: function (ip, dbName) {
 
-    checkServer(ip, dbName)
-    return new Promise((resolve) => {
-      var dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
-        host: '163.44.192.123',
-        dialect: 'mssql',
-        operatorsAliases: '0',
-        pool: {
-          max: 5,
-          min: 0,
-          acquire: 30000,
-          idle: 10000
-        },
-        define: {
-          timestamps: false,
-          freezeTableName: true
-        }
-      });
-
-      dbServer.authenticate().then(() => {
-        var serverInfo = dbServer.define('Customer', {
-          ID: {
-            type: Sequelize.BIGINT,
-            primaryKey: true,
-            autoIncrement: true
-          },
-          ServerIP: Sequelize.STRING,
-          Username: Sequelize.STRING,
-          Password: Sequelize.STRING,
-          DatabaseName: Sequelize.STRING,
-        });
-
-        serverInfo.findOne({
-          where: { ServerIP: ip, DatabaseName: dbName }
-        }).then(data => {
-          if (data) {
-            var server = {
-              ip: data['ServerIP'],
-              dbName: data['DatabaseName'],
-              username: data['Username'],
-              password: data['Password']
-            };
-            resolve(server);
-          }
-        }).catch(() => resolve())
-      }).catch(() => resolve())
-    })
-
-
-  },
-  mainDB: function (ip, dbName, username, password) {
+  mainDB: function (ip, dbName) {
     return new Promise((resolve, reject) => {
       var db = new Sequelize(dbName, username, password, {
         host: ip,
@@ -122,5 +73,70 @@ module.exports = {
       else
         reject();
     })
-  }
+  },
+
+  checkServerInvalid: async function (ip, dbName, secretKey) {
+    if (secretKey == '00a2152372fa8e0e62edbb45dd82831a') {
+      const dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
+        host: '163.44.192.123',
+        dialect: 'mssql',
+        operatorsAliases: '0',
+        pool: {
+          max: 5,
+          min: 0,
+          acquire: 30000,
+          idle: 10000
+        },
+        define: {
+          timestamps: false,
+          freezeTableName: true
+        }
+      });
+      try {
+        await dbServer.authenticate();
+
+        const serverInfo = await dbServer.define('Customer', {
+          ID: {
+            type: Sequelize.BIGINT,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          ServerIP: Sequelize.STRING,
+          Username: Sequelize.STRING,
+          Password: Sequelize.STRING,
+          DatabaseName: Sequelize.STRING,
+        });
+
+        const serverData = await serverInfo.findOne({
+          where: { ServerIP: ip, DatabaseName: dbName }
+        })
+        dbServer.close();
+
+        const mainServer = new Sequelize(serverData['DatabaseName'], serverData['Username'], serverData['Password'], {
+          host: serverData['ServerIP'],
+          dialect: 'mssql',
+          operatorsAliases: '0',
+          pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
+          },
+          define: {
+            timestamps: false,
+            freezeTableName: true
+          }
+        });
+        await mainServer.authenticate();
+
+        return Promise.resolve(mainServer)
+      } catch (error) {
+        dbServer.close();
+        return Promise.reject(error)
+      }
+    } else {
+      return Promise.reject(Result.NO_PERMISSION)
+    }
+  },
+
 }

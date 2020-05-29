@@ -20,6 +20,8 @@ module.exports = function (app) {
 
     var summary = require('./controllers/summary');
 
+    var emailList = require('./controllers/emai-list');
+
 
     // todoList Routes
     app.route('/crm/user_login').post(login.login);
@@ -177,5 +179,10 @@ module.exports = function (app) {
 
     //city
     app.route('/crm/get_list_city').post(city.getListCity);
+
+
+    //Emai List
+    app.route('/crm/get_mail_list').post(emailList.getMaiList);
+
 
 };
