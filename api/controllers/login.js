@@ -27,6 +27,7 @@ module.exports = {
                 if (obj) {
                     req.session.userID = data.ID
                 }
+                
                 var result = {
                     status: Constant.STATUS.SUCCESS,
                     message: '',

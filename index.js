@@ -5,7 +5,8 @@ let app = require('express')();
 let server = require('http').createServer(app);
 let cors = require('cors');
 
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+
 
 app.use(cookieParser())
 

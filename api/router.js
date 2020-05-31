@@ -21,6 +21,7 @@ module.exports = function (app) {
     var summary = require('./controllers/summary');
 
     var emailList = require('./controllers/emai-list');
+    var report = require('./controllers/report');
 
 
     // todoList Routes
@@ -182,7 +183,21 @@ module.exports = function (app) {
 
 
     //Emai List
-    app.route('/crm/get_mail_list').post(emailList.getMaiList);
+    app.route('/crm/get_mail_list').post(emailList.getMailList);
+
+    app.route('/crm/get_mail_list_detail').post(emailList.getMailListDetail);
+
+    app.route('/crm/get_list_mail_campain').post(emailList.getListMailCampain);
+
+
+    //Report
+    app.route('/crm/get_list_report_by_campain').post(report.getListReportByCampain);
+
+    app.route('/crm/get_list_report_by_user').post(report.getListReportByUser);
+
+    app.route('/crm/get_report_by_campain_summary').post(report.getReportByCampainSummary);
+
+    app.route('/crm/get_report_by_campain_open_mail').post(report.getReportByCampainOpenMail);
 
 
 };
