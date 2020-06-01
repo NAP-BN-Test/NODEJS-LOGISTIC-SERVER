@@ -261,96 +261,85 @@ module.exports = {
     getListActivity: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-                    db.authenticate().then(() => {
-                        if (body.activityType == Constant.ACTIVITY_TYPE.ALL) {
-                            getListActivityCall(db, body).then(dataCall => {
-                                var array = dataCall;
-                                getListActivityEmail(db, body).then(dataEmail => {
-                                    array = array.concat(dataEmail);
-                                    getListActivityMeet(db, body).then(dataMeet => {
-                                        array = array.concat(dataMeet);
-                                        getListActivityNote(db, body).then(dataNote => {
-                                            array = array.concat(dataNote);
-                                            getListActivityTask(db, body).then(dataTask => {
-                                                array = array.concat(dataTask);
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+            if (body.activityType == Constant.ACTIVITY_TYPE.ALL) {
+                getListActivityCall(db, body).then(dataCall => {
+                    var array = dataCall;
+                    getListActivityEmail(db, body).then(dataEmail => {
+                        array = array.concat(dataEmail);
+                        getListActivityMeet(db, body).then(dataMeet => {
+                            array = array.concat(dataMeet);
+                            getListActivityNote(db, body).then(dataNote => {
+                                array = array.concat(dataNote);
+                                getListActivityTask(db, body).then(dataTask => {
+                                    array = array.concat(dataTask);
 
-                                                array = array.sort((a, b) => {
-                                                    return b.timeCreate - a.timeCreate
-                                                });
+                                    array = array.sort((a, b) => {
+                                        return b.timeCreate - a.timeCreate
+                                    });
 
-                                                var result = {
-                                                    status: Constant.STATUS.SUCCESS,
-                                                    message: '',
-                                                    array: array
-                                                }
+                                    var result = {
+                                        status: Constant.STATUS.SUCCESS,
+                                        message: '',
+                                        array: array
+                                    }
 
-                                                res.json(result);
-                                            })
-                                        })
-                                    })
+                                    res.json(result);
                                 })
                             })
-                        } else if (body.activityType == Constant.ACTIVITY_TYPE.CALL) { // type is call
-                            getListActivityCall(db, body).then(data => {
-                                var result = {
-                                    status: Constant.STATUS.SUCCESS,
-                                    message: '',
-                                    array: data
-                                }
-
-                                res.json(result);
-                            })
-                        } else if (body.activityType == Constant.ACTIVITY_TYPE.EMAIL) {
-                            getListActivityEmail(db, body).then(data => {
-                                var result = {
-                                    status: Constant.STATUS.SUCCESS,
-                                    message: '',
-                                    array: data
-                                }
-
-                                res.json(result);
-                            })
-                        } else if (body.activityType == Constant.ACTIVITY_TYPE.MEET) {
-                            getListActivityMeet(db, body).then(data => {
-                                var result = {
-                                    status: Constant.STATUS.SUCCESS,
-                                    message: '',
-                                    array: data
-                                }
-
-                                res.json(result);
-                            })
-                        } else if (body.activityType == Constant.ACTIVITY_TYPE.NOTE) {
-                            getListActivityNote(db, body).then(data => {
-                                var result = {
-                                    status: Constant.STATUS.SUCCESS,
-                                    message: '',
-                                    array: data
-                                }
-
-                                res.json(result);
-                            })
-                        } else if (body.activityType == Constant.ACTIVITY_TYPE.TASK) {
-                            getListActivityTask(db, body).then(data => {
-                                var result = {
-                                    status: Constant.STATUS.SUCCESS,
-                                    message: '',
-                                    array: data
-                                }
-
-                                res.json(result);
-                            })
-                        }
-
-                    }).catch(() => {
-                        res.json(Result.SYS_ERROR_RESULT);
+                        })
                     })
                 })
-            } else {
-                res.json(Result.SYS_ERROR_RESULT);
+            } else if (body.activityType == Constant.ACTIVITY_TYPE.CALL) { // type is call
+                getListActivityCall(db, body).then(data => {
+                    var result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                        array: data
+                    }
+
+                    res.json(result);
+                })
+            } else if (body.activityType == Constant.ACTIVITY_TYPE.EMAIL) {
+                getListActivityEmail(db, body).then(data => {
+                    var result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                        array: data
+                    }
+
+                    res.json(result);
+                })
+            } else if (body.activityType == Constant.ACTIVITY_TYPE.MEET) {
+                getListActivityMeet(db, body).then(data => {
+                    var result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                        array: data
+                    }
+
+                    res.json(result);
+                })
+            } else if (body.activityType == Constant.ACTIVITY_TYPE.NOTE) {
+                getListActivityNote(db, body).then(data => {
+                    var result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                        array: data
+                    }
+
+                    res.json(result);
+                })
+            } else if (body.activityType == Constant.ACTIVITY_TYPE.TASK) {
+                getListActivityTask(db, body).then(data => {
+                    var result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                        array: data
+                    }
+
+                    res.json(result);
+                })
             }
         })
     }

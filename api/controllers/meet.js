@@ -30,326 +30,288 @@ module.exports = {
     createMeet: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
 
-                    db.authenticate().then(() => {
 
-                        let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
-                        mMeet(db).create({
-                            UserID: body.userID,
-                            CompanyID: body.companyID,
-                            ContactID: body.contactID,
-                            Duration: body.duration,
-                            TimeStart: moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS'),
-                            TimeRemind: body.timeRemind ? moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
-                            TimeCreate: now,
-                            TimeUpdate: now,
-                            Description: body.description,
-                        }).then(data => {
+            let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
-                            if(body.companyID){
-                                var company = mCompany(db);
-                                company.update({ LastActivity: now }, { where: { ID: body.CompanyID } })
-                            }
-                            if(body.contactID){
-                                var contact = mContact(db);
-                                contact.update({ LastActivity: now }, { where: { ID: body.ContactID } })
-                            }
+            mMeet(db).create({
+                UserID: body.userID,
+                CompanyID: body.companyID,
+                ContactID: body.contactID,
+                Duration: body.duration,
+                TimeStart: moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS'),
+                TimeRemind: body.timeRemind ? moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
+                TimeCreate: now,
+                TimeUpdate: now,
+                Description: body.description,
+            }).then(data => {
 
-                            if (body.listAttendID) {
-                                let list = JSON.parse(body.listAttendID);
-                                list.forEach(itm => {
-                                    mMeetAttend(db).create({ MeetID: data.dataValues.ID, UserID: itm });
-                                });
-                            }
-                            if (body.listAssociate) {
-                                let list = JSON.parse(body.listAssociate);
-                                list.forEach(itm => {
-                                    mAssociate(db).create({ ActivityID: data.dataValues.ID, ContactID: itm });
-                                });
-                            }
-                            var obj = {
-                                id: data.dataValues.ID,
-                                timeCreate: data.dataValues.TimeCreate,
-                                timeRemind: data.dataValues.TimeRemind,
-                                timeStart: data.dataValues.TimeStart,
-                                description: data.dataValues.Description,
-                                duration: data.dataValues.Duration,
-                                activityType: Constant.ACTIVITY_TYPE.MEET,
-                                listComment: []
-                            };
+                if (body.companyID) {
+                    var company = mCompany(db);
+                    company.update({ LastActivity: now }, { where: { ID: body.CompanyID } })
+                }
+                if (body.contactID) {
+                    var contact = mContact(db);
+                    contact.update({ LastActivity: now }, { where: { ID: body.ContactID } })
+                }
 
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: Constant.MESSAGE.ACTION_SUCCESS,
-                                obj: obj
-                            }
+                if (body.listAttendID) {
+                    let list = JSON.parse(body.listAttendID);
+                    list.forEach(itm => {
+                        mMeetAttend(db).create({ MeetID: data.dataValues.ID, UserID: itm });
+                    });
+                }
+                if (body.listAssociate) {
+                    let list = JSON.parse(body.listAssociate);
+                    list.forEach(itm => {
+                        mAssociate(db).create({ ActivityID: data.dataValues.ID, ContactID: itm });
+                    });
+                }
+                var obj = {
+                    id: data.dataValues.ID,
+                    timeCreate: data.dataValues.TimeCreate,
+                    timeRemind: data.dataValues.TimeRemind,
+                    timeStart: data.dataValues.TimeStart,
+                    description: data.dataValues.Description,
+                    duration: data.dataValues.Duration,
+                    activityType: Constant.ACTIVITY_TYPE.MEET,
+                    listComment: []
+                };
 
-                            res.json(result);
-                        })
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
-                    })
-                })
-            }
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: Constant.MESSAGE.ACTION_SUCCESS,
+                    obj: obj
+                }
+
+                res.json(result);
+            })
+
+
         })
     },
 
     getListMeetAttend: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
 
-                    db.authenticate().then(() => {
-                        mMeetAttend(db).findAll({ where: { MeetID: body.meetID } }).then(data => {
-                            var array = [];
 
-                            data.forEach(elm => {
-                                array.push({
-                                    meetID: elm['MeetID'],
-                                    userID: elm['UserID']
-                                })
-                            });
+            mMeetAttend(db).findAll({ where: { MeetID: body.meetID } }).then(data => {
+                var array = [];
 
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
-                            }
-
-                            res.json(result);
-                        })
+                data.forEach(elm => {
+                    array.push({
+                        meetID: elm['MeetID'],
+                        userID: elm['UserID']
                     })
-                })
-            }
+                });
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array: array
+                }
+
+                res.json(result);
+            })
+
         })
     },
 
     updateMeetAttend: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
 
-                    db.authenticate().then(() => {
-                        if (body.state == Constant.STATUS.SUCCESS) {
-                            mMeetAttend(db).create({ MeetID: body.meetID, UserID: body.userID }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        } else {
-                            mMeetAttend(db).destroy({ where: { MeetID: body.meetID, UserID: body.userID } }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                    })
+
+            if (body.state == Constant.STATUS.SUCCESS) {
+                mMeetAttend(db).create({ MeetID: body.meetID, UserID: body.userID }).then(data => {
+                    res.json(Result.ACTION_SUCCESS)
+                })
+            } else {
+                mMeetAttend(db).destroy({ where: { MeetID: body.meetID, UserID: body.userID } }).then(data => {
+                    res.json(Result.ACTION_SUCCESS)
                 })
             }
+
         })
     },
 
     getAssociate: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
 
-                    db.authenticate().then(() => {
-                        mAssociate(db).findAll({ where: { ActivityID: body.meetID } }).then(data => {
-                            var array = [];
 
-                            data.forEach(elm => {
-                                array.push({
-                                    meetID: elm['ActivityID'],
-                                    contactID: elm['ContactID'],
-                                })
-                            });
+            mAssociate(db).findAll({ where: { ActivityID: body.meetID } }).then(data => {
+                var array = [];
 
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
-                            }
-
-                            res.json(result);
-                        })
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
+                data.forEach(elm => {
+                    array.push({
+                        meetID: elm['ActivityID'],
+                        contactID: elm['ContactID'],
                     })
-                })
-            }
+                });
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array: array
+                }
+
+                res.json(result);
+            })
+
+
         })
     },
 
     updateAssociate: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
 
-                    db.authenticate().then(() => {
-                        if (body.state == Constant.STATUS.SUCCESS) {
-                            mAssociate(db).create({ ActivityID: body.meetID, ContactID: body.contactID }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        } else {
-                            mAssociate(db).destroy({ where: { ActivityID: body.meetID, ContactID: body.contactID } }).then(data => {
-                                res.json(Result.ACTION_SUCCESS)
-                            })
-                        }
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
-                    })
+
+            if (body.state == Constant.STATUS.SUCCESS) {
+                mAssociate(db).create({ ActivityID: body.meetID, ContactID: body.contactID }).then(data => {
+                    res.json(Result.ACTION_SUCCESS)
+                })
+            } else {
+                mAssociate(db).destroy({ where: { ActivityID: body.meetID, ContactID: body.contactID } }).then(data => {
+                    res.json(Result.ACTION_SUCCESS)
                 })
             }
+
+
         })
     },
 
     getListMeet: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
 
-                    db.authenticate().then(() => {
-                        var meet = mMeet(db);
-                        meet.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
-                        meet.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
-                        meet.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
-                        meet.hasMany(mComment(db), { foreignKey: 'ActivityID', as: 'Comments' });
+            var meet = mMeet(db);
+            meet.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID' });
+            meet.belongsTo(mContact(db), { foreignKey: 'ContactID', sourceKey: 'ContactID' });
+            meet.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
 
-                        user.checkUser(body.ip, body.dbName, body.username).then(role => {
-                            let userFind = [];
-                            if (body.userIDFind) {
-                                userFind.push({ UserID: body.userIDFind })
+            meet.hasMany(mComment(db), { foreignKey: 'ActivityID', as: 'Comments' });
+
+            user.checkUser(body.ip, body.dbName, body.username).then(role => {
+                let userFind = [];
+                if (body.userIDFind) {
+                    userFind.push({ UserID: body.userIDFind })
+                }
+                if (role != Constant.USER_ROLE.MANAGER) {
+                    userFind.push({ UserID: body.userID })
+                }
+
+                let whereAll;
+                if (body.timeFrom) {
+                    if (body.timeType == 2) {
+                        whereAll = {
+                            TimeRemind: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                            [Op.and]: userFind
+                        };
+                    } else {
+                        whereAll = {
+                            TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                            [Op.and]: userFind
+                        };
+                    }
+                } else {
+                    whereAll = {
+                        [Op.and]: userFind
+                    };
+                }
+
+                meet.count({ where: whereAll }).then(all => {
+                    meet.findAll({
+                        where: whereAll,
+                        include: [
+                            { model: mUser(db), required: false },
+                            { model: mContact(db), required: false },
+                            { model: mCompany(db), required: false },
+                            { model: mComment(db), required: false, as: 'Comments' }
+                        ],
+                        order: [['TimeCreate', 'DESC']],
+                        offset: 12 * (body.page - 1),
+                        limit: 12
+                    }).then(data => {
+                        let array = [];
+                        if (data) {
+                            data.forEach(item => {
+                                array.push({
+                                    id: item.dataValues.ID,
+                                    description: item.dataValues.Description,
+                                    timeCreate: item.dataValues.TimeCreate,
+                                    timeRemind: item.dataValues.TimeRemind,
+                                    duration: item.dataValues.Duration,
+
+                                    createID: item.User.dataValues ? item.User.dataValues.ID : -1,
+                                    createName: item.User.dataValues ? item.User.dataValues.Name : "",
+
+                                    contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
+                                    contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+
+                                    companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
+                                    companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+
+                                    type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                    activityType: Constant.ACTIVITY_TYPE.MEET,
+
+                                    comment: item.Comments.length > 0 ? item.Comments[0].Contents : ""
+
+                                });
+                            });
+
+                            var result = {
+                                status: Constant.STATUS.SUCCESS,
+                                message: '',
+                                array, all
                             }
-                            if (role != Constant.USER_ROLE.MANAGER) {
-                                userFind.push({ UserID: body.userID })
-                            }
 
-                            let whereAll;
-                            if (body.timeFrom) {
-                                if (body.timeType == 2) {
-                                    whereAll = {
-                                        TimeRemind: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
-                                        [Op.and]: userFind
-                                    };
-                                } else {
-                                    whereAll = {
-                                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
-                                        [Op.and]: userFind
-                                    };
-                                }
-                            } else {
-                                whereAll = {
-                                    [Op.and]: userFind
-                                };
-                            }
-
-                            meet.count({ where: whereAll }).then(all => {
-                                meet.findAll({
-                                    where: whereAll,
-                                    include: [
-                                        { model: mUser(db), required: false },
-                                        { model: mContact(db), required: false },
-                                        { model: mCompany(db), required: false },
-                                        { model: mComment(db), required: false, as: 'Comments' }
-                                    ],
-                                    order: [['TimeCreate', 'DESC']],
-                                    offset: 12 * (body.page - 1),
-                                    limit: 12
-                                }).then(data => {
-                                    let array = [];
-                                    if (data) {
-                                        data.forEach(item => {
-                                            array.push({
-                                                id: item.dataValues.ID,
-                                                description: item.dataValues.Description,
-                                                timeCreate: item.dataValues.TimeCreate,
-                                                timeRemind: item.dataValues.TimeRemind,
-                                                duration: item.dataValues.Duration,
-
-                                                createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                                createName: item.User.dataValues ? item.User.dataValues.Name : "",
-
-                                                contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
-                                                contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
-
-                                                companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
-                                                companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
-
-                                                type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
-                                                activityType: Constant.ACTIVITY_TYPE.MEET,
-
-                                                comment: item.Comments.length > 0 ? item.Comments[0].Contents : ""
-
-                                            });
-                                        });
-
-                                        var result = {
-                                            status: Constant.STATUS.SUCCESS,
-                                            message: '',
-                                            array, all
-                                        }
-
-                                        res.json(result);
-                                    }
-                                })
-                            })
-                        });
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
+                            res.json(result);
+                        }
                     })
                 })
-            }
+            });
+
+
         })
     },
 
     deleteMeet: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
 
-                    db.authenticate().then(() => {
-                        if (body.activityIDs) {
-                            let listActivity = JSON.parse(body.activityIDs);
-                            let listActivityID = [];
-                            listActivity.forEach(item => {
-                                listActivityID.push(Number(item + ""));
-                            });
-                            rmAssociate(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
-                                rmComment(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
-                                    rmAttend(db).destroy({ where: { MeetID: { [Op.in]: listActivityID } } }).then(() => {
-                                        rmMeetContact(db).destroy({ where: { MeetID: { [Op.in]: listActivityID } } }).then(() => {
-                                            mMeet(db).destroy({ where: { ID: { [Op.in]: listActivityID } } }).then(() => {
-                                                res.json(Result.ACTION_SUCCESS);
-                                            })
-                                        })
-                                    })
+
+            if (body.activityIDs) {
+                let listActivity = JSON.parse(body.activityIDs);
+                let listActivityID = [];
+                listActivity.forEach(item => {
+                    listActivityID.push(Number(item + ""));
+                });
+                rmAssociate(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
+                    rmComment(db).destroy({ where: { ActivityID: { [Op.in]: listActivityID } } }).then(() => {
+                        rmAttend(db).destroy({ where: { MeetID: { [Op.in]: listActivityID } } }).then(() => {
+                            rmMeetContact(db).destroy({ where: { MeetID: { [Op.in]: listActivityID } } }).then(() => {
+                                mMeet(db).destroy({ where: { ID: { [Op.in]: listActivityID } } }).then(() => {
+                                    res.json(Result.ACTION_SUCCESS);
                                 })
                             })
-                        }
-                    }).catch((err) => {
-                        console.log(err);
-                        res.json(Result.SYS_ERROR_RESULT);
+                        })
                     })
                 })
             }
+
+
         })
     },
 

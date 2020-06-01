@@ -351,65 +351,59 @@ module.exports = {
     getListActivity: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-                    db.authenticate().then(() => {
-                        getListActivityCall(db, body).then(dataCall => {
-                            let timeOfCall = dataCall.length;
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
 
-                            var array = dataCall;
-                            getListActivityEmail(db, body).then(dataEmail => {
-                                let timeOfEmail = dataEmail.length;
+            getListActivityCall(db, body).then(dataCall => {
+                let timeOfCall = dataCall.length;
 
-                                array = array.concat(dataEmail);
-                                getListActivityMeet(db, body).then(dataMeet => {
-                                    let timeOfMeet = dataMeet.length;
+                var array = dataCall;
+                getListActivityEmail(db, body).then(dataEmail => {
+                    let timeOfEmail = dataEmail.length;
 
-                                    array = array.concat(dataMeet);
-                                    getListActivityNote(db, body).then(dataNote => {
-                                        let timeOfNote = dataNote.length;
+                    array = array.concat(dataEmail);
+                    getListActivityMeet(db, body).then(dataMeet => {
+                        let timeOfMeet = dataMeet.length;
 
-                                        array = array.concat(dataNote);
-                                        getListActivityTask(db, body).then(dataTask => {
-                                            let timeOfTask = dataTask.length;
+                        array = array.concat(dataMeet);
+                        getListActivityNote(db, body).then(dataNote => {
+                            let timeOfNote = dataNote.length;
 
-                                            array = array.concat(dataTask);
+                            array = array.concat(dataNote);
+                            getListActivityTask(db, body).then(dataTask => {
+                                let timeOfTask = dataTask.length;
 
-                                            array = array.sort((a, b) => {
-                                                return b.timeCreate - a.timeCreate
-                                            });
+                                array = array.concat(dataTask);
 
-                                            array = array.filter(item => {
-                                                return item.type != 0 && item.userID != -1;
-                                            });
+                                array = array.sort((a, b) => {
+                                    return b.timeCreate - a.timeCreate
+                                });
 
-                                            let activitySummary = {
-                                                call: timeOfCall,
-                                                email: timeOfEmail,
-                                                meet: timeOfMeet,
-                                                note: timeOfNote,
-                                                task: timeOfTask
-                                            }
+                                array = array.filter(item => {
+                                    return item.type != 0 && item.userID != -1;
+                                });
 
-                                            var result = {
-                                                status: Constant.STATUS.SUCCESS,
-                                                message: '',
-                                                array: array,
-                                                activitySummary
-                                            }
+                                let activitySummary = {
+                                    call: timeOfCall,
+                                    email: timeOfEmail,
+                                    meet: timeOfMeet,
+                                    note: timeOfNote,
+                                    task: timeOfTask
+                                }
 
-                                            res.json(result);
-                                        })
-                                    })
-                                })
+                                var result = {
+                                    status: Constant.STATUS.SUCCESS,
+                                    message: '',
+                                    array: array,
+                                    activitySummary
+                                }
+
+                                res.json(result);
                             })
                         })
                     })
                 })
-            } else {
-                res.json(Result.SYS_ERROR_RESULT);
-            }
+            })
+
         })
     },
 

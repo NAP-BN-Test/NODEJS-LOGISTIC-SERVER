@@ -12,35 +12,27 @@ module.exports = {
     getListCity: (req, res) => {//take this list for dropdown
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
 
-                    db.authenticate().then(() => {
-                        mCity(db).findAll().then(data => {
-                            var array = [];
+            
+                mCity(db).findAll().then(data => {
+                    var array = [];
 
-                            data.forEach(elm => {
-                                array.push({
-                                    id: elm['ID'],
-                                    name: elm['NameVI'],
-                                })
-                            });
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                array: array
-                            }
-                            res.json(result)
+                    data.forEach(elm => {
+                        array.push({
+                            id: elm['ID'],
+                            name: elm['NameVI'],
                         })
-
-                    }).catch(err => {
-                        res.json(Result.SYS_ERROR_RESULT)
-                    })
+                    });
+                    var result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                        array: array
+                    }
+                    res.json(result)
                 })
-            } else {
-                res.json()
-            }
+
+            
         })
     }
 

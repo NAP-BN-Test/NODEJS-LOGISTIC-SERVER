@@ -10,47 +10,36 @@ module.exports = {
     login: (req, res) => {
         let body = req.body;
 
-        database.serverDB(body.ip, body.dbName).then(server => {
-            if (server) {
-                database.mainDB(server.ip, server.dbName, server.username, server.password).then(db => {
-
-                    db.authenticate().then(() => {
-
-                        mUser(db).findOne({
-                            where: { Username: body.username, Password: body.password },
-                            raw: true
-                        }).then(data => {
-
-
-                            // console.log(req.sessionID);
-                            // console.log(req.session);
-                            
-
-                            var obj = {
-                                id: data['ID'],
-                                name: data['Name'],
-                                username: data['Username'],
-                                password: data['Password'],
-                                phone: data['Phone'],
-                                email: data['Email'],
-                                role: data['Roles'],
-                            }
-
-                            var result = {
-                                status: Constant.STATUS.SUCCESS,
-                                message: '',
-                                obj: obj
-                            }
-
-                            res.json(result);
-                        }).catch(() => {
-                            res.json(Result.LOGIN_FAIL)
-                        })
-                    })
-                })
-            } else {
-                res.json(Result.SYS_ERROR_RESULT);
+        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+            const data = await mUser(db).findOne({
+                where: { Username: body.username, Password: body.password }
+            })
+            try {
+                var obj = {
+                    id: data.ID,
+                    name: data.Name,
+                    username: data.Username,
+                    password: data.Password,
+                    phone: data.Phone,
+                    email: data.Email,
+                    role: data.Roles,
+                }
+                if (obj) {
+                    req.session.userID = data.ID
+                }
+                
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    obj: obj
+                }
+                res.json(result);
+            } catch (error) {
+                res.json(Result.LOGIN_FAIL)
             }
+
+        }, error => {
+            res.json(error)
         })
     },
 

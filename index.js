@@ -1,18 +1,26 @@
 var session = require('express-session')
+var cookieParser = require('cookie-parser')
 
 let app = require('express')();
 let server = require('http').createServer(app);
 let cors = require('cors');
 
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+
+
+app.use(cookieParser())
 
 app.use(session({
-    key: 'user_sid',
-    secret: 'somerandonstuffs',
+    name: 'user_sid',
+    secret: '00a2152372fa8e0e62edbb45dd82831a',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        expires: 600000
+        expires: 600000,
+        maxAge: 3000000,
+        sameSite: true,
+        secure: true,
+        httpOnly: true
     }
 }))
 
