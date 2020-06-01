@@ -199,5 +199,9 @@ module.exports = function (app) {
 
     app.route('/crm/get_report_by_campain_open_mail').post(report.getReportByCampainOpenMail);
 
+    app.route('/crm/get_report_by_user_summary').post(report.getReportByUserSummary);
+
+    app.route('/crm/get_report_by_user_mail_send').post(report.getReportByUserMailSend);
+
 
 };

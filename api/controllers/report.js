@@ -92,8 +92,8 @@ module.exports = {
                     timeSend: '3 giây',
                     mailSend: '10 mail',
                     userSend: 'Le Minh Son',
-                    percentOpen: 0.4,
-                    percentClickLink: 0.4,
+                    percentOpen: '40%',
+                    percentClickLink: '40%',
                     sendBack: 0
                 }
                 var result = {
@@ -109,7 +109,6 @@ module.exports = {
         }, error => {
             res.json(error)
         })
-
     },
 
     getReportByCampainOpenMail: async function (req, res) {
@@ -155,7 +154,7 @@ module.exports = {
                     totalOpen: 4,
                     totalOpenTwice: 2,
                     advangeOpen: 0.8,
-                    percentOpen: 0.4
+                    percentOpen: '40%'
                 }
 
                 var result = {
@@ -175,5 +174,75 @@ module.exports = {
 
     },
 
+    getReportByUserSummary: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                var obj = {
+                    timeCreate: '23/05/2020 20:00',
+                    timeLogin: '05/06/2020 20:00',
+                    nearestSend: '05/06/2020 20:00',
+                    contactCount: 3,
+                    autoSend: 0,
+                    campainMailSend: 4,
+                    mailSend: 12,
+                    openMailCount: 1,
+                    userOpenMailCount: 1,
+                    sendBack: 0
+                }
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    obj
+                }
+                res.json(result);
+            } catch (error) {
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+    },
+
+    getReportByUserMailSend: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                var array = [
+                    {date: '1/6', value: 0},
+                    {date: '2/6', value: 1},
+                    {date: '3/6', value: 0},
+                    {date: '4/6', value: 3},
+                    {date: '5/6', value: 0},
+                    {date: '6/6', value: 5},
+                    {date: '7/6', value: 0},
+                    {date: '8/6', value: 0},
+                    {date: '9/6', value: 0},
+                    {date: '10/6', value: 0},
+                    {date: '11/6', value: 0},
+                    {date: '12/6', value: 0},
+                    {date: '13/6', value: 0},
+                    {date: '14/6', value: 0},
+                    {date: '15/6', value: 0}
+                ];
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array
+                }
+                res.json(result);
+            } catch (error) {
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+
+    },
 
 }
