@@ -7,8 +7,7 @@ let cors = require('cors');
 
 const bodyParser = require('body-parser');
 
-
-app.use(cookieParser())
+app.use(cookieParser());
 
 app.use(session({
     name: 'user_sid',
@@ -36,3 +35,4 @@ const port = process.env.PORT || 3002
 server.listen(port, function () {
     console.log('http://localhost:' + port);
 });
+
