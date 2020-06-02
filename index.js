@@ -1,14 +1,10 @@
 var session = require('express-session')
-var cookieParser = require('cookie-parser')
 
 let app = require('express')();
 let server = require('http').createServer(app);
 let cors = require('cors');
 
 const bodyParser = require('body-parser');
-
-
-app.use(cookieParser())
 
 app.use(session({
     name: 'user_sid',
