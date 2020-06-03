@@ -2,10 +2,20 @@ const Result = require('../constants/result');
 const Constant = require('../constants/constant');
 
 const Op = require('sequelize').Op;
+const sequelize = require('sequelize');
 
 var moment = require('moment');
 
 var database = require('../db');
+
+var mMailList = require('../tables/mail-list');
+var mMailListDetail = require('../tables/mail-list-detail');
+
+var mMailCampain = require('../tables/mail-campain');
+var mMailSend = require('../tables/mail-send');
+var mMailResponse = require('../tables/mail-response');
+
+var mUser = require('../tables/user');
 
 
 module.exports = {
@@ -15,26 +25,40 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                var array = [
-                    { name: 'Chiến dịch 1', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 2', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 3', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 4', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 5', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 6', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 7', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 8', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 9', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 10', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 }
-                ]
+
+                var mailCampain = mMailCampain(db);
+                mailCampain.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
+
+                var mailCampainData = await mailCampain.findAll({
+                    include: { model: mMailList(db) },
+                    order: [['TimeCreate', 'DESC']],
+                    offset: 12 * (body.page - 1),
+                    limit: 12
+                });
+
+                var mailCampainCount = await mailCampain.count();
+
+                var array = [];
+                mailCampainData.forEach(item => {
+                    array.push({
+                        id: item.ID,
+                        name: item.Name,
+                        email: item.MailList.Name,
+                        startTime: item.TimeCreate,
+                        endTime: item.TimeEnd,
+                        receive: item.SendCount
+                    })
+                })
+
                 var result = {
                     status: Constant.STATUS.SUCCESS,
                     message: '',
                     array,
-                    count: 10
+                    count: mailCampainCount
                 }
                 res.json(result);
             } catch (error) {
+                console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)
             }
 
@@ -83,18 +107,38 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+                var mailCampain = mMailCampain(db);
+                mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
+                var campainData = await mailCampain.findOne({
+                    where: { ID: body.campainID },
+                    include: { model: mUser(db) }
+                });
+
+                var mailListDetailData = await mMailListDetail(db).findAll({
+                    where: { MailListID: campainData.MailListID },
+                    attributes: ['ID'],
+                    raw: true
+                });
+                var listMailListDetailID = [];
+                mailListDetailData.forEach(item => {
+                    listMailListDetailID.push(Number(item.ID));
+                })
+
+                var mailResponseCount = await mMailResponse(db).count({
+                    where: { MailListDetailID: { [Op.in]: listMailListDetailID } }
+                });
+                var mailSendCount = await mMailSend(db).count({
+                    where: { MailListDetailID: { [Op.in]: listMailListDetailID } }
+                });
+
                 var obj = {
-                    name: 'Chuyển đổi số',
-                    subject: 'Bây giờ chính là cơ hội tốt nhất để chuyển đổi số. Thời COVID-19',
-                    contact: 'NAP',
-                    timeStart: '23/05/2020 20:00',
-                    timeEnd: '05/06/2020 20:00',
-                    timeSend: '3 giây',
-                    mailSend: '10 mail',
-                    userSend: 'Le Minh Son',
-                    percentOpen: '40%',
-                    percentClickLink: '40%',
-                    sendBack: 0
+                    name: campainData.Name,
+                    subject: campainData.Subject,
+                    timeStart: campainData.TimeCreate,
+                    timeEnd: campainData.TimeEnd,
+                    mailSend: mailSendCount,
+                    userSend: campainData.User.Name,
+                    percentOpen: parseFloat(mailResponseCount / mailSendCount * 100).toFixed(0) + '%'
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -103,6 +147,7 @@ module.exports = {
                 }
                 res.json(result);
             } catch (error) {
+                console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)
             }
 
@@ -116,45 +161,65 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                var array = [
-                    {date: '1/6', value: 0},
-                    {date: '2/6', value: 1},
-                    {date: '3/6', value: 0},
-                    {date: '4/6', value: 3},
-                    {date: '5/6', value: 0},
-                    {date: '6/6', value: 0},
-                    {date: '7/6', value: 0},
-                    {date: '8/6', value: 0},
-                    {date: '9/6', value: 0},
-                    {date: '10/6', value: 0},
-                    {date: '11/6', value: 0},
-                    {date: '12/6', value: 0},
-                    {date: '13/6', value: 0},
-                    {date: '14/6', value: 0},
-                    {date: '15/6', value: 0},
-                    {date: '16/6', value: 0},
-                    {date: '17/6', value: 0},
-                    {date: '18/6', value: 0},
-                    {date: '19/6', value: 0},
-                    {date: '20/6', value: 0},
-                    {date: '21/6', value: 0},
-                    {date: '22/6', value: 0},
-                    {date: '23/6', value: 0},
-                    {date: '24/6', value: 0},
-                    {date: '25/6', value: 0},
-                    {date: '26/6', value: 0},
-                    {date: '27/6', value: 0},
-                    {date: '28/6', value: 0},
-                    {date: '29/6', value: 0},
-                    {date: '30/6', value: 0}
-                ];
+
+                var arrMail = await mMailResponse(db).findAll();
+
+                var arrMailCacu = []
+                arrMail.forEach(mailItem => {
+                    arrMailCacu.push({
+                        id: mailItem.ID,
+                        mailListDetailID: mailItem.MailListDetailID,
+                        timeCreate: moment.utc(mailItem.TimeCreate).format("DD/MM")
+                    })
+                })
+
+                var arrOpenEachDay = arrMailCacu.reduce((r, a) => {
+                    r[a.timeCreate] = [...r[a.timeCreate] || [], a];
+                    return r;
+                }, {});
+
+                var arrOpenTwice = arrMailCacu.reduce((r, a) => {
+                    r[a.mailListDetailID] = [...r[a.mailListDetailID] || [], a];
+                    return r;
+                }, {});
+
+                var sortArrOpenEachDay = Object.keys(arrOpenEachDay).map(k => {
+                    return { date: k, value: arrOpenEachDay[k].length };
+                });
+
+                var sortArrOpenTwice = Object.keys(arrOpenTwice).map(k => {
+                    return { date: k, value: arrOpenTwice[k].length };
+                });
+                var countArrOpenTwice = sortArrOpenTwice.filter(openTwiceItem => {
+                    return openTwiceItem.value > 1;
+                })
+
+                var array = [];
+                for (let i = -Number(body.daies); i <= 0; i++) {
+                    let date = moment().add(i, 'days').format('DD/MM');
+                    let dateFind = sortArrOpenEachDay.find(openEachDayItem => {
+                        return openEachDayItem.date == date;
+                    });
+                    if (dateFind) {
+                        array.push(dateFind);
+                    } else {
+                        array.push({ date, value: 0 });
+                    }
+                }
+
+                var mailSendCount = await mMailSend(db).count();
+                var mailResponseCount = await mMailResponse(db).count();
+
+                var sumSortArrOpenTwice = sortArrOpenTwice.reduce(function (a, b) {
+                    return a + b.value;
+                }, 0);
 
                 var obj = {
-                    total: 10,
-                    totalOpen: 4,
-                    totalOpenTwice: 2,
-                    advangeOpen: 0.8,
-                    percentOpen: '40%'
+                    total: mailSendCount,
+                    totalOpen: mailResponseCount,
+                    totalOpenTwice: countArrOpenTwice.length,
+                    advangeOpen: parseFloat(sumSortArrOpenTwice / sortArrOpenTwice.length).toFixed(2),
+                    percentOpen: parseFloat(sortArrOpenTwice.length / mailSendCount * 100).toFixed(0) + '%'
                 }
 
                 var result = {
@@ -164,7 +229,9 @@ module.exports = {
                     obj
                 }
                 res.json(result);
+
             } catch (error) {
+                console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)
             }
 
@@ -212,21 +279,21 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
                 var array = [
-                    {date: '1/6', value: 0},
-                    {date: '2/6', value: 1},
-                    {date: '3/6', value: 0},
-                    {date: '4/6', value: 3},
-                    {date: '5/6', value: 0},
-                    {date: '6/6', value: 5},
-                    {date: '7/6', value: 0},
-                    {date: '8/6', value: 0},
-                    {date: '9/6', value: 0},
-                    {date: '10/6', value: 0},
-                    {date: '11/6', value: 0},
-                    {date: '12/6', value: 0},
-                    {date: '13/6', value: 0},
-                    {date: '14/6', value: 0},
-                    {date: '15/6', value: 0}
+                    { date: '1/6', value: 0 },
+                    { date: '2/6', value: 1 },
+                    { date: '3/6', value: 0 },
+                    { date: '4/6', value: 3 },
+                    { date: '5/6', value: 0 },
+                    { date: '6/6', value: 5 },
+                    { date: '7/6', value: 0 },
+                    { date: '8/6', value: 0 },
+                    { date: '9/6', value: 0 },
+                    { date: '10/6', value: 0 },
+                    { date: '11/6', value: 0 },
+                    { date: '12/6', value: 0 },
+                    { date: '13/6', value: 0 },
+                    { date: '14/6', value: 0 },
+                    { date: '15/6', value: 0 }
                 ];
 
                 var result = {
