@@ -23,6 +23,8 @@ module.exports = function (app) {
     var emailList = require('./controllers/emai-list');
     var report = require('./controllers/report');
 
+    var emailEvent = require('./controllers/email-event')
+
 
     // todoList Routes
     app.route('/crm/user_login').post(login.login);
@@ -202,6 +204,11 @@ module.exports = function (app) {
     app.route('/crm/get_report_by_user_summary').post(report.getReportByUserSummary);
 
     app.route('/crm/get_report_by_user_mail_send').post(report.getReportByUserMailSend);
+
+    //test
+    app.route('/crm/test').get(emailEvent.test);
+    app.route('/crm/test1').get(emailEvent.test1);
+
 
 
 };
