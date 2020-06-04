@@ -20,13 +20,13 @@ var nodemailer = require('nodemailer');
 
 function sendEmail(body, idMailDetail, email, subject, ip, dbName) {
 
-    let emailMarkup = body + `<img src="http://163.44.192.123:3302/crm/test1?ip=${ip}&dbName=${dbName}&idMailDetail=${idMailDetail}" height="1" width="1""/>`;
+    let emailMarkup = body + `<img src="http://163.44.192.123:3302/crm/open_mail?ip=${ip}&dbName=${dbName}&idMailDetail=${idMailDetail}" height="1" width="1""/>`;
 
     let transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: 'a2fiend@gmail.com',
-            pass: 'HJXHJX25031995'
+            user: 'info.namanphu@gmail.com',
+            pass: 'Nap123456a$'
         }
     });
     let mailOptions = {
