@@ -47,7 +47,7 @@ function sendEmail() {
 module.exports = {
     test: (req, res) => {
 
-        sendEmail();
+        // sendEmail();
         res.json("ngu");
 
     },

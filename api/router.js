@@ -205,6 +205,7 @@ module.exports = function (app) {
 
     app.route('/crm/delete_mail_list_detail').post(emailList.deleteMailListDetail);
 
+    app.route('/crm/delete_mail_campain').post(emailList.deleteMailCampain);
 
 
     //Report

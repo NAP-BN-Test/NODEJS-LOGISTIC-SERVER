@@ -172,6 +172,7 @@ module.exports = {
                 var array = [];
                 mailCampainData.forEach(item => {
                     array.push({
+                        id: Number(item.ID),
                         name: item.Name,
                         subject: item.Subject,
                         owner: item.User.Name,
@@ -224,7 +225,7 @@ module.exports = {
                         })
                     })
 
-                    mMailListDetail(db).bulkCreate(bulkCreate);
+                    await mMailListDetail(db).bulkCreate(bulkCreate);
                 }
 
                 var result = {
@@ -282,7 +283,27 @@ module.exports = {
                     })
                 })
 
-                mMailListDetail(db).bulkCreate(bulkCreate);
+                await mMailListDetail(db).bulkCreate(bulkCreate);
+
+                res.json(Result.ACTION_SUCCESS);
+            } catch (error) {
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+    },
+
+    deleteMailCampain: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                if (body.listID) {
+                    let listID = JSON.parse(body.listID);
+                    await mMailCampain(db).destroy({ where: { ID: { [Op.in]: listID } } });
+                }
 
                 res.json(Result.ACTION_SUCCESS);
             } catch (error) {
@@ -325,6 +346,7 @@ module.exports = {
                     Name: body.name,
                     Subject: body.subject,
                     TimeCreate: now,
+                    TimeEnd: moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS'),
                     OwnerID: Number(body.userID),
                     MailListID: Number(body.mailListID),
                     Body: body.body
@@ -336,20 +358,25 @@ module.exports = {
 
                 if (listMailDetail.length > 0) {
                     listMailDetail.forEach(async (mailDetailItem, i) => {
-
-                        var sendMail = sendEmail(body.body, mailDetailItem.ID, mailDetailItem.Email, body.subject, body.ip, body.dbName);
-
-                        if (sendMail == 1) {
-                            await mMailSend(db).create({
-                                MailListDetailID: mailDetailItem.ID,
-                                TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS')
-                            })
-                        }
-
-                        if (i == listMailDetail.length - 1) {
-                            res.json(Result.ACTION_SUCCESS)
-                        }
+                        sendEmail(body.body, mailDetailItem.ID, mailDetailItem.Email, body.subject, body.ip, body.dbName);
+                        // if (sendMail == 1) {
+                        //     await mMailSend(db).create({
+                        //         MailListDetailID: mailDetailItem.ID,
+                        //         TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS')
+                        //     })
+                        // }
+                        // if (i == listMailDetail.length - 1) {
+                        //     res.json(Result.ACTION_SUCCESS)
+                        // }
                     });
+                    let bulkCreate = [];
+                    listMailDetail.forEach(mailItem => {
+                        bulkCreate.push({
+                            MailListDetailID: mailItem,
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS')
+                        })
+                    })
+                    await mMailSend(db).bulkCreate(bulkCreate);
                 }
                 else {
                     res.json(Result.NO_DATA_RESULT)
