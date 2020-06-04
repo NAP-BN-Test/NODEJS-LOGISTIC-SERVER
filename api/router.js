@@ -191,6 +191,21 @@ module.exports = function (app) {
 
     app.route('/crm/get_list_mail_campain').post(emailList.getListMailCampain);
 
+    app.route('/crm/add_mail_list').post(emailList.addMailList);
+
+    app.route('/crm/add_mail_list_detail').post(emailList.addMailListDetail);
+
+    app.route('/crm/add_mail_campain').post(emailList.addMailCampain);
+
+    app.route('/crm/get_mail_list_option').post(emailList.getMailListOption);
+
+    app.route('/crm/open_mail').get(emailList.addMailResponse);
+
+    app.route('/crm/delete_mail_list').post(emailList.deleteMailList);
+
+    app.route('/crm/delete_mail_list_detail').post(emailList.deleteMailListDetail);
+
+
 
     //Report
     app.route('/crm/get_list_report_by_campain').post(report.getListReportByCampain);
@@ -205,6 +220,7 @@ module.exports = function (app) {
 
     app.route('/crm/get_report_by_user_mail_send').post(report.getReportByUserMailSend);
 
+    
     //test
     app.route('/crm/test').get(emailEvent.test);
     app.route('/crm/test1').get(emailEvent.test1);
