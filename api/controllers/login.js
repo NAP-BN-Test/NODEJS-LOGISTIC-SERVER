@@ -14,6 +14,9 @@ module.exports = {
             const data = await mUser(db).findOne({
                 where: { Username: body.username, Password: body.password }
             })
+
+            console.log(data);
+            
             try {
                 var obj = {
                     id: data.ID,

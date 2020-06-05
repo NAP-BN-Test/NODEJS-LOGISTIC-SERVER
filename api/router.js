@@ -211,6 +211,12 @@ module.exports = function (app) {
 
     app.route('/crm/delete_mail_campain').post(emailList.deleteMailCampain);
 
+    app.route('/crm/get_mail_campain_detail').post(emailList.getMailCampainDetail);
+
+    app.route('/crm/send_mail_campain').post(emailList.sendMailCampain);
+
+    app.route('/crm/update_mail_campain').post(emailList.updateMailCampain);
+
 
     //Report
     app.route('/crm/get_list_report_by_campain').post(report.getListReportByCampain);
