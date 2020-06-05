@@ -21,8 +21,8 @@ app.use(session({
 }))
 
 app.use(cors())
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }))
+app.use(bodyParser.json({ limit: '100mb' }))
 
 let routes = require('./api/router') //importing route
 routes(app)

@@ -106,6 +106,7 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+
                 var mailListDetail = mMailListDetail(db);
                 mailListDetail.belongsTo(mUser(db), { foreignKey: 'OwnerID' });
                 mailListDetail.hasMany(mMailSend(db), { foreignKey: 'MailListDetailID' });
@@ -251,6 +252,7 @@ module.exports = {
                     let listID = JSON.parse(body.listID);
 
                     await mMailListDetail(db).destroy({ where: { MailListID: { [Op.in]: listID } } });
+                    await mMailCampain(db).update({ MailListID: null }, { where: { MailListID: { [Op.in]: listID } } });
                     await mMailList(db).destroy({ where: { ID: { [Op.in]: listID } } });
                 }
 
@@ -302,6 +304,8 @@ module.exports = {
             try {
                 if (body.listID) {
                     let listID = JSON.parse(body.listID);
+                    await mMailSend(db).destroy({ where: { MailCampainID: { [Op.in]: listID } } })
+                    await mMailResponse(db).destroy({ where: { MailCampainID: { [Op.in]: listID } } })
                     await mMailCampain(db).destroy({ where: { ID: { [Op.in]: listID } } });
                 }
 
@@ -322,6 +326,8 @@ module.exports = {
             try {
                 if (body.listID) {
                     let listID = JSON.parse(body.listID);
+                    await mMailSend(db).destroy({ where: { MailListDetailID: { [Op.in]: listID } } });
+                    await mMailResponse(db).destroy({ where: { MailListDetailID: { [Op.in]: listID } } });
                     await mMailListDetail(db).destroy({ where: { ID: { [Op.in]: listID } } });
                 }
 
@@ -340,43 +346,40 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+
                 let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
-                await mMailCampain(db).create({
+                mailCampainData = await mMailCampain(db).create({
                     Name: body.name,
                     Subject: body.subject,
                     TimeCreate: now,
-                    TimeEnd: moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS'),
+                    // TimeEnd: moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS'),
                     OwnerID: Number(body.userID),
                     MailListID: Number(body.mailListID),
-                    Body: body.body
+                    Body: body.body,
+                    SendCount: 1
                 })
 
                 var listMailDetail = await mMailListDetail(db).findAll({
-                    where: { MailListID: body.mailListID }
+                    where: { MailListID: Number(body.mailListID) }
                 })
 
                 if (listMailDetail.length > 0) {
+                    let bulkCreate = [];
+
                     listMailDetail.forEach(async (mailDetailItem, i) => {
                         sendEmail(body.body, mailDetailItem.ID, mailDetailItem.Email, body.subject, body.ip, body.dbName);
-                        // if (sendMail == 1) {
-                        //     await mMailSend(db).create({
-                        //         MailListDetailID: mailDetailItem.ID,
-                        //         TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS')
-                        //     })
-                        // }
-                        // if (i == listMailDetail.length - 1) {
-                        //     res.json(Result.ACTION_SUCCESS)
-                        // }
-                    });
-                    let bulkCreate = [];
-                    listMailDetail.forEach(mailItem => {
+
                         bulkCreate.push({
-                            MailListDetailID: mailItem,
-                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS')
+                            MailListDetailID: mailDetailItem.ID,
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                            MailListDetailID: { [Op.in]: listMailListDetailID },
+                            MailCampainID: mailCampainData.ID
                         })
-                    })
+                    });
+
                     await mMailSend(db).bulkCreate(bulkCreate);
+                    res.json(Result.ACTION_SUCCESS)
                 }
                 else {
                     res.json(Result.NO_DATA_RESULT)
@@ -398,13 +401,15 @@ module.exports = {
         let ip = params[0].split('=')[1];
         let dbName = params[1].split('=')[1];
         let idMailDetail = params[2].split('=')[1];
+        let idMailCampain = params[3].split('=')[1];
 
         database.checkServerInvalid(ip, dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
             try {
                 await mMailResponse(db).create({
                     MailListDetailID: idMailDetail,
                     TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                    Type: 1
+                    Type: 1,
+                    MailCampainID: idMailCampain
                 })
 
                 res.json(Result.ACTION_SUCCESS)
