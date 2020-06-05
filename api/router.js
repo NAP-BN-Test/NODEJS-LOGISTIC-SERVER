@@ -23,7 +23,11 @@ module.exports = function (app) {
     var emailList = require('./controllers/emai-list');
     var report = require('./controllers/report');
 
-    var emailEvent = require('./controllers/email-event')
+    var emailEvent = require('./controllers/email-event');
+
+    var upload = require('./controllers/upload');
+
+    var amazon = require('./controllers/amazon');
 
 
     // todoList Routes
@@ -221,7 +225,16 @@ module.exports = function (app) {
 
     app.route('/crm/get_report_by_user_mail_send').post(report.getReportByUserMailSend);
 
-    
+
+
+    //Upload file
+    app.route('/crm/upload_file').post(upload.uploadFile);
+
+
+    //Aws http
+    app.route('/asw/mail_response').post(amazon.amazonResponse);
+
+
     //test
     app.route('/crm/test').get(emailEvent.test);
     app.route('/crm/test1').get(emailEvent.test1);

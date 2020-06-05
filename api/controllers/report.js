@@ -43,7 +43,7 @@ module.exports = {
                     array.push({
                         id: item.ID,
                         name: item.Name,
-                        email: item.MailList.Name,
+                        email: item.MailList ? item.MailList.Name : "",
                         startTime: item.TimeCreate,
                         endTime: item.TimeEnd,
                         receive: item.SendCount
@@ -125,10 +125,16 @@ module.exports = {
                 })
 
                 var mailResponseCount = await mMailResponse(db).count({
-                    where: { MailListDetailID: { [Op.in]: listMailListDetailID } }
+                    where: {
+                        MailListDetailID: { [Op.in]: listMailListDetailID },
+                        MailCampainID: campainData.ID
+                    }
                 });
                 var mailSendCount = await mMailSend(db).count({
-                    where: { MailListDetailID: { [Op.in]: listMailListDetailID } }
+                    where: {
+                        MailListDetailID: { [Op.in]: listMailListDetailID },
+                        MailCampainID: campainData.ID
+                    }
                 });
 
                 var obj = {
@@ -138,7 +144,7 @@ module.exports = {
                     timeEnd: campainData.TimeEnd,
                     mailSend: mailSendCount,
                     userSend: campainData.User.Name,
-                    percentOpen: parseFloat(mailResponseCount / mailSendCount * 100).toFixed(0) + '%'
+                    percentOpen: mailSendCount != 0 ? parseFloat(mailResponseCount / mailSendCount * 100).toFixed(0) + '%' : '0%'
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -162,7 +168,29 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
 
-                var arrMail = await mMailResponse(db).findAll();
+                var mailCampain = mMailCampain(db);
+                mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
+                var campainData = await mailCampain.findOne({
+                    where: { ID: body.campainID },
+                    include: { model: mUser(db) }
+                });
+
+                var mailListDetailData = await mMailListDetail(db).findAll({
+                    where: { MailListID: campainData.MailListID },
+                    attributes: ['ID'],
+                    raw: true
+                });
+                var listMailListDetailID = [];
+                mailListDetailData.forEach(item => {
+                    listMailListDetailID.push(Number(item.ID));
+                })
+
+                var arrMail = await mMailResponse(db).findAll({
+                    where: {
+                        MailListDetailID: { [Op.in]: listMailListDetailID },
+                        MailCampainID: campainData.ID
+                    }
+                });
 
                 var arrMailCacu = []
                 arrMail.forEach(mailItem => {
@@ -207,8 +235,12 @@ module.exports = {
                     }
                 }
 
-                var mailSendCount = await mMailSend(db).count();
-                var mailResponseCount = await mMailResponse(db).count();
+                var mailSendCount = await mMailSend(db).count({
+                    where: {
+                        MailListDetailID: { [Op.in]: listMailListDetailID },
+                        MailCampainID: campainData.ID
+                    }
+                });
 
                 var sumSortArrOpenTwice = sortArrOpenTwice.reduce(function (a, b) {
                     return a + b.value;
@@ -216,9 +248,9 @@ module.exports = {
 
                 var obj = {
                     total: mailSendCount,
-                    totalOpen: mailResponseCount,
+                    totalOpen: arrMail.length,
                     totalOpenTwice: countArrOpenTwice.length,
-                    advangeOpen: parseFloat(sumSortArrOpenTwice / sortArrOpenTwice.length).toFixed(2),
+                    advangeOpen: sortArrOpenTwice.length != 0 ? parseFloat(sumSortArrOpenTwice / sortArrOpenTwice.length).toFixed(2) : 0,
                     percentOpen: parseFloat(sortArrOpenTwice.length / mailSendCount * 100).toFixed(0) + '%'
                 }
 

@@ -9,6 +9,7 @@ module.exports = function (db) {
         },
         MailListDetailID: Sequelize.BIGINT,
         TimeCreate: Sequelize.NOW,
+        MailCampainID: Sequelize.BIGINT
     });
 
     return table;
