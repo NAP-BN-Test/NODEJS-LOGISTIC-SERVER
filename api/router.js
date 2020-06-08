@@ -25,7 +25,7 @@ module.exports = function (app) {
 
     var emailEvent = require('./controllers/email-event');
 
-    var upload = require('./controllers/upload');
+    // var upload = require('./controllers/upload');
 
     var amazon = require('./controllers/amazon');
 
@@ -228,11 +228,11 @@ module.exports = function (app) {
 
 
     //Upload file
-    app.route('/crm/upload_file').post(upload.uploadFile);
+    // app.route('/crm/upload_file').post(upload.uploadFile);
 
 
     //Aws http
-    app.route('/asw/mail_response').post(amazon.amazonResponse);
+    app.route('/aws/mail_response').post(amazon.amazonResponse);
 
 
     //test
