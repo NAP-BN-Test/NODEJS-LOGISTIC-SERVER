@@ -52,25 +52,22 @@ module.exports = {
     getMailList: async function (req, res) {
         let body = req.body;
 
-        // console.log(req.sessionStore);
-
-        // req.sessionStore.all((error, session) => {
-        //     console.log(JSON.stringify(session));
-
-        // })
-
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
 
                 var mailList = mMailList(db);
                 mailList.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
+                mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' })
+
                 var mMailListData = await mailList.findAll({
-                    include: { model: mUser(db) },
+                    include: [
+                        { model: mUser(db) },
+                        { model: mMailListDetail(db) }],
                     order: [['TimeCreate', 'DESC']],
                     offset: 12 * (body.page - 1),
                     limit: 12
                 })
+
                 var array = [];
                 mMailListData.forEach(item => {
                     array.push({
@@ -78,7 +75,7 @@ module.exports = {
                         name: item.Name,
                         owner: item.User.Name,
                         createTime: item.TimeCreate,
-                        phone: item.Phone
+                        contactCount: item.MailListDetails.length
                     })
                 })
 
@@ -187,6 +184,47 @@ module.exports = {
                     message: '',
                     array,
                     count: mailCampainCount
+                }
+                res.json(result);
+            } catch (error) {
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+
+    },
+
+    getMailCampainDetail: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+
+                var mailCampain = mMailCampain(db);
+                mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' });
+
+                var mailCampainData = await mailCampain.findOne({
+                    where: { ID: body.campainID },
+                    include: { model: mUser(db) }
+                });
+
+                var obj = {
+                    id: Number(mailCampainData.ID),
+                    name: mailCampainData.Name,
+                    subject: mailCampainData.Subject,
+                    owner: mailCampainData.User.Name,
+                    createTime: mailCampainData.TimeCreate,
+                    endTime: mailCampainData.TimeEnd,
+                    body: mailCampainData.Body,
+                    mailListID: Number(mailCampainData.MailListID)
+                }
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    obj
                 }
                 res.json(result);
             } catch (error) {
@@ -346,44 +384,20 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-
                 let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
                 mailCampainData = await mMailCampain(db).create({
                     Name: body.name,
                     Subject: body.subject,
                     TimeCreate: now,
-                    // TimeEnd: moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS'),
+                    TimeEnd: moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS'),
                     OwnerID: Number(body.userID),
                     MailListID: Number(body.mailListID),
                     Body: body.body,
                     SendCount: 1
                 })
 
-                var listMailDetail = await mMailListDetail(db).findAll({
-                    where: { MailListID: Number(body.mailListID) }
-                })
-
-                if (listMailDetail.length > 0) {
-                    let bulkCreate = [];
-
-                    listMailDetail.forEach(async (mailDetailItem, i) => {
-                        sendEmail(body.body, mailDetailItem.ID, mailDetailItem.Email, body.subject, body.ip, body.dbName);
-
-                        bulkCreate.push({
-                            MailListDetailID: mailDetailItem.ID,
-                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                            MailListDetailID: { [Op.in]: listMailListDetailID },
-                            MailCampainID: mailCampainData.ID
-                        })
-                    });
-
-                    await mMailSend(db).bulkCreate(bulkCreate);
-                    res.json(Result.ACTION_SUCCESS)
-                }
-                else {
-                    res.json(Result.NO_DATA_RESULT)
-                }
+                res.json(Result.ACTION_SUCCESS)
 
             } catch (error) {
                 res.json(Result.SYS_ERROR_RESULT)
@@ -442,6 +456,70 @@ module.exports = {
                     array
                 }
                 res.json(result);
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+
+    },
+
+    sendMailCampain: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                var listMailDetail = await mMailListDetail(db).findAll({
+                    where: { MailListID: Number(body.mailListID) }
+                })
+
+                if (listMailDetail.length > 0) {
+                    let bulkCreate = [];
+
+                    listMailDetail.forEach(async (mailDetailItem, i) => {
+                        sendEmail(body.body, mailDetailItem.ID, mailDetailItem.Email, body.subject, body.ip, body.dbName);
+
+                        bulkCreate.push({
+                            MailListDetailID: mailDetailItem.ID,
+                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                            MailCampainID: mailCampainData.ID
+                        })
+                    });
+
+                    await mMailSend(db).bulkCreate(bulkCreate);
+
+                    res.json(Result.ACTION_SUCCESS)
+                }
+                else {
+                    res.json(Result.NO_DATA_RESULT)
+                }
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+
+    },
+
+    updateMailCampain: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                let update = [];
+                if (body.name)
+                    update.push({ key: 'Name', value: body.name });
+
+                database.updateTable(update, mMailCampain(db), body.campainID).then(mailCampainRes => {
+                    console.log(mailCampainRes);
+                    
+                })
             } catch (error) {
                 console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)

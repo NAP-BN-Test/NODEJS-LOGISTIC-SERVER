@@ -92,6 +92,7 @@ module.exports = {
           freezeTableName: true
         }
       });
+
       try {
         await dbServer.authenticate();
 
@@ -107,9 +108,11 @@ module.exports = {
           DatabaseName: Sequelize.STRING,
         });
 
+
         const serverData = await serverInfo.findOne({
           where: { ServerIP: ip, DatabaseName: dbName }
         })
+
         dbServer.close();
 
         const mainServer = new Sequelize(serverData['DatabaseName'], serverData['Username'], serverData['Password'], {
@@ -138,5 +141,25 @@ module.exports = {
       return Promise.reject(Result.NO_PERMISSION)
     }
   },
+
+  updateTable: async function (listObj, table, id) {
+    let updateObj = {};
+    for (let field of listObj) {
+      updateObj[field.key] = field.value
+    }
+    try {
+
+      console.log(id);
+      console.log(updateObj);
+      
+      await table.update(updateObj, { where: { ID: id } });
+      return Promise.resolve(1);
+    } catch (error) {
+      console.log(error);
+      return Promise.reject(error);
+    }
+
+
+  }
 
 }
