@@ -18,6 +18,9 @@ var mUser = require('../tables/user');
 
 var nodemailer = require('nodemailer');
 
+// var awsSesMail = require('aws-ses-mail');
+
+
 function sendEmail(body, idMailDetail, email, subject, ip, dbName) {
 
     let emailMarkup = body + `<img src="http://163.44.192.123:3302/crm/open_mail?ip=${ip}&dbName=${dbName}&idMailDetail=${idMailDetail}" height="1" width="1""/>`;
@@ -129,7 +132,8 @@ module.exports = {
                         email: item.Email,
                         owner: item.User.Name,
                         createTime: item.TimeCreate,
-                        mailCount: item.MailSends.length
+                        mailCount: item.MailSends.length,
+                        contactName: 'Tên người LH'
                     })
                 })
                 var result = {
@@ -313,14 +317,24 @@ module.exports = {
 
                 let arrMail = JSON.parse(body.listMail);
 
+                var mailListDetailData = await mMailListDetail(db).findAll({
+                    where: { Email: { [Op.in]: arrMail }, MailListID: body.mailListID },
+                    attributes: ['Email'],
+                    raw: true
+                });
+
                 let bulkCreate = [];
                 arrMail.forEach(mailItem => {
-                    bulkCreate.push({
-                        Email: mailItem,
-                        OwnerID: Number(body.userID),
-                        TimeCreate: now,
-                        MailListID: Number(body.mailListID)
-                    })
+                    let index = mailListDetailData.findIndex(item => {
+                        return item.Email == mailItem;
+                    });
+                    if (index < 0)
+                        bulkCreate.push({
+                            Email: mailItem,
+                            OwnerID: Number(body.userID),
+                            TimeCreate: now,
+                            MailListID: Number(body.mailListID)
+                        })
                 })
 
                 await mMailListDetail(db).bulkCreate(bulkCreate);
@@ -393,13 +407,18 @@ module.exports = {
                     TimeEnd: moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS'),
                     OwnerID: Number(body.userID),
                     MailListID: Number(body.mailListID),
-                    Body: body.body,
                     SendCount: 1
                 })
 
-                res.json(Result.ACTION_SUCCESS)
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    id: mailCampainData.ID
+                }
+
+                res.json(result);
 
             } catch (error) {
+                console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)
             }
 
@@ -420,6 +439,27 @@ module.exports = {
         database.checkServerInvalid(ip, dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
             try {
                 await mMailResponse(db).create({
+                    MailListDetailID: idMailDetail,
+                    TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                    Type: 1,
+                    MailCampainID: idMailCampain
+                })
+
+                res.json(Result.ACTION_SUCCESS)
+            } catch (error) {
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+    },
+
+    addMailSend: async function (req, res) {
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                await mMailSend(db).create({
                     MailListDetailID: idMailDetail,
                     TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                     Type: 1,
@@ -512,13 +552,30 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+                console.log(body);
+
                 let update = [];
                 if (body.name)
                     update.push({ key: 'Name', value: body.name });
+                if (body.subject)
+                    update.push({ key: 'Subject', value: body.subject });
+                if (body.startTime) {
+                    let time = moment(body.startTime).format('YYYY-MM-DD HH:mm:ss.SSS')
+                    update.push({ key: 'TimeCreate', value: time });
+                }
+                if (body.endTime) {
+                    let time = moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS')
+                    update.push({ key: 'TimeEnd', value: time });
+                }
+                if (body.body)
+                    update.push({ key: 'Body', value: body.body });
+                if (body.mailListID)
+                    update.push({ key: 'MailListID', value: body.mailListID });
 
                 database.updateTable(update, mMailCampain(db), body.campainID).then(mailCampainRes => {
-                    console.log(mailCampainRes);
-                    
+                    if (mailCampainRes == 1) {
+                        res.json(Result.ACTION_SUCCESS);
+                    }
                 })
             } catch (error) {
                 console.log(error);

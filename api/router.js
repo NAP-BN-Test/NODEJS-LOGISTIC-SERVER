@@ -238,7 +238,11 @@ module.exports = function (app) {
 
 
     //Aws http
-    app.route('/asw/mail_response').post(amazon.amazonResponse);
+    app.route('/aws/mail_response').post(amazon.amazonResponse);
+
+    app.route('/aws/verify_email').post(amazon.verifyEmail);
+
+    app.route('/aws/send_email').post(amazon.sendEmail);
 
 
     //test
