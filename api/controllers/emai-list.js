@@ -294,11 +294,12 @@ module.exports = {
                 let bulkCreate = [];
                 arrMail.forEach(mailItem => {
                     let index = mailListDetailData.findIndex(item => {
-                        return item.Email == mailItem;
+                        return item.Email == mailItem.email;
                     });
                     if (index < 0)
                         bulkCreate.push({
-                            Email: mailItem,
+                            Email: mailItem.email,
+                            Name: mailItem.name,
                             OwnerID: Number(body.userID),
                             TimeCreate: now,
                             MailListID: Number(body.mailListID)
@@ -439,7 +440,8 @@ module.exports = {
                     })
                     let bulkCreate = [];
                     mailListDetailData.forEach(async (mailItem, i) => {
-                        mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, body.body);
+                        let bodyHtml = body.body.replace('#ten', mailItem.Name)
+                        mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, bodyHtml);
 
                         bulkCreate.push({
                             MailCampainID: body.campainID,
