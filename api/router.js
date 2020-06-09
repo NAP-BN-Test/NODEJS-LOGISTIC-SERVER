@@ -23,8 +23,6 @@ module.exports = function (app) {
     var emailList = require('./controllers/emai-list');
     var report = require('./controllers/report');
 
-    var emailEvent = require('./controllers/email-event');
-
     var upload = require('./controllers/upload');
 
     var amazon = require('./controllers/amazon');
@@ -247,12 +245,6 @@ module.exports = function (app) {
     app.route('/aws/check_verify_email').post(amazon.checkVerifyEmail);
 
     app.route('/aws/send_email').post(amazon.sendEmail);
-
-
-    //test
-    app.route('/crm/test').get(emailEvent.test);
-    app.route('/crm/test1').get(emailEvent.test1);
-
 
 
 };
