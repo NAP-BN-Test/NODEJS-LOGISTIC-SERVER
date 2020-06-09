@@ -440,7 +440,7 @@ module.exports = {
                     })
                     let bulkCreate = [];
                     mailListDetailData.forEach(async (mailItem, i) => {
-                        let httpTrack = `<img src="http://163.44.192.123:3302/crm/open_mail?ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}" height="1" width="1""/>`
+                        let httpTrack = `<img src="http://163.44.192.123:3302/crm/open_mail?ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}&idMailCampain=${body.campainID}" height="1" width="1""/>`
                         let bodyHtml = httpTrack + body.body.replace('#ten', mailItem.Name)
                         mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, bodyHtml);
 
