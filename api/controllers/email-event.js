@@ -8,8 +8,8 @@ function sendEmail() {
     let transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: 'a2fiend@gmail.com',
-            pass: 'HJXHJX25031995'
+            user: 'Info.namanphu@gmail.com',
+            pass: 'Nap123456a$'
         }
     });
     // setup email data with unicode symbols

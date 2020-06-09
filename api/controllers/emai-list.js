@@ -14,41 +14,9 @@ var mMailCampain = require('../tables/mail-campain');
 var mMailSend = require('../tables/mail-send');
 var mMailResponse = require('../tables/mail-response');
 
+var mAmazon = require('../controllers/amazon');
+
 var mUser = require('../tables/user');
-
-var nodemailer = require('nodemailer');
-
-// var awsSesMail = require('aws-ses-mail');
-
-
-function sendEmail(body, idMailDetail, email, subject, ip, dbName) {
-
-    let emailMarkup = body + `<img src="http://163.44.192.123:3302/crm/open_mail?ip=${ip}&dbName=${dbName}&idMailDetail=${idMailDetail}" height="1" width="1""/>`;
-
-    let transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'info.namanphu@gmail.com',
-            pass: 'Nap123456a$'
-        }
-    });
-    let mailOptions = {
-        from: 'NAP LOCY',
-        to: email,
-        subject: subject,
-        html: emailMarkup
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return 0;
-        } else {
-            return 1;
-        }
-    });
-}
-
-
 
 module.exports = {
 
@@ -456,18 +424,36 @@ module.exports = {
     },
 
     addMailSend: async function (req, res) {
+        let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                await mMailSend(db).create({
-                    MailListDetailID: idMailDetail,
-                    TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                    Type: 1,
-                    MailCampainID: idMailCampain
-                })
+                let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
-                res.json(Result.ACTION_SUCCESS)
+                if (body.isTestMail) {
+                    mAmazon.sendEmail(body.myMail, body.myMail, body.subject, body.body);
+                    res.json(Result.ACTION_SUCCESS)
+                } else {
+                    var mailListDetailData = await mMailListDetail(db).findAll({
+                        where: { MailListID: body.mailListID }
+                    })
+                    let bulkCreate = [];
+                    mailListDetailData.forEach(async (mailItem, i) => {
+                        mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, body.body);
+
+                        bulkCreate.push({
+                            MailCampainID: body.campainID,
+                            MailListDetailID: mailItem.ID,
+                            TimeCreate: now,
+                        })
+                        if (i == mailListDetailData.length - 1) {
+                            await mMailSend(db).bulkCreate(bulkCreate);
+                            res.json(Result.ACTION_SUCCESS)
+                        }
+                    });
+                }
             } catch (error) {
+                console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)
             }
 
@@ -507,53 +493,12 @@ module.exports = {
 
     },
 
-    sendMailCampain: async function (req, res) {
-        let body = req.body;
-
-        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            try {
-                var listMailDetail = await mMailListDetail(db).findAll({
-                    where: { MailListID: Number(body.mailListID) }
-                })
-
-                if (listMailDetail.length > 0) {
-                    let bulkCreate = [];
-
-                    listMailDetail.forEach(async (mailDetailItem, i) => {
-                        sendEmail(body.body, mailDetailItem.ID, mailDetailItem.Email, body.subject, body.ip, body.dbName);
-
-                        bulkCreate.push({
-                            MailListDetailID: mailDetailItem.ID,
-                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                            MailCampainID: mailCampainData.ID
-                        })
-                    });
-
-                    await mMailSend(db).bulkCreate(bulkCreate);
-
-                    res.json(Result.ACTION_SUCCESS)
-                }
-                else {
-                    res.json(Result.NO_DATA_RESULT)
-                }
-            } catch (error) {
-                console.log(error);
-                res.json(Result.SYS_ERROR_RESULT)
-            }
-
-        }, error => {
-            res.json(error)
-        })
-
-    },
 
     updateMailCampain: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                console.log(body);
-
                 let update = [];
                 if (body.name)
                     update.push({ key: 'Name', value: body.name });
@@ -567,8 +512,9 @@ module.exports = {
                     let time = moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS')
                     update.push({ key: 'TimeEnd', value: time });
                 }
-                if (body.body)
+                if (body.body) {
                     update.push({ key: 'Body', value: body.body });
+                }
                 if (body.mailListID)
                     update.push({ key: 'MailListID', value: body.mailListID });
 
@@ -587,6 +533,63 @@ module.exports = {
         })
 
     },
+
+    reportEmailDetail: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+
+                var mailListDetail = mMailListDetail(db);
+                mailListDetail.belongsTo(mMailList(db), { foreignKey: 'MailListID' })
+                mailListDetail.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
+
+                var mailSend = mMailSend(db);
+                mailSend.belongsTo(mMailCampain(db), { foreignKey: 'MailCampainID' })
+                mailSend.belongsTo(mailListDetail, { foreignKey: 'MailListDetailID' })
+
+
+                var mailSendData = await mailSend.findAll({
+                    include: [{
+                        model: mMailCampain(db)
+                    }, {
+                        model: mailListDetail,
+                        where: { Email: body.email },
+                        include: [{
+                            model: mMailList(db)
+                        }, {
+                            model: mUser(db)
+                        }]
+                    }]
+                })
+
+                var array = [];
+                mailSendData.forEach(item => {
+                    array.push({
+                        id: item.ID,
+                        campainName: item.MailCampain.Name,
+                        mailListName: item.MailListDetail.MailList.Name,
+                        createTime: item.TimeCreate,
+                        senderName: item.MailListDetail.User.Name,
+                        status: 1
+                    })
+                })
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    array
+                }
+
+                res.json(result);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+    }
 
 
 }

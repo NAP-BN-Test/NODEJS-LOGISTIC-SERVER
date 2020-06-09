@@ -29,7 +29,12 @@ module.exports = {
                 var mailCampain = mMailCampain(db);
                 mailCampain.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
 
+                let where = [];
+                if (body.userIDFind) {
+                    where = { OwnerID: body.userIDFind }
+                }
                 var mailCampainData = await mailCampain.findAll({
+                    where: where,
                     include: { model: mMailList(db) },
                     order: [['TimeCreate', 'DESC']],
                     offset: 12 * (body.page - 1),

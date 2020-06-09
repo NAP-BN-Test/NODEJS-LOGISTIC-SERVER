@@ -65,6 +65,16 @@ module.exports = {
         }
     },
 
+    updateEmailUser: async function (ip, dbName, userID, email) {
+        var db = await database.checkServerInvalid(ip, dbName, '00a2152372fa8e0e62edbb45dd82831a');
+        try {
+            var data = await mUser(db).update({ Email: email }, { where: { ID: userID } })
+            return Promise.resolve(data.Roles);
+        } catch (error) {
+            return Promise.reject(error)
+        }
+    },
+
     addUser: (req, res) => {
         let body = req.body;
 

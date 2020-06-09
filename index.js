@@ -6,6 +6,7 @@ let cors = require('cors');
 
 const bodyParser = require('body-parser');
 
+
 app.use(session({
     name: 'user_sid',
     secret: '00a2152372fa8e0e62edbb45dd82831a',

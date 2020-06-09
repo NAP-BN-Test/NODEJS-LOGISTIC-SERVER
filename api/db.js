@@ -148,10 +148,6 @@ module.exports = {
       updateObj[field.key] = field.value
     }
     try {
-
-      console.log(id);
-      console.log(updateObj);
-      
       await table.update(updateObj, { where: { ID: id } });
       return Promise.resolve(1);
     } catch (error) {

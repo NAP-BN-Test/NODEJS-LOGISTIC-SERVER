@@ -213,9 +213,11 @@ module.exports = function (app) {
 
     app.route('/crm/get_mail_campain_detail').post(emailList.getMailCampainDetail);
 
-    app.route('/crm/send_mail_campain').post(emailList.sendMailCampain);
-
     app.route('/crm/update_mail_campain').post(emailList.updateMailCampain);
+
+    app.route('/crm/add_mail_send').post(emailList.addMailSend);
+
+    app.route('/crm/report_mail_detail').post(emailList.reportEmailDetail);
 
 
     //Report
@@ -233,7 +235,7 @@ module.exports = function (app) {
 
 
 
-    //Upload file
+    // Upload file
     app.route('/crm/upload_file').post(upload.uploadFile);
 
 
@@ -241,6 +243,8 @@ module.exports = function (app) {
     app.route('/aws/mail_response').post(amazon.amazonResponse);
 
     app.route('/aws/verify_email').post(amazon.verifyEmail);
+
+    app.route('/aws/check_verify_email').post(amazon.checkVerifyEmail);
 
     app.route('/aws/send_email').post(amazon.sendEmail);
 

@@ -47,9 +47,6 @@ async function uploadFile(source, path) {
             secure: false
         })
 
-        console.log(source);
-        console.log(path);
-
         await client.uploadFrom(source, path);
 
         client.close()
@@ -64,28 +61,33 @@ async function uploadFile(source, path) {
 
 module.exports = {
     uploadFile: async function (req, res) {
-        let body = req.body;
+        const formidable = require('formidable')
+        const { PassThrough } = require('stream')
 
-        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            try {
+        const form = new formidable.IncomingForm()
+        const pass = new PassThrough()
 
-                console.log(body.uri);
-                
-                var path = "LogisticCrm/LOGISTIC_CRM/";
-                checkDir(path);
+        form.onPart = part => {
+            if (!part.filename) {
+                form.handlePart(part)
+                return
+            }
+            part.on('data', function (buffer) {
+                pass.write(buffer)
+            })
+            part.on('end', function () {
+                pass.end()
+            })
+        }
+        form.parse(req, err => {
+            if (err) {
+                req.minio = { error: err }
+                next()
+            } else {
+                var fileName = moment().valueOf() + ".png";
 
-                let buff = new Buffer(body.uri, 'base64');
-
-                var source = bufferToStream(buff);
-                var fileName = moment().valueOf() + i + ".png";
-
-
-                uploadFile(source, path + fileName).then(data => {
-
-                    console.log(data);
-
+                uploadFile(pass, 'LogisticCrm/LOGISTIC_CRM/' + fileName).then(data => {
                     if (data == 1) {
-
                         var result = {
                             status: Constant.STATUS.SUCCESS,
                             message: '',
@@ -94,13 +96,7 @@ module.exports = {
                         res.json(result)
                     }
                 });
-            } catch (error) {
-                console.log(error);
-                res.json(Result.SYS_ERROR_RESULT)
             }
-
-        }, error => {
-            res.json(error)
         })
     },
 

@@ -12,7 +12,7 @@ module.exports = function (db) {
         Name: Sequelize.STRING,
         Roles: Sequelize.INTEGER,
         Phone: Sequelize.STRING,
-        Email: Sequelize.STRING,
+        Email: Sequelize.STRING
     });
 
     return table;
