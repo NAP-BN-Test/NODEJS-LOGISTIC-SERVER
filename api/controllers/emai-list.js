@@ -35,8 +35,8 @@ module.exports = {
                         { model: mUser(db) },
                         { model: mMailListDetail(db) }],
                     order: [['TimeCreate', 'DESC']],
-                    offset: 12 * (body.page - 1),
-                    limit: 12
+                    offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                    limit: Number(body.itemPerPage)
                 })
 
                 var array = [];
@@ -86,8 +86,8 @@ module.exports = {
                         { model: mMailSend(db) }
                     ],
                     order: [['TimeCreate', 'DESC']],
-                    offset: 12 * (body.page - 1),
-                    limit: 12
+                    offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                    limit: Number(body.itemPerPage)
                 })
 
                 var mMailListDetailCount = await mailListDetail.count({
@@ -101,7 +101,7 @@ module.exports = {
                         owner: item.User.Name,
                         createTime: item.TimeCreate,
                         mailCount: item.MailSends.length,
-                        contactName: 'Tên người LH'
+                        contactName: item.Name
                     })
                 })
                 var result = {
@@ -133,8 +133,8 @@ module.exports = {
                 var mailCampainData = await mailCampain.findAll({
                     include: { model: mUser(db) },
                     order: [['TimeCreate', 'DESC']],
-                    offset: 12 * (body.page - 1),
-                    limit: 12
+                    offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                    limit: Number(body.itemPerPage)
                 });
 
                 var mailCampainCount = await mailCampain.count();

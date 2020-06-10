@@ -181,8 +181,8 @@ module.exports = {
                             { model: mCompany(db), required: false },
                         ],
                         order: [['TimeCreate', 'DESC']],
-                        offset: 12 * (body.page - 1),
-                        limit: 12
+                        offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                        limit: Number(body.itemPerPage)
                     }).then(data => {
                         var array = [];
                         data.forEach(item => {

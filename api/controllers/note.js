@@ -179,8 +179,8 @@ module.exports = {
                             { model: mComment(db), required: false, as: 'Comments' }
                         ],
                         order: [['TimeCreate', 'DESC']],
-                        offset: 12 * (body.page - 1),
-                        limit: 12
+                        offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                        limit: Number(body.itemPerPage)
                     }).then(data => {
                         let array = [];
                         if (data) {

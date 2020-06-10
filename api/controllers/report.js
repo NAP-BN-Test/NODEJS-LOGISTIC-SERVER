@@ -37,8 +37,8 @@ module.exports = {
                     where: where,
                     include: { model: mMailList(db) },
                     order: [['TimeCreate', 'DESC']],
-                    offset: 12 * (body.page - 1),
-                    limit: 12
+                    offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                    limit: Number(body.itemPerPage)
                 });
 
                 var mailCampainCount = await mailCampain.count();
@@ -80,15 +80,6 @@ module.exports = {
             try {
                 var array = [
                     { name: 'Chiến dịch 1', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 2', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 3', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 4', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 5', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 6', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 7', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 8', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 9', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 },
-                    { name: 'Chiến dịch 10', email: 'nap.cuongdk@gmail.com', startTime: '2020-05-30 14:00', endTime: '2020-06-30 14:00', receive: 5, cancel: 1 }
                 ]
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -112,11 +103,25 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+                var mailList = mMailList(db);
+                mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' })
+
                 var mailCampain = mMailCampain(db);
                 mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
+                mailCampain.belongsTo(mailList, { foreignKey: 'MailListID' })
+                mailCampain.hasOne(mMailSend(db), { foreignKey: 'MailCampainID' })
+
                 var campainData = await mailCampain.findOne({
                     where: { ID: body.campainID },
-                    include: { model: mUser(db) }
+                    include: [{
+                        model: mUser(db)
+                    }, {
+                        model: mailList,
+                        include: { model: mMailListDetail(db) }
+                    }, {
+                        model: mMailSend(db),
+                        order: [['TimeCreate', 'DESC']],
+                    }]
                 });
 
                 var mailListDetailData = await mMailListDetail(db).findAll({
@@ -149,7 +154,10 @@ module.exports = {
                     timeEnd: campainData.TimeEnd,
                     mailSend: mailSendCount,
                     userSend: campainData.User.Name,
-                    percentOpen: mailSendCount != 0 ? parseFloat(mailResponseCount / mailSendCount * 100).toFixed(0) + '%' : '0%'
+                    percentOpen: mailSendCount != 0 ? parseFloat(mailResponseCount / mailSendCount * 100).toFixed(0) + '%' : '0%',
+                    contactCount: campainData.MailList.MailListDetails.length,
+                    lastSend: campainData.MailSend.TimeCreate,
+                    totalOpen: mailResponseCount,
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
