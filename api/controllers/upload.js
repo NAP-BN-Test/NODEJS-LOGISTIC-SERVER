@@ -91,7 +91,7 @@ module.exports = {
                         var result = {
                             status: Constant.STATUS.SUCCESS,
                             message: '',
-                            url: 'http://163.44.192.123:8552/LOGISTIC_CRM/' + fileName
+                            imageUrl: 'http://163.44.192.123:8552/LOGISTIC_CRM/' + fileName
                         }
                         res.json(result)
                     }
