@@ -28,7 +28,7 @@ app.use(bodyParser.json({ limit: '100mb' }))
 let routes = require('./api/router') //importing route
 routes(app)
 
-const port = process.env.PORT || 3002
+const port = process.env.PORT || 3302
 
 server.listen(port, function () {
     console.log('http://localhost:' + port);
