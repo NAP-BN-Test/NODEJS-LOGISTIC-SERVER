@@ -284,9 +284,13 @@ module.exports = {
                 let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
                 let arrMail = JSON.parse(body.listMail);
+                let listMail = [];
+                arrMail.forEach(item => {
+                    listMail.push(item.email)
+                })
 
                 var mailListDetailData = await mMailListDetail(db).findAll({
-                    where: { Email: { [Op.in]: arrMail }, MailListID: body.mailListID },
+                    where: { Email: { [Op.in]: listMail }, MailListID: body.mailListID },
                     attributes: ['Email'],
                     raw: true
                 });
