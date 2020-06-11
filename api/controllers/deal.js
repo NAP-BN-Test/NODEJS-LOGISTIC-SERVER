@@ -14,7 +14,7 @@ module.exports = {
     getListQuickDeal: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             var deal = mDeal(db);
@@ -50,7 +50,7 @@ module.exports = {
     getListQuickDealForContact: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             var deal = mDeal(db);
@@ -86,7 +86,7 @@ module.exports = {
     getDealStage: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mDealStage(db).findAll().then(data => {
@@ -115,7 +115,7 @@ module.exports = {
     addDeal: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mDeal(db).create({
@@ -150,7 +150,7 @@ module.exports = {
     updateDeal: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.stageID) {

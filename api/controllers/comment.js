@@ -15,7 +15,7 @@ module.exports = {
     addComment: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
             
                 if (body.activityType == Constant.ACTIVITY_TYPE.CALL) {
@@ -122,7 +122,7 @@ module.exports = {
     editComment: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
             
                 if (body.activityType == Constant.ACTIVITY_TYPE.CALL) {
@@ -164,7 +164,7 @@ module.exports = {
     deleteComment: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
             
                 if (body.activityType == Constant.ACTIVITY_TYPE.CALL) {

@@ -48,15 +48,14 @@ function getLastActivity(companyID) {
 
 
 module.exports = {
+
     getListCompany: (req, res) => {
 
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
-
-
-            mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
-                if (user) {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                user.checkUser(body.ip, body.dbName, body.username).then(async role => {
                     let company = mCompany(db);
                     company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
                     company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
@@ -93,7 +92,7 @@ module.exports = {
                     if (body.cityID) {
                         userFind.push({ CityID: body.cityID })
                     }
-                    if (user['Roles'] == Constant.USER_ROLE.GUEST) {
+                    if (role == Constant.USER_ROLE.GUEST) {
                         userFind.push({ UserID: body.userID })
                     }
 
@@ -176,126 +175,114 @@ module.exports = {
                         }
                     }
 
-                    company.count({
-                        where: whereAll
-                    }).then(all => {
-                        company.count({
-                            where: whereUnAssign,
-                        }).then(unassign => {
-                            company.count({
-                                where: whereAllAssign
-                            }).then(assignAll => {
-                                company.count({
-                                    where: whereAssign,
-                                }).then(assign => {
-                                    company.count({
-                                        include: [
-                                            {
-                                                model: mUserFollow(db),
-                                                where: { UserID: body.userID, Type: 1, Follow: true }
-                                            }
-                                        ],
-                                        where: whereFollow,
-                                    }).then(follow => {
-                                        company.count({
-                                            where: whereCustomer
-                                        }).then(customer => {
-
-                                            let where;
-                                            if (body.searchKey) {
-                                                if (body.companyType == 2) {//unassign
-                                                    where = whereUnAssign
-                                                } else if (body.companyType == 4) {//assign
-                                                    where = whereAssign
-                                                } else if (body.companyType == 5) {//assign all
-                                                    where = whereAllAssign
-                                                } else if (body.companyType == 6) {//assign all
-                                                    where = whereCustomer
-                                                } else { // all
-                                                    where = whereAll
-                                                }
-                                            } else {
-                                                if (body.companyType == 2) {//unassign
-                                                    where = whereUnAssign
-                                                } else if (body.companyType == 4) {//assign
-                                                    where = whereAssign
-                                                } else {// all
-                                                    where = whereAll
-                                                }
-                                            }
-                                            company.findAll({
-                                                include: [
-                                                    { model: mUser(db), required: false, as: 'CreateUser' },
-                                                    { model: mUser(db), required: false, as: 'AssignUser' },
-                                                    {
-                                                        model: mUserFollow(db),
-                                                        required: body.companyType == 3 ? true : false,
-                                                        where: { UserID: body.userID, Type: 1, Follow: true }
-                                                    },
-                                                    { model: mCity(db), required: false },
-                                                    {
-                                                        model: mDealStage(db),
-                                                        required: false,
-                                                    }
-                                                ],
-                                                where: where,
-                                                order: [['ID', 'DESC']],
-                                                offset: Number(body.itemPerPage) * (Number(body.page) - 1),
-                                                limit: Number(body.itemPerPage)
-                                            }).then(data => {
-                                                var array = [];
-                                                data.forEach(elm => {
-                                                    array.push({
-                                                        id: elm.dataValues.ID,
-                                                        name: elm.dataValues.Name,
-
-                                                        ownerID: elm.dataValues.UserID,
-                                                        ownerName: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.Username : "",
-
-                                                        assignID: elm.dataValues.AssignID,
-                                                        assignName: elm.dataValues.AssignUser ? elm.dataValues.AssignUser.dataValues.Username : "",
-
-                                                        address: elm.dataValues.Address,
-                                                        phone: elm.dataValues.Phone,
-                                                        website: elm.dataValues.Website,
-                                                        timeCreate: elm.dataValues.TimeCreate,
-
-                                                        cityID: elm.dataValues.City ? elm.dataValues.City.ID : -1,
-                                                        city: elm.dataValues.City ? elm.dataValues.City.NameVI : "",
-
-                                                        follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
-                                                        checked: false,
-                                                        companyType: elm.dataValues.Type,
-                                                        stageID: elm.DealStage ? elm.DealStage.dataValues.ID : -1,
-                                                        stageName: elm.DealStage ? elm.DealStage.dataValues.Name : "",
-
-                                                        lastActivity: elm.dataValues.LastActivity
-                                                    })
-                                                });
-
-                                                var result = {
-                                                    status: Constant.STATUS.SUCCESS,
-                                                    message: '',
-                                                    array: array,
-                                                    all, unassign, assign, follow, assignAll, customer
-                                                }
-                                                res.json(result)
-                                            });
-                                        })
-                                    });
-                                });
-                            })
-                        });
+                    var all = await company.count({ where: whereAll });
+                    var unassign = await company.count({ where: whereUnAssign });
+                    var assignAll = await company.count({ where: whereAllAssign });
+                    var assign = await company.count({ where: whereAssign });
+                    var customer = await company.count({ where: whereCustomer });
+                    var follow = await company.count({
+                        include: [
+                            {
+                                model: mUserFollow(db),
+                                where: { UserID: body.userID, Type: 1, Follow: true }
+                            }
+                        ],
+                        where: whereFollow,
                     });
-                }
-            })
+
+                    let where;
+                    if (body.searchKey) {
+                        if (body.companyType == 2) {//unassign
+                            where = whereUnAssign
+                        } else if (body.companyType == 4) {//assign
+                            where = whereAssign
+                        } else if (body.companyType == 5) {//assign all
+                            where = whereAllAssign
+                        } else if (body.companyType == 6) {//assign all
+                            where = whereCustomer
+                        } else { // all
+                            where = whereAll
+                        }
+                    } else {
+                        if (body.companyType == 2) {//unassign
+                            where = whereUnAssign
+                        } else if (body.companyType == 4) {//assign
+                            where = whereAssign
+                        } else {// all
+                            where = whereAll
+                        }
+                    }
+                    var data = await company.findAll({
+                        include: [
+                            { model: mUser(db), required: false, as: 'CreateUser' },
+                            { model: mUser(db), required: false, as: 'AssignUser' },
+                            {
+                                model: mUserFollow(db),
+                                required: body.companyType == 3 ? true : false,
+                                where: { UserID: body.userID, Type: 1, Follow: true }
+                            },
+                            { model: mCity(db), required: false },
+                            {
+                                model: mDealStage(db),
+                                required: false,
+                            }
+                        ],
+                        where: where,
+                        order: [['ID', 'DESC']],
+                        offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                        limit: Number(body.itemPerPage)
+                    });
+
+                    var array = [];
+                    data.forEach(elm => {
+                        array.push({
+                            id: elm.ID,
+                            name: elm.Name,
+
+                            ownerID: elm.UserID,
+                            ownerName: elm.CreateUser ? elm.CreateUser.Username : "",
+
+                            assignID: elm.AssignID,
+                            assignName: elm.AssignUser ? elm.AssignUser.Username : "",
+
+                            address: elm.Address,
+                            phone: elm.Phone,
+                            website: elm.Website,
+                            timeCreate: elm.TimeCreate,
+
+                            cityID: elm.City ? elm.City.ID : -1,
+                            city: elm.City ? elm.City.NameVI : "",
+
+                            follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
+                            checked: false,
+                            companyType: elm.Type == 3 ? 'Agent' : elm.Type == 4 ? 'Company' : elm.Type == 2 ? 'Có' : 'Không',
+                            stageID: elm.DealStage ? elm.DealStage.ID : -1,
+                            stageName: elm.DealStage ? elm.DealStage.Name : "",
+
+                            lastActivity: elm.LastActivity
+                        })
+                    });
+
+                    var result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                        array: array,
+                        all, unassign, assign, follow, assignAll, customer
+                    }
+                    res.json(result)
+                })
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+            }
         })
     },
+
 
     getDetailCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             let company = mCompany(db);
@@ -328,11 +315,11 @@ module.exports = {
                     email: data['Email'],
                     timeActive: data['TimeActive'],
                     website: data['Website'],
-                    cityID: data.dataValues.City ? data.dataValues.City.ID : -1,
-                    city: data.dataValues.City ? data.dataValues.City.NameVI : "",
-                    follow: data.dataValues.UserFollows[0] ? data.dataValues.UserFollows[0]['Follow'] : false,
-                    stageID: data.DealStage ? data.DealStage.dataValues.ID : -1,
-                    stageName: data.DealStage ? data.DealStage.dataValues.Name : ""
+                    cityID: data.City ? data.City.ID : -1,
+                    city: data.City ? data.City.NameVI : "",
+                    follow: data.UserFollows[0] ? data.UserFollows[0]['Follow'] : false,
+                    stageID: data.DealStage ? data.DealStage.ID : -1,
+                    stageName: data.DealStage ? data.DealStage.Name : ""
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -348,7 +335,7 @@ module.exports = {
     getListQuickCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
 
@@ -363,10 +350,10 @@ module.exports = {
                 company.findOne({ where: { ID: data.ParentID } }).then(data1 => {
                     if (data1) {
                         array.push({
-                            id: data1.dataValues.ID,
-                            name: data1.dataValues.Name,
-                            address: data1.dataValues.Address,
-                            email: data1.dataValues.Email,
+                            id: data1.ID,
+                            name: data1.Name,
+                            address: data1.Address,
+                            email: data1.Email,
                             role: 1
                         });
                     }
@@ -408,7 +395,7 @@ module.exports = {
     updateCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
 
@@ -459,7 +446,7 @@ module.exports = {
     searchCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             user.checkUser(body.ip, body.dbName, body.username).then(role => {
@@ -505,7 +492,7 @@ module.exports = {
     addCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             var company = mCompany(db);
@@ -525,50 +512,50 @@ module.exports = {
                 var obj;
                 if (body.role == Constant.COMPANY_ROLE.PARENT) {
                     mCompany(db).update(
-                        { ParentID: data.dataValues.ID },
+                        { ParentID: data.ID },
                         { where: { ID: body.companyID } });
                     obj = {
-                        id: data.dataValues.ID,
-                        name: data.dataValues.Name,
-                        address: data.dataValues.Address,
-                        email: data.dataValues.Email,
+                        id: data.ID,
+                        name: data.Name,
+                        address: data.Address,
+                        email: data.Email,
                         role: Constant.COMPANY_ROLE.PARENT,
-                        phone: data.dataValues.Phone,
+                        phone: data.Phone,
                         city: body.cityName,
                         ownerID: -1,
                         ownerName: "",
-                        companyType: data.dataValues.Type
+                        companyType: data.Type
                     }
                 }
                 else if (body.role == Constant.COMPANY_ROLE.CHILD) {
                     mCompanyChild(db).create({
                         ParentID: body.companyID,
-                        ChildID: data.dataValues.ID
+                        ChildID: data.ID
                     })
                     obj = {
-                        id: data.dataValues.ID,
-                        name: data.dataValues.Name,
-                        address: data.dataValues.Address,
-                        email: data.dataValues.Email,
+                        id: data.ID,
+                        name: data.Name,
+                        address: data.Address,
+                        email: data.Email,
                         role: Constant.COMPANY_ROLE.CHILD,
-                        phone: data.dataValues.Phone,
+                        phone: data.Phone,
                         city: body.cityName,
                         ownerID: -1,
                         ownerName: "",
-                        companyType: data.dataValues.Type
+                        companyType: data.Type
                     }
                 } else {
                     obj = {
-                        id: data.dataValues.ID,
-                        name: data.dataValues.Name,
-                        address: data.dataValues.Address,
-                        email: data.dataValues.Email,
+                        id: data.ID,
+                        name: data.Name,
+                        address: data.Address,
+                        email: data.Email,
                         role: -1,
-                        phone: data.dataValues.Phone,
+                        phone: data.Phone,
                         city: body.cityName,
                         ownerID: -1,
                         ownerName: "",
-                        companyType: data.dataValues.Type
+                        companyType: data.Type
                     }
                 }
 
@@ -587,7 +574,7 @@ module.exports = {
     addParentCompanyByID: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mCompany(db).update(
@@ -596,10 +583,10 @@ module.exports = {
             ).then(result => {
                 mCompany(db).findOne({ where: { ID: body.companyAddID } }).then(data => {
                     var obj = {
-                        id: data.dataValues.ID,
-                        name: data.dataValues.Name,
-                        address: data.dataValues.Address,
-                        email: data.dataValues.Email,
+                        id: data.ID,
+                        name: data.Name,
+                        address: data.Address,
+                        email: data.Email,
                         role: Constant.COMPANY_ROLE.PARENT
                     };
 
@@ -618,7 +605,7 @@ module.exports = {
     addChildCompanyByID: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mCompanyChild(db).create({
@@ -627,10 +614,10 @@ module.exports = {
             }).then(() => {
                 mCompany(db).findOne({ where: { ID: body.companyAddID } }).then(data => {
                     var obj = {
-                        id: data.dataValues.ID,
-                        name: data.dataValues.Name,
-                        address: data.dataValues.Address,
-                        email: data.dataValues.Email,
+                        id: data.ID,
+                        name: data.Name,
+                        address: data.Address,
+                        email: data.Email,
                         role: Constant.COMPANY_ROLE.CHILD
                     };
 
@@ -649,7 +636,7 @@ module.exports = {
     assignCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.companyIDs) {
@@ -667,8 +654,8 @@ module.exports = {
                         if (body.assignID != -1) {
                             mUser(db).findOne({ where: { ID: body.assignID } }).then(user => {
                                 var obj = {
-                                    id: user.dataValues.ID,
-                                    name: user.dataValues.Name,
+                                    id: user.ID,
+                                    name: user.Name,
                                 };
 
                                 var result = {
@@ -692,7 +679,7 @@ module.exports = {
     followCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mUserFollow(db).findOne({ where: { UserID: body.userID, CompanyID: body.companyID, Type: 1 } }).then(data => {
@@ -732,7 +719,7 @@ module.exports = {
     deleteCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.companyIDs) {
@@ -743,7 +730,7 @@ module.exports = {
                 });
 
                 mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
-                    if (user.dataValues.Roles == Constant.USER_ROLE.MANAGER) {
+                    if (user.Roles == Constant.USER_ROLE.MANAGER) {
                         rmCompanyChild(db).update(
                             { CompanyID: null },
                             { where: { CompanyID: { [Op.in]: listcompanyID } } }
@@ -801,7 +788,7 @@ module.exports = {
     deleteContactFromCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             rmContact(db).update(
@@ -817,7 +804,7 @@ module.exports = {
     deleteCompanyFromCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.role == Constant.COMPANY_ROLE.PARENT) {
@@ -842,7 +829,7 @@ module.exports = {
     deleteDealFromCompany: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             rmDeal(db).destroy({ where: { ID: body.dealID } }).then(() => {
@@ -870,7 +857,7 @@ module.exports = {
                         mContact(db).create({
                             Name: body.contactName,
                             Phone: body.contactPhone,
-                            CompanyID: data.dataValues.ID,
+                            CompanyID: data.ID,
                             TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                         }).then(() => {
                             res.json(Result.ACTION_SUCCESS)

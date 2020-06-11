@@ -23,12 +23,17 @@ var rmMeetContact = require('../tables/meet-contact');
 var rmDeal = require('../tables/deal');
 
 
+function toDatetime(time) {
+    if (time)
+        return moment(time).format('DD/MM/YYYY HH:mm');
+    else return ""
+}
 
 module.exports = {
     getListQuickContact: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mContact(db).findAll({
@@ -63,7 +68,7 @@ module.exports = {
     getListContact: (req, res) => {//take this list for dropdown
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
 
@@ -91,7 +96,7 @@ module.exports = {
     getListContactFull: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
 
@@ -253,7 +258,7 @@ module.exports = {
                                                     name: elm.dataValues.Name,
                                                     email: elm.dataValues.Email,
                                                     phone: elm.dataValues.Phone,
-                                                    timeCreate: elm.dataValues.TimeCreate,
+                                                    timeCreate: toDatetime(elm.TimeCreate),
 
                                                     companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : null,
                                                     companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
@@ -292,7 +297,7 @@ module.exports = {
     addContact: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mContact(db).create({
@@ -337,7 +342,7 @@ module.exports = {
     addContactByID: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mContact(db).update(
@@ -368,7 +373,7 @@ module.exports = {
     searchContact: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
 
@@ -407,7 +412,7 @@ module.exports = {
     getDetailContact: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             let contact = mContact(db);
@@ -445,7 +450,7 @@ module.exports = {
     updateContact: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
 
@@ -484,7 +489,7 @@ module.exports = {
     assignContact: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.contactIDs) {
@@ -523,7 +528,7 @@ module.exports = {
     deleteContact: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.contactIDs) {
@@ -593,7 +598,7 @@ module.exports = {
     followContact: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mUserFollow(db).findOne({ where: { UserID: body.userID, ContactID: body.contactID, Type: 2 } }).then(data => {

@@ -21,7 +21,12 @@ module.exports = function (db) {
         StageID: Sequelize.BIGINT,
         AssignID: Sequelize.BIGINT,
         TimeActive: Sequelize.NOW,
-        LastActivity: Sequelize.NOW
+        TimeWorking: Sequelize.NOW,
+        LastActivity: Sequelize.NOW,
+        CountryID: Sequelize.BIGINT,
+        Source: Sequelize.STRING,
+        ScheduleCharge: Sequelize.STRING,
+        Note: Sequelize.STRING,
     });
 
     return table;

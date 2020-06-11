@@ -10,7 +10,7 @@ module.exports = {
     login: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             const data = await mUser(db).findOne({
                 where: { Username: body.username, Password: body.password }
             })
