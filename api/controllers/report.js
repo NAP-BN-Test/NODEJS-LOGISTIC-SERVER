@@ -17,6 +17,8 @@ var mMailResponse = require('../tables/mail-response');
 
 var mUser = require('../tables/user');
 
+var mModules = require('../constants/modules')
+
 
 module.exports = {
 
@@ -49,8 +51,8 @@ module.exports = {
                         id: item.ID,
                         name: item.Name,
                         email: item.MailList ? item.MailList.Name : "",
-                        startTime: item.TimeCreate,
-                        endTime: item.TimeEnd,
+                        startTime: mModules.toDatetime(item.TimeCreate),
+                        endTime: mModules.toDatetime(item.TimeEnd),
                         receive: item.SendCount
                     })
                 })

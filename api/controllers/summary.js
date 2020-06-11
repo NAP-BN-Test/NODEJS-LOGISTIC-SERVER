@@ -76,25 +76,25 @@ function getListActivityCall(db, body) {
             var array = [];
             data.forEach(elm => {
                 array.push({
-                    id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeCreate,
-                    timeRemind: elm.dataValues.TimeRemind,
-                    timeStart: elm.dataValues.TimeStart,
-                    state: elm.dataValues.State,
-                    description: elm.dataValues.Description,
+                    id: elm.ID,
+                    timeCreate: elm.TimeCreate,
+                    timeRemind: elm.TimeRemind,
+                    timeStart: elm.TimeStart,
+                    state: elm.State,
+                    description: elm.Description,
                     activityType: Constant.ACTIVITY_TYPE.CALL,
                     listComment: getListCmt(elm.CallComments),
 
-                    contactID: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.ID : -1,
-                    contactName: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.Name : "",
+                    contactID: elm.Contact ? elm.Contact.ID : -1,
+                    contactName: elm.Contact ? elm.Contact.Name : "",
 
-                    companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : -1,
-                    companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
+                    companyID: elm.Company ? elm.Company.ID : -1,
+                    companyName: elm.Company ? elm.Company.Name : "",
 
-                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                    userID: elm.User ? elm.User.ID : -1,
+                    userName: elm.User ? elm.User.Name : "",
 
-                    type: elm.dataValues.Company ? 1 : elm.dataValues.Contact ? 2 : 0
+                    type: elm.Company ? 1 : elm.Contact ? 2 : 0
 
                 })
             });
@@ -137,25 +137,25 @@ function getListActivityEmail(db, body) {
 
             data.forEach(elm => {
                 array.push({
-                    id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeCreate,
-                    timeStart: elm.dataValues.TimeStart,
-                    timeRemind: elm.dataValues.TimeRemind,
-                    state: elm.dataValues.State,
-                    description: elm.dataValues.Description,
+                    id: elm.ID,
+                    timeCreate: elm.TimeCreate,
+                    timeStart: elm.TimeStart,
+                    timeRemind: elm.TimeRemind,
+                    state: elm.State,
+                    description: elm.Description,
                     activityType: Constant.ACTIVITY_TYPE.EMAIL,
                     listComment: getListCmt(elm.EmailComments),
 
-                    contactID: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.ID : -1,
-                    contactName: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.Name : "",
+                    contactID: elm.Contact ? elm.Contact.ID : -1,
+                    contactName: elm.Contact ? elm.Contact.Name : "",
 
-                    companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : -1,
-                    companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
+                    companyID: elm.Company ? elm.Company.ID : -1,
+                    companyName: elm.Company ? elm.Company.Name : "",
 
-                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                    userID: elm.User ? elm.User.ID : -1,
+                    userName: elm.User ? elm.User.Name : "",
 
-                    type: elm.dataValues.Company ? 1 : elm.dataValues.Contact ? 2 : 0
+                    type: elm.Company ? 1 : elm.Contact ? 2 : 0
                 })
             });
 
@@ -196,25 +196,25 @@ function getListActivityMeet(db, body) {
 
             data.forEach(elm => {
                 array.push({
-                    id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeCreate,
-                    timeStart: elm.dataValues.TimeStart,
-                    timeRemind: elm.dataValues.TimeRemind,
-                    description: elm.dataValues.Description,
-                    duration: elm.dataValues.Duration,
+                    id: elm.ID,
+                    timeCreate: elm.TimeCreate,
+                    timeStart: elm.TimeStart,
+                    timeRemind: elm.TimeRemind,
+                    description: elm.Description,
+                    duration: elm.Duration,
                     activityType: Constant.ACTIVITY_TYPE.MEET,
                     listComment: getListCmt(elm.MeetComments),
 
-                    contactID: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.ID : -1,
-                    contactName: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.Name : "",
+                    contactID: elm.Contact ? elm.Contact.ID : -1,
+                    contactName: elm.Contact ? elm.Contact.Name : "",
 
-                    companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : -1,
-                    companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
+                    companyID: elm.Company ? elm.Company.ID : -1,
+                    companyName: elm.Company ? elm.Company.Name : "",
 
-                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                    userID: elm.User ? elm.User.ID : -1,
+                    userName: elm.User ? elm.User.Name : "",
 
-                    type: elm.dataValues.Company ? 1 : elm.dataValues.Contact ? 2 : 0
+                    type: elm.Company ? 1 : elm.Contact ? 2 : 0
                 })
             });
 
@@ -255,23 +255,23 @@ function getListActivityNote(db, body) {
 
             data.forEach(elm => {
                 array.push({
-                    id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeCreate,
-                    timeRemind: elm.dataValues.TimeRemind,
-                    description: elm.dataValues.Description,
+                    id: elm.ID,
+                    timeCreate: elm.TimeCreate,
+                    timeRemind: elm.TimeRemind,
+                    description: elm.Description,
                     activityType: Constant.ACTIVITY_TYPE.NOTE,
                     listComment: getListCmt(elm.NoteComments),
 
-                    contactID: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.ID : -1,
-                    contactName: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.Name : "",
+                    contactID: elm.Contact ? elm.Contact.ID : -1,
+                    contactName: elm.Contact ? elm.Contact.Name : "",
 
-                    companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : -1,
-                    companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
+                    companyID: elm.Company ? elm.Company.ID : -1,
+                    companyName: elm.Company ? elm.Company.Name : "",
 
-                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                    userID: elm.User ? elm.User.ID : -1,
+                    userName: elm.User ? elm.User.Name : "",
 
-                    type: elm.dataValues.Company ? 1 : elm.dataValues.Contact ? 2 : 0
+                    type: elm.Company ? 1 : elm.Contact ? 2 : 0
                 })
             });
 
@@ -314,29 +314,29 @@ function getListActivityTask(db, body) {
 
                 data.forEach(elm => {
                     array.push({
-                        id: elm.dataValues.ID,
-                        timeCreate: elm.dataValues.TimeCreate,
-                        timeRemind: elm.dataValues.TimeRemind,
-                        timeAssign: elm.dataValues.TimeAssign,
-                        timeStart: elm.dataValues.TimeStart,
-                        description: elm.dataValues.Description,
-                        taskType: elm.dataValues.Type,
-                        taskName: elm.dataValues.Name,
-                        assignID: elm.dataValues.AssignID,
+                        id: elm.ID,
+                        timeCreate: elm.TimeCreate,
+                        timeRemind: elm.TimeRemind,
+                        timeAssign: elm.TimeAssign,
+                        timeStart: elm.TimeStart,
+                        description: elm.Description,
+                        taskType: elm.Type,
+                        taskName: elm.Name,
+                        assignID: elm.AssignID,
                         activityType: Constant.ACTIVITY_TYPE.TASK,
-                        status: elm.dataValues.Status ? elm.dataValues.Status : false,
+                        status: elm.Status ? elm.Status : false,
                         listComment: [],
 
-                        contactID: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.ID : -1,
-                        contactName: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.Name : "",
+                        contactID: elm.Contact ? elm.Contact.ID : -1,
+                        contactName: elm.Contact ? elm.Contact.Name : "",
 
-                        companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : -1,
-                        companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
+                        companyID: elm.Company ? elm.Company.ID : -1,
+                        companyName: elm.Company ? elm.Company.Name : "",
 
-                        userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                        userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
+                        userID: elm.User ? elm.User.ID : -1,
+                        userName: elm.User ? elm.User.Name : "",
 
-                        type: elm.dataValues.Company ? 1 : elm.dataValues.Contact ? 2 : 0
+                        type: elm.Company ? 1 : elm.Contact ? 2 : 0
                     })
                 });
 

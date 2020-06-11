@@ -16,6 +16,8 @@ var mAssociate = require('../tables/task-associate');
 
 var rmAssociate = require('../tables/task-associate');
 
+var mModules = require('../constants/modules')
+
 
 module.exports = {
 
@@ -55,19 +57,19 @@ module.exports = {
                 if (body.listAssociate) {
                     let list = JSON.parse(body.listAssociate);
                     list.forEach(itm => {
-                        mAssociate(db).create({ ActivityID: data.dataValues.ID, ContactID: itm });
+                        mAssociate(db).create({ ActivityID: data.ID, ContactID: itm });
                     });
                 }
                 var obj = {
-                    id: data.dataValues.ID,
-                    timeCreate: data.dataValues.TimeCreate,
-                    timeRemind: data.dataValues.TimeRemind,
-                    timeAssign: data.dataValues.TimeAssign,
-                    timeStart: data.dataValues.TimeStart,
-                    description: data.dataValues.Description,
-                    taskType: data.dataValues.Type,
-                    taskName: data.dataValues.Name,
-                    assignID: data.dataValues.AssignID,
+                    id: data.ID,
+                    timeCreate: data.TimeCreate,
+                    timeRemind: data.TimeRemind,
+                    timeAssign: data.TimeAssign,
+                    timeStart: data.TimeStart,
+                    description: data.Description,
+                    taskType: data.Type,
+                    taskName: data.Name,
+                    assignID: data.AssignID,
                     activityType: Constant.ACTIVITY_TYPE.TASK,
                     listComment: []
                 };
@@ -187,29 +189,29 @@ module.exports = {
                         var array = [];
                         data.forEach(item => {
                             array.push({
-                                id: item.dataValues.ID,
-                                status: item.dataValues.Status ? item.dataValues.Status : false,
-                                taskName: item.dataValues.Name,
-                                description: item.dataValues.Description,
-                                type: item.dataValues.Type,
-                                timeCreate: item.dataValues.TimeCreate,
-                                timeRemind: item.dataValues.TimeRemind,
+                                id: item.ID,
+                                status: item.Status ? item.Status : false,
+                                taskName: item.Name,
+                                description: item.Description,
+                                type: item.Type,
+                                timeCreate: mModules.toDatetime(item.TimeCreate),
+                                timeRemind: mModules.toDatetime(item.TimeRemind),
 
-                                userID: item.UserCreate.dataValues ? item.UserCreate.dataValues.ID : -1,
-                                userName: item.UserCreate.dataValues ? item.UserCreate.dataValues.Name : "",
-                                createID: item.UserCreate.dataValues ? item.UserCreate.dataValues.ID : -1,
-                                createName: item.UserCreate.dataValues ? item.UserCreate.dataValues.Username : "",
+                                userID: item.UserCreate.dataValues ? item.UserCreate.ID : -1,
+                                userName: item.UserCreate.dataValues ? item.UserCreate.Name : "",
+                                createID: item.UserCreate.dataValues ? item.UserCreate.ID : -1,
+                                createName: item.UserCreate.dataValues ? item.UserCreate.Username : "",
 
-                                assignID: item.UserAssign.dataValues ? item.UserAssign.dataValues.ID : -1,
-                                assignName: item.UserAssign.dataValues ? item.UserAssign.dataValues.Username : "",
+                                assignID: item.UserAssign.dataValues ? item.UserAssign.ID : -1,
+                                assignName: item.UserAssign.dataValues ? item.UserAssign.Username : "",
 
-                                contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
-                                contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+                                contactID: item.Contact ? item.Contact.ID : -1,
+                                contactName: item.Contact ? item.Contact.Name : "",
 
-                                companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
-                                companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+                                companyID: item.Company ? item.Company.ID : -1,
+                                companyName: item.Company ? item.Company.Name : "",
 
-                                type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                type: mModules.taskType(item.Type),
                                 activityType: Constant.ACTIVITY_TYPE.TASK
                             });
                         })

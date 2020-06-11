@@ -20,6 +20,7 @@ var mComment = require('../tables/email-comment');
 var rmAssociate = require('../tables/email-associate');
 var rmComment = require('../tables/email-comment');
 
+var mModules = require('../constants/modules')
 
 module.exports = {
 
@@ -58,17 +59,17 @@ module.exports = {
                 if (body.listAssociate) {
                     let list = JSON.parse(body.listAssociate);
                     list.forEach(itm => {
-                        mAssociate(db).create({ ActivityID: data.dataValues.ID, ContactID: itm });
+                        mAssociate(db).create({ ActivityID: data.ID, ContactID: itm });
                     });
                 }
                 var obj = {
-                    id: data.dataValues.ID,
-                    timeCreate: data.dataValues.TimeCreate,
-                    timeRemind: data.dataValues.TimeRemind,
-                    timeStart: data.dataValues.TimeStart,
-                    contactID: data.dataValues.ContactID,
-                    description: data.dataValues.Description,
-                    state: data.dataValues.State,
+                    id: data.ID,
+                    timeCreate: data.TimeCreate,
+                    timeRemind: data.TimeRemind,
+                    timeStart: data.TimeStart,
+                    contactID: data.ContactID,
+                    description: data.Description,
+                    state: data.State,
                     activityType: Constant.ACTIVITY_TYPE.EMAIL,
                     listComment: []
                 };
@@ -190,22 +191,22 @@ module.exports = {
                         if (data) {
                             data.forEach(item => {
                                 array.push({
-                                    id: item.dataValues.ID,
-                                    description: item.dataValues.Description,
-                                    timeCreate: item.dataValues.TimeCreate,
-                                    timeRemind: item.dataValues.TimeRemind,
-                                    state: item.dataValues.State,
+                                    id: item.ID,
+                                    description: item.Description,
+                                    timeCreate: mModules.toDatetime(item.TimeCreate),
+                                    timeRemind: mModules.toDatetime(item.TimeRemind),
+                                    state: mModules.mailStatus(item.State),
 
-                                    createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                    createName: item.User.dataValues ? item.User.dataValues.Username : "",
+                                    createID: item.User.dataValues ? item.User.ID : -1,
+                                    createName: item.User.dataValues ? item.User.Username : "",
 
-                                    contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
-                                    contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+                                    contactID: item.Contact ? item.Contact.ID : -1,
+                                    contactName: item.Contact ? item.Contact.Name : "",
 
-                                    companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
-                                    companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+                                    companyID: item.Company ? item.Company.ID : -1,
+                                    companyName: item.Company ? item.Company.Name : "",
 
-                                    type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                    type: item.Company ? 1 : item.Contact ? 2 : 0,
                                     activityType: Constant.ACTIVITY_TYPE.EMAIL,
 
                                     comment: item.Comments.length > 0 ? item.Comments[0].Contents : ""

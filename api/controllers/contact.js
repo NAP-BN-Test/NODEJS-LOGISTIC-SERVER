@@ -22,12 +22,7 @@ var rmUserFollow = require('../tables/user-follow');
 var rmMeetContact = require('../tables/meet-contact');
 var rmDeal = require('../tables/deal');
 
-
-function toDatetime(time) {
-    if (time)
-        return moment(time).format('DD/MM/YYYY HH:mm');
-    else return ""
-}
+var mModules = require('../constants/modules')
 
 module.exports = {
     getListQuickContact: (req, res) => {
@@ -44,10 +39,10 @@ module.exports = {
 
                 data.forEach(elm => {
                     array.push({
-                        id: elm.dataValues.ID,
-                        name: elm.dataValues.Name,
-                        jobTile: elm.dataValues.JobTile,
-                        email: elm.dataValues.Email,
+                        id: elm.ID,
+                        name: elm.Name,
+                        jobTile: elm.JobTile,
+                        email: elm.Email,
                     })
                 })
 
@@ -254,24 +249,24 @@ module.exports = {
 
                                             data.forEach(elm => {
                                                 array.push({
-                                                    id: elm.dataValues.ID,
-                                                    name: elm.dataValues.Name,
-                                                    email: elm.dataValues.Email,
-                                                    phone: elm.dataValues.Phone,
-                                                    timeCreate: toDatetime(elm.TimeCreate),
+                                                    id: elm.ID,
+                                                    name: elm.Name,
+                                                    email: elm.Email,
+                                                    phone: elm.Phone,
+                                                    timeCreate: mModules.toDatetime(elm.TimeCreate),
 
-                                                    companyID: elm.dataValues.Company ? elm.dataValues.Company.dataValues.ID : null,
-                                                    companyName: elm.dataValues.Company ? elm.dataValues.Company.dataValues.Name : "",
+                                                    companyID: elm.Company ? elm.Company.ID : null,
+                                                    companyName: elm.Company ? elm.Company.Name : "",
 
-                                                    ownerID: elm.dataValues.UserID,
-                                                    ownerName: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.Username : "",
+                                                    ownerID: elm.UserID,
+                                                    ownerName: elm.CreateUser ? elm.CreateUser.Username : "",
 
-                                                    assignID: elm.dataValues.AssignID,
-                                                    assignName: elm.dataValues.AssignUser ? elm.dataValues.AssignUser.dataValues.Username : "",
+                                                    assignID: elm.AssignID,
+                                                    assignName: elm.AssignUser ? elm.AssignUser.Username : "",
 
-                                                    follow: elm.dataValues.UserFollows[0] ? elm.dataValues.UserFollows[0]['Follow'] : false,
+                                                    follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
 
-                                                    lastActivity: elm.dataValues.LastActivity
+                                                    lastActivity: elm.LastActivity
                                                 })
                                             });
                                             var result = {
@@ -315,12 +310,12 @@ module.exports = {
                 TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
             }).then(data => {
                 var obj = {
-                    id: data.dataValues.ID,
-                    name: data.dataValues.Name,
-                    jobTile: data.dataValues.JobTile,
-                    email: data.dataValues.Email,
-                    handPhone: data.dataValues.Phone,
-                    timeCreate: data.dataValues.TimeCreate,
+                    id: data.ID,
+                    name: data.Name,
+                    jobTile: data.JobTile,
+                    email: data.Email,
+                    handPhone: data.Phone,
+                    timeCreate: data.TimeCreate,
                     companyID: "",
                     companyName: "",
                     ownerID: "",
@@ -351,10 +346,10 @@ module.exports = {
             ).then(() => {
                 mContact(db).findOne({ where: { ID: body.contactID } }).then(data => {
                     var obj = {
-                        id: data.dataValues.ID,
-                        name: data.dataValues.Name,
-                        jobTile: data.dataValues.JobTile,
-                        email: data.dataValues.Email,
+                        id: data.ID,
+                        name: data.Name,
+                        jobTile: data.JobTile,
+                        email: data.Email,
                     };
 
                     var result = {
@@ -433,7 +428,7 @@ module.exports = {
                     phone: data['Phone'],
                     email: data['Email'],
                     jobTile: data['JobTile'],
-                    follow: data.dataValues.UserFollows[0] ? data.dataValues.UserFollows[0]['Follow'] : false
+                    follow: data.UserFollows[0] ? data.UserFollows[0]['Follow'] : false
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -506,8 +501,8 @@ module.exports = {
                     if (data) {
                         mUser(db).findOne({ where: { ID: body.assignID } }).then(user => {
                             var obj = {
-                                id: user.dataValues.ID,
-                                name: user.dataValues.Name,
+                                id: user.ID,
+                                name: user.Name,
                             };
 
                             var result = {
@@ -539,7 +534,7 @@ module.exports = {
                 });
 
                 mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
-                    if (user.dataValues.Roles == Constant.USER_ROLE.MANAGER) {
+                    if (user.Roles == Constant.USER_ROLE.MANAGER) {
                         rmCallAssciate(db).update(
                             { ContactID: null },
                             { where: { ContactID: { [Op.in]: listContactID } } }
