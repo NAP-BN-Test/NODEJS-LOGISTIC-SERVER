@@ -24,6 +24,8 @@ var mUser = require('../tables/user');
 var mContact = require('../tables/contact');
 var mCompany = require('../tables/company');
 
+var mModules = require('../constants/modules')
+
 
 module.exports = {
 
@@ -60,22 +62,22 @@ module.exports = {
                 if (body.listAttendID) {
                     let list = JSON.parse(body.listAttendID);
                     list.forEach(itm => {
-                        mMeetAttend(db).create({ MeetID: data.dataValues.ID, UserID: itm });
+                        mMeetAttend(db).create({ MeetID: data.ID, UserID: itm });
                     });
                 }
                 if (body.listAssociate) {
                     let list = JSON.parse(body.listAssociate);
                     list.forEach(itm => {
-                        mAssociate(db).create({ ActivityID: data.dataValues.ID, ContactID: itm });
+                        mAssociate(db).create({ ActivityID: data.ID, ContactID: itm });
                     });
                 }
                 var obj = {
-                    id: data.dataValues.ID,
-                    timeCreate: data.dataValues.TimeCreate,
-                    timeRemind: data.dataValues.TimeRemind,
-                    timeStart: data.dataValues.TimeStart,
-                    description: data.dataValues.Description,
-                    duration: data.dataValues.Duration,
+                    id: data.ID,
+                    timeCreate: data.TimeCreate,
+                    timeRemind: data.TimeRemind,
+                    timeStart: data.TimeStart,
+                    description: data.Description,
+                    duration: data.Duration,
                     activityType: Constant.ACTIVITY_TYPE.MEET,
                     listComment: []
                 };
@@ -247,22 +249,22 @@ module.exports = {
                         if (data) {
                             data.forEach(item => {
                                 array.push({
-                                    id: item.dataValues.ID,
-                                    description: item.dataValues.Description,
-                                    timeCreate: item.dataValues.TimeCreate,
-                                    timeRemind: item.dataValues.TimeRemind,
-                                    duration: item.dataValues.Duration,
+                                    id: item.ID,
+                                    description: item.Description,
+                                    timeCreate: mModules.toDatetime(item.TimeCreate),
+                                    timeRemind: mModules.toDatetime(item.TimeRemind),
+                                    duration: item.Duration,
 
-                                    createID: item.User.dataValues ? item.User.dataValues.ID : -1,
-                                    createName: item.User.dataValues ? item.User.dataValues.Name : "",
+                                    createID: item.User.dataValues ? item.User.ID : -1,
+                                    createName: item.User.dataValues ? item.User.Name : "",
 
-                                    contactID: item.dataValues.Contact ? item.dataValues.Contact.dataValues.ID : -1,
-                                    contactName: item.dataValues.Contact ? item.dataValues.Contact.dataValues.Name : "",
+                                    contactID: item.Contact ? item.Contact.ID : -1,
+                                    contactName: item.Contact ? item.Contact.Name : "",
 
-                                    companyID: item.dataValues.Company ? item.dataValues.Company.dataValues.ID : -1,
-                                    companyName: item.dataValues.Company ? item.dataValues.Company.dataValues.Name : "",
+                                    companyID: item.Company ? item.Company.ID : -1,
+                                    companyName: item.Company ? item.Company.Name : "",
 
-                                    type: item.dataValues.Company ? 1 : item.dataValues.Contact ? 2 : 0,
+                                    type: item.Company ? 1 : item.Contact ? 2 : 0,
                                     activityType: Constant.ACTIVITY_TYPE.MEET,
 
                                     comment: item.Comments.length > 0 ? item.Comments[0].Contents : ""

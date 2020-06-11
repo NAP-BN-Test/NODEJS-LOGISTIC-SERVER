@@ -18,6 +18,9 @@ var mAmazon = require('../controllers/amazon');
 
 var mUser = require('../tables/user');
 
+var mModules = require('../constants/modules')
+
+
 module.exports = {
 
     getMailList: async function (req, res) {
@@ -45,7 +48,7 @@ module.exports = {
                         id: Number(item.ID),
                         name: item.Name,
                         owner: item.User.Name,
-                        createTime: item.TimeCreate,
+                        createTime: mModules.toDatetime(item.TimeCreate),
                         contactCount: item.MailListDetails.length
                     })
                 })
@@ -99,7 +102,7 @@ module.exports = {
                         id: Number(item.ID),
                         email: item.Email,
                         owner: item.User.Name,
-                        createTime: item.TimeCreate,
+                        createTime: mModules.toDatetime(item.TimeCreate),
                         mailCount: item.MailSends.length,
                         contactName: item.Name
                     })
@@ -146,7 +149,7 @@ module.exports = {
                         name: item.Name,
                         subject: item.Subject,
                         owner: item.User.Name,
-                        createTime: item.TimeCreate,
+                        createTime: mModules.toDatetime(item.TimeCreate),
                         nearestSend: '2020-05-30 14:00'
                     })
                 })
@@ -187,7 +190,7 @@ module.exports = {
                     name: mailCampainData.Name,
                     subject: mailCampainData.Subject,
                     owner: mailCampainData.User.Name,
-                    createTime: mailCampainData.TimeCreate,
+                    createTime: mModules.toDatetime(mailCampainData.TimeCreate),
                     endTime: mailCampainData.TimeEnd,
                     body: mailCampainData.Body,
                     mailListID: Number(mailCampainData.MailListID)
@@ -576,7 +579,7 @@ module.exports = {
                         id: item.ID,
                         campainName: item.MailCampain.Name,
                         mailListName: item.MailListDetail.MailList.Name,
-                        createTime: item.TimeCreate,
+                        createTime: mModules.toDatetime(item.TimeCreate),
                         senderName: item.MailListDetail.User.Name,
                         status: 1
                     })

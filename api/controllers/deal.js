@@ -27,11 +27,11 @@ module.exports = {
                 var array = [];
                 data.forEach(elm => {
                     array.push({
-                        id: elm.dataValues.ID,
-                        timeCreate: elm.dataValues.TimeCreate,
-                        timeClose: elm.dataValues.TimeClose,
-                        amount: elm.dataValues.Amount,
-                        stageID: elm.DealStage.dataValues.Stage
+                        id: elm.ID,
+                        timeCreate: elm.TimeCreate,
+                        timeClose: elm.TimeClose,
+                        amount: elm.Amount,
+                        stageID: elm.DealStage.Stage
                     })
                 });
                 var result = {
@@ -63,11 +63,11 @@ module.exports = {
                 var array = [];
                 data.forEach(elm => {
                     array.push({
-                        id: elm.dataValues.ID,
-                        timeCreate: elm.dataValues.TimeCreate,
-                        timeClose: elm.dataValues.TimeClose,
-                        amount: elm.dataValues.Amount,
-                        stageID: elm.DealStage.dataValues.Stage
+                        id: elm.ID,
+                        timeCreate: elm.TimeCreate,
+                        timeClose: elm.TimeClose,
+                        amount: elm.Amount,
+                        stageID: elm.DealStage.Stage
                     })
                 });
                 var result = {
@@ -93,10 +93,10 @@ module.exports = {
                 var array = [];
                 data.forEach(elm => {
                     array.push({
-                        id: elm.dataValues.ID,
-                        name: elm.dataValues.Name,
-                        process: elm.dataValues.Process,
-                        stage: elm.dataValues.Stage
+                        id: elm.ID,
+                        name: elm.Name,
+                        process: elm.Process,
+                        stage: elm.Stage
                     })
                 });
                 var result = {
@@ -130,9 +130,9 @@ module.exports = {
                 Amount: body.amount,
             }).then(data => {
                 var obj = {
-                    id: data.dataValues.ID,
-                    timeCreate: data.dataValues.TimeCreate,
-                    timeClose: data.dataValues.TimeClose,
+                    id: data.ID,
+                    timeCreate: data.TimeCreate,
+                    timeClose: data.TimeClose,
                     amount: body.amount,
                     stageID: body.stageID
                 }

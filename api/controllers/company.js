@@ -30,21 +30,7 @@ var rmContact = require('../tables/contact');
 var rmDeal = require('../tables/deal');
 var rmUserFlow = require('../tables/user-follow');
 
-function getLastActivity(companyID) {
-    return new Promise(res => {
-        let updateObj = {};
-        for (let field of listObj) {
-            updateObj[field.key] = field.value
-        }
-
-        table.update(updateObj, { where: { ID: id } })
-            .then(() => {
-                res(Result.ACTION_SUCCESS);
-            }).catch(() => {
-                res(Result.SYS_ERROR_RESULT);
-            })
-    })
-}
+var mModules = require('../constants/modules')
 
 
 module.exports = {
@@ -248,7 +234,7 @@ module.exports = {
                             address: elm.Address,
                             phone: elm.Phone,
                             website: elm.Website,
-                            timeCreate: elm.TimeCreate,
+                            timeCreate: mModules.toDatetime(elm.TimeCreate),
 
                             cityID: elm.City ? elm.City.ID : -1,
                             city: elm.City ? elm.City.NameVI : "",
@@ -259,7 +245,7 @@ module.exports = {
                             stageID: elm.DealStage ? elm.DealStage.ID : -1,
                             stageName: elm.DealStage ? elm.DealStage.Name : "",
 
-                            lastActivity: elm.LastActivity
+                            lastActivity: mModules.toDatetime(elm.LastActivity)
                         })
                     });
 

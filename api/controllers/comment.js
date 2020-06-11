@@ -27,11 +27,11 @@ module.exports = {
                         UserName: body.userName
                     }).then(data => {
                         var obj = {
-                            id: data.dataValues.ID,
-                            timeCreate: data.dataValues.TimeCreate,
-                            userID: data.dataValues.UserID,
-                            userName: data.dataValues.UserName,
-                            content: data.dataValues.Contents,
+                            id: data.ID,
+                            timeCreate: data.TimeCreate,
+                            userID: data.UserID,
+                            userName: data.UserName,
+                            content: data.Contents,
                         }
                         var result = {
                             status: Constant.STATUS.SUCCESS,
@@ -51,11 +51,11 @@ module.exports = {
                         UserName: body.userName
                     }).then(data => {
                         var obj = {
-                            id: data.dataValues.ID,
-                            timeCreate: data.dataValues.TimeCreate,
-                            userID: data.dataValues.UserID,
-                            userName: data.dataValues.UserName,
-                            content: data.dataValues.Contents,
+                            id: data.ID,
+                            timeCreate: data.TimeCreate,
+                            userID: data.UserID,
+                            userName: data.UserName,
+                            content: data.Contents,
                         }
                         var result = {
                             status: Constant.STATUS.SUCCESS,
@@ -75,11 +75,11 @@ module.exports = {
                         UserName: body.userName
                     }).then(data => {
                         var obj = {
-                            id: data.dataValues.ID,
-                            timeCreate: data.dataValues.TimeCreate,
-                            userID: data.dataValues.UserID,
-                            userName: data.dataValues.UserName,
-                            content: data.dataValues.Contents,
+                            id: data.ID,
+                            timeCreate: data.TimeCreate,
+                            userID: data.UserID,
+                            userName: data.UserName,
+                            content: data.Contents,
                         }
                         var result = {
                             status: Constant.STATUS.SUCCESS,
@@ -99,11 +99,11 @@ module.exports = {
                         UserName: body.userName
                     }).then(data => {
                         var obj = {
-                            id: data.dataValues.ID,
-                            timeCreate: data.dataValues.TimeCreate,
-                            userID: data.dataValues.UserID,
-                            userName: data.dataValues.UserName,
-                            content: data.dataValues.Contents,
+                            id: data.ID,
+                            timeCreate: data.TimeCreate,
+                            userID: data.UserID,
+                            userName: data.UserName,
+                            content: data.Contents,
                         }
                         var result = {
                             status: Constant.STATUS.SUCCESS,

@@ -23,6 +23,8 @@ var mEmailComment = require('../tables/email-comment');
 var mMeetComment = require('../tables/meet-comment');
 var mNoteComment = require('../tables/note-comment');
 
+var mModules = require('../constants/modules')
+
 function getListCmt(listData) {
     var array = [];
     listData.forEach(elm => {
@@ -31,7 +33,7 @@ function getListCmt(listData) {
             activityID: elm['ActivityID'],
             activityType: elm['activityType'],
             content: elm['Contents'],
-            timeCreate: elm['TimeCreate'],
+            timeCreate: elm.TimeCreate,
             userName: elm['UserName'],
         })
     })
@@ -49,13 +51,13 @@ function updateActi(listObj, table, id, db) {
             .then(() => {
                 table.findOne({ where: { ID: id } }).then(activity => {
                     if (activity) {
-                        if (activity.dataValues.CompanyID) {
+                        if (activity.CompanyID) {
                             var company = mCompany(db);
-                            company.update({ LastActivity: updateObj.TimeUpdate }, { where: { ID: activity.dataValues.CompanyID } })
+                            company.update({ LastActivity: updateObj.TimeUpdate }, { where: { ID: activity.CompanyID } })
                         }
-                        if (activity.dataValues.ContactID) {
+                        if (activity.ContactID) {
                             var contact = mContact(db);
-                            contact.update({ LastActivity: updateObj.TimeUpdate }, { where: { ID: activity.dataValues.ContactID } })
+                            contact.update({ LastActivity: updateObj.TimeUpdate }, { where: { ID: activity.ContactID } })
                         }
                     }
                 })
@@ -87,16 +89,16 @@ function getListActivityCall(db, body) {
             data.forEach(elm => {
 
                 array.push({
-                    id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeCreate,
-                    timeRemind: elm.dataValues.TimeRemind,
-                    timeStart: elm.dataValues.TimeStart,
-                    contactID: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.ID : -1,
-                    contactName: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.Name : "",
-                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : "",
-                    state: elm.dataValues.State,
-                    description: elm.dataValues.Description,
+                    id: elm.ID,
+                    timeCreate: mModules.toDatetime(elm.TimeCreate),
+                    timeRemind: mModules.toDatetime(elm.TimeRemind),
+                    timeStart: mModules.toDatetime(elm.TimeStart),
+                    contactID: elm.Contact ? elm.Contact.ID : -1,
+                    contactName: elm.Contact ? elm.Contact.Name : "",
+                    userID: elm.User ? elm.User.ID : -1,
+                    userName: elm.User ? elm.User.Name : "",
+                    state: elm.State,
+                    description: elm.Description,
                     activityType: Constant.ACTIVITY_TYPE.CALL,
                     listComment: getListCmt(elm.CallComments)
                 })
@@ -125,18 +127,18 @@ function getListActivityEmail(db, body) {
 
             data.forEach(elm => {
                 array.push({
-                    id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeCreate,
-                    timeStart: elm.dataValues.TimeStart,
-                    timeRemind: elm.dataValues.TimeRemind,
-                    contactID: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.ID : -1,
-                    contactName: elm.dataValues.Contact ? elm.dataValues.Contact.dataValues.Name : "",
-                    state: elm.dataValues.State,
-                    description: elm.dataValues.Description,
+                    id: elm.ID,
+                    timeCreate: mModules.toDatetime(elm.TimeCreate),
+                    timeRemind: mModules.toDatetime(elm.TimeRemind),
+                    timeStart: mModules.toDatetime(elm.TimeStart),
+                    contactID: elm.Contact ? elm.Contact.ID : -1,
+                    contactName: elm.Contact ? elm.Contact.Name : "",
+                    state: elm.State,
+                    description: elm.Description,
                     activityType: Constant.ACTIVITY_TYPE.EMAIL,
                     listComment: getListCmt(elm.EmailComments),
-                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : ""
+                    userID: elm.User ? elm.User.ID : -1,
+                    userName: elm.User ? elm.User.Name : ""
                 })
             });
 
@@ -159,16 +161,16 @@ function getListActivityMeet(db, body) {
 
             data.forEach(elm => {
                 array.push({
-                    id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeCreate,
-                    timeStart: elm.dataValues.TimeStart,
-                    timeRemind: elm.dataValues.TimeRemind,
-                    description: elm.dataValues.Description,
-                    duration: elm.dataValues.Duration,
+                    id: elm.ID,
+                    timeCreate: mModules.toDatetime(elm.TimeCreate),
+                    timeRemind: mModules.toDatetime(elm.TimeRemind),
+                    timeStart: mModules.toDatetime(elm.TimeStart),
+                    description: elm.Description,
+                    duration: elm.Duration,
                     activityType: Constant.ACTIVITY_TYPE.MEET,
                     listComment: getListCmt(elm.MeetComments),
-                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : ""
+                    userID: elm.User ? elm.User.ID : -1,
+                    userName: elm.User ? elm.User.Name : ""
                 })
             });
 
@@ -191,14 +193,14 @@ function getListActivityNote(db, body) {
 
             data.forEach(elm => {
                 array.push({
-                    id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeCreate,
-                    timeRemind: elm.dataValues.TimeRemind,
-                    description: elm.dataValues.Description,
+                    id: elm.ID,
+                    timeCreate: mModules.toDatetime(elm.TimeCreate),
+                    timeRemind: mModules.toDatetime(elm.TimeRemind),
+                    description: elm.Description,
                     activityType: Constant.ACTIVITY_TYPE.NOTE,
                     listComment: getListCmt(elm.NoteComments),
-                    userID: elm.dataValues.User ? elm.dataValues.User.dataValues.ID : -1,
-                    userName: elm.dataValues.User ? elm.dataValues.User.dataValues.Name : ""
+                    userID: elm.User ? elm.User.ID : -1,
+                    userName: elm.User ? elm.User.Name : ""
                 })
             });
 
@@ -222,21 +224,21 @@ function getListActivityTask(db, body) {
 
             data.forEach(elm => {
                 array.push({
-                    id: elm.dataValues.ID,
-                    timeCreate: elm.dataValues.TimeCreate,
-                    timeRemind: elm.dataValues.TimeRemind,
-                    timeAssign: elm.dataValues.TimeAssign,
-                    timeStart: elm.dataValues.TimeStart,
-                    description: elm.dataValues.Description,
-                    taskType: elm.dataValues.Type,
-                    taskName: elm.dataValues.Name,
-                    assignID: elm.dataValues.AssignID,
+                    id: elm.ID,
+                    timeCreate: mModules.toDatetime(elm.TimeCreate),
+                    timeRemind: mModules.toDatetime(elm.TimeRemind),
+                    timeAssign: mModules.toDatetime(elm.TimeAssign),
+                    timeStart: mModules.toDatetime(elm.TimeStart),
+                    description: elm.Description,
+                    taskType: elm.Type,
+                    taskName: elm.Name,
+                    assignID: elm.AssignID,
                     activityType: Constant.ACTIVITY_TYPE.TASK,
-                    status: elm.dataValues.Status ? elm.dataValues.Status : false,
+                    status: elm.Status ? elm.Status : false,
                     listComment: [],
 
-                    userID: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.ID : -1,
-                    userName: elm.dataValues.CreateUser ? elm.dataValues.CreateUser.dataValues.Name : ""
+                    userID: elm.CreateUser ? elm.CreateUser.ID : -1,
+                    userName: elm.CreateUser ? elm.CreateUser.Name : ""
                 })
             });
 
