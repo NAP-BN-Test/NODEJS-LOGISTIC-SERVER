@@ -25,7 +25,7 @@ module.exports = {
     createNote: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
 
@@ -81,7 +81,7 @@ module.exports = {
     getAssociate: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mAssociate(db).findAll({ where: { ActivityID: body.noteID } }).then(data => {
@@ -110,7 +110,7 @@ module.exports = {
     updateAssociate: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.state == Constant.STATUS.SUCCESS) {
@@ -130,7 +130,7 @@ module.exports = {
     getListNote: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             var note = mNote(db);
@@ -228,7 +228,7 @@ module.exports = {
     deleteNote: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.activityIDs) {

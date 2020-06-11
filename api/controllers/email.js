@@ -26,7 +26,7 @@ module.exports = {
     createEmail: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             var email = mEmail(db);
@@ -88,7 +88,7 @@ module.exports = {
     getAssociate: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mAssociate(db).findAll({ where: { ActivityID: body.emailID } }).then(data => {
@@ -116,7 +116,7 @@ module.exports = {
     updateAssociate: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.state == Constant.STATUS.SUCCESS) {
@@ -135,7 +135,7 @@ module.exports = {
     getListEmail: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             var email = mEmail(db);
@@ -231,7 +231,7 @@ module.exports = {
     deleteEmail: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.activityIDs) {

@@ -30,7 +30,7 @@ module.exports = {
     createMeet: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
 
@@ -96,7 +96,7 @@ module.exports = {
     getListMeetAttend: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mMeetAttend(db).findAll({ where: { MeetID: body.meetID } }).then(data => {
@@ -124,7 +124,7 @@ module.exports = {
     updateMeetAttend: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.state == Constant.STATUS.SUCCESS) {
@@ -143,7 +143,7 @@ module.exports = {
     getAssociate: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mAssociate(db).findAll({ where: { ActivityID: body.meetID } }).then(data => {
@@ -172,7 +172,7 @@ module.exports = {
     updateAssociate: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.state == Constant.STATUS.SUCCESS) {
@@ -192,7 +192,7 @@ module.exports = {
     getListMeet: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             var meet = mMeet(db);
@@ -289,7 +289,7 @@ module.exports = {
     deleteMeet: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.activityIDs) {

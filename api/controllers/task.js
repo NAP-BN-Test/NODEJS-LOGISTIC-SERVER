@@ -22,7 +22,7 @@ module.exports = {
     createTask: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
 
@@ -88,7 +88,7 @@ module.exports = {
     getAssociate: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             mAssociate(db).findAll({ where: { ActivityID: body.taskID } }).then(data => {
@@ -117,7 +117,7 @@ module.exports = {
     updateAssociate: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.state == Constant.STATUS.SUCCESS) {
@@ -137,7 +137,7 @@ module.exports = {
     getListTask: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             var task = mTask(db);
             task.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'UserCreate' });
             task.belongsTo(mUser(db), { foreignKey: 'AssignID', sourceKey: 'AssignID', as: 'UserAssign' });
@@ -229,7 +229,7 @@ module.exports = {
     updateTask: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
             if (body.taskIDs) {
                 let listTask = JSON.parse(body.taskIDs);
@@ -251,7 +251,7 @@ module.exports = {
     deleteTask: (req, res) => {
         let body = req.body;
 
-        database.checkServerInvalid(body.ip, body.dbName, '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
             if (body.activityIDs) {

@@ -24,6 +24,7 @@ module.exports = function (app) {
     var report = require('./controllers/report');
 
     var upload = require('./controllers/upload');
+    var imports = require('./controllers/import');
 
     var amazon = require('./controllers/amazon');
 
@@ -235,6 +236,9 @@ module.exports = function (app) {
 
     // Upload file
     app.route('/crm/upload_file').post(upload.uploadFile);
+
+    app.route('/import/import_tx').post(imports.importDataTX);
+
 
 
     //Aws http
