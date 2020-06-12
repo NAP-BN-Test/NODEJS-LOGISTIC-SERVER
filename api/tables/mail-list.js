@@ -9,8 +9,7 @@ module.exports = function (db) {
         },
         Name: Sequelize.STRING,
         OwnerID: Sequelize.BIGINT,
-        TimeCreate: Sequelize.NOW,
-        Phone: Sequelize.STRING
+        TimeCreate: Sequelize.NOW
     });
 
     return table;
