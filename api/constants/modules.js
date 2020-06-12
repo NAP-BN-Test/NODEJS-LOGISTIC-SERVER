@@ -1,4 +1,6 @@
+const cryptoJS = require('crypto-js');
 var moment = require('moment');
+
 
 var arrCallStatus = [
     { id: 1, name: 'Không trả lời' },
@@ -54,5 +56,41 @@ module.exports = {
         if (obj) {
             return obj.name
         } else return ''
+    },
+
+    encryptKey(value) {
+
+        var key = "CRM@NAP#JSC$123";
+        key = cryptoJS.MD5(key).toString();
+        var keyHex = cryptoJS.enc.Hex.parse(key);
+
+        var options = {
+            mode: cryptoJS.mode.ECB,
+            padding: cryptoJS.pad.Pkcs7
+        };
+
+        var textWordArray = cryptoJS.enc.Utf8.parse(value);
+        var encrypted = cryptoJS.TripleDES.encrypt(textWordArray, keyHex, options);
+        var base64String = encrypted.toString();
+
+        return base64String;
+    },
+
+    decryptKey(value) {
+
+        var key = "CRM@NAP#JSC$123";
+        key = cryptoJS.MD5(key).toString();
+        var keyHex = cryptoJS.enc.Hex.parse(key);
+
+        var options = {
+            mode: cryptoJS.mode.ECB,
+            padding: cryptoJS.pad.Pkcs7
+        };
+
+        var resultArray = cryptoJS.TripleDES.decrypt({
+            ciphertext: cryptoJS.enc.Base64.parse(value)
+        }, keyHex, options);
+
+        return resultArray.toString(cryptoJS.enc.Utf8);
     }
 }

@@ -27,6 +27,7 @@ module.exports = function (app) {
     var imports = require('./controllers/import');
 
     var amazon = require('./controllers/amazon');
+    var unsubscribe = require('./controllers/unsubscribe');
 
 
     // todoList Routes
@@ -233,12 +234,14 @@ module.exports = function (app) {
     app.route('/crm/get_report_by_user_mail_send').post(report.getReportByUserMailSend);
 
 
-
     // Upload file
     app.route('/crm/upload_file').post(upload.uploadFile);
 
     app.route('/import/import_tx').post(imports.importDataTX);
 
+
+    // Unsubscribe
+    app.route('/unsubscribe/email_unsubscribe').post(unsubscribe.unSubscribe);
 
 
     //Aws http

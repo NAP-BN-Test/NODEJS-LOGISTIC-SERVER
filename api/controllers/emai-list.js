@@ -403,9 +403,10 @@ module.exports = {
     },
 
     addMailResponse: async function (req, res) {
-
         let query = req._parsedUrl.query;
-        let params = query.split('&');
+        let queryDecrypt = mModules.decryptKey(query);
+
+        let params = queryDecrypt.split('&');
         let ip = params[0].split('=')[1];
         let dbName = params[1].split('=')[1];
         let idMailDetail = params[2].split('=')[1];
@@ -446,8 +447,19 @@ module.exports = {
                     })
                     let bulkCreate = [];
                     mailListDetailData.forEach(async (mailItem, i) => {
-                        let httpTrack = `<img src="http://163.44.192.123:3302/crm/open_mail?ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}&idMailCampain=${body.campainID}" height="1" width="1""/>`
-                        let bodyHtml = httpTrack + body.body.replace('#ten', mailItem.Name)
+
+                        let tokenHttpTrack = `ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}&idMailCampain=${body.campainID}`;
+                        let tokenHttpTrackEncrypt = mModules.encryptKey(tokenHttpTrack);
+                        let httpTrack = `<img src="http://163.44.192.123:3302/crm/open_mail?token=${tokenHttpTrackEncrypt}" height="1" width="1""/>`
+
+                        let tokenUnsubscribe = `email=${mailItem.Email}&ip=${body.ip}&dbName=${body.dbName}&secretKey=${body.secretKey}`;
+                        let tokenUnsubscribeEncrypt = mModules.encryptKey(tokenUnsubscribe);
+                        let unSubscribe = `<p>&nbsp;</p><p style="text-align: center;"><span style="font-size: xx-small;"><a href="http://unsubscribe.namanphu.tech/#/submit?token=${tokenUnsubscribeEncrypt}"><u><span style="color: #0088ff;">Click Here</span></u></a> to unsubscribe from this email</span></p>`
+
+
+                        let bodyHtml = httpTrack + body.body.replace('#ten', mailItem.Name) + unSubscribe
+
+
                         mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, bodyHtml);
 
                         bulkCreate.push({
