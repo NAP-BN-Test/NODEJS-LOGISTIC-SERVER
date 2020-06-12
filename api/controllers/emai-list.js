@@ -223,7 +223,6 @@ module.exports = {
                     Name: body.name,
                     OwnerID: Number(body.userID),
                     TimeCreate: now,
-                    Phone: body.phone
                 })
 
                 if (body.listMail) {
