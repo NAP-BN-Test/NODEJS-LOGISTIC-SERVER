@@ -404,7 +404,7 @@ module.exports = {
 
     addMailResponse: async function (req, res) {
         let query = req._parsedUrl.query;
-        let queryDecrypt = mModules.decryptKey(query);
+        let queryDecrypt = mModules.decryptKey(query.replace("token=", ""));
 
         let params = queryDecrypt.split('&');
         let ip = params[0].split('=')[1];
