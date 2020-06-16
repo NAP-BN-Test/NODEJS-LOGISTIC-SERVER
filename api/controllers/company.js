@@ -828,31 +828,26 @@ module.exports = {
     createCompanyTrailer: (req, res) => {
         let body = req.body;
 
-        database.mainDB('163.44.192.123', 'LOGISTIC_CRM', 'logistic_crm', '123456a$').then(db => {
-
-
-            mCompany(db).findOne({ where: { Name: body.companyName } }).then(company => {
-                if (!company) {
-                    mCompany(db).create({
+        database.checkServerInvalid('163.44.192.123', 'LOGISTIC_CRM', '00a2152372fa8e0e62edbb45dd82831a').then(async db => {
+            try {
+                var companyData = await mCompany(db).findOne({ where: { Name: body.companyName } });
+                if (!companyData) {
+                    var companyAdd = await mCompany(db).create({
                         Name: body.companyName,
                         Email: body.companyEmail,
                         Address: body.companyAddress,
                         TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                         Type: 0
-                    }).then(data => {
-                        mContact(db).create({
-                            Name: body.contactName,
-                            Phone: body.contactPhone,
-                            CompanyID: data.ID,
-                            TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                        }).then(() => {
-                            res.json(Result.ACTION_SUCCESS)
-                        }).catch(() => {
-                            res.json(Result.SYS_ERROR_RESULT)
-                        })
-                    }).catch(() => {
-                        res.json(Result.SYS_ERROR_RESULT)
-                    })
+                    });
+                    await mContact(db).create({
+                        Name: body.contactName,
+                        Phone: body.contactPhone,
+                        CompanyID: companyAdd.ID,
+                        TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                    });
+
+                    res.json(Result.ACTION_SUCCESS)
+
                 } else {
                     let result = {
                         status: Constant.STATUS.FAIL,
@@ -860,9 +855,11 @@ module.exports = {
                     }
                     res.json(result)
                 }
-            }).catch(() => {
+            } catch (error) {
+                console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)
-            })
+            }
+
         }).catch(() => {
             res.json(Result.SYS_ERROR_RESULT)
         })

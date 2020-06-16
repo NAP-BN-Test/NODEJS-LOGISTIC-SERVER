@@ -93,8 +93,6 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
-
-
             mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
                 if (user) {
                     var contact = mContact(db);
