@@ -50,31 +50,6 @@ async function checkServer(ip, dbName) {
 
 module.exports = {
 
-  mainDB: function (ip, dbName) {
-    return new Promise((resolve, reject) => {
-      var db = new Sequelize(dbName, username, password, {
-        host: ip,
-        dialect: 'mssql',
-        operatorsAliases: '0',
-        pool: {
-          max: 5,
-          min: 0,
-          acquire: 30000,
-          idle: 10000
-        },
-        define: {
-          timestamps: false,
-          freezeTableName: true
-        }
-      });
-
-      if (db)
-        resolve(db);
-      else
-        reject();
-    })
-  },
-
   checkServerInvalid: async function (ip, dbName, secretKey) {
     if (secretKey == '00a2152372fa8e0e62edbb45dd82831a') {
       const dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
