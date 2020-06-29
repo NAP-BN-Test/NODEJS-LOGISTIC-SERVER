@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
 module.exports = function (db) {
-    var table = db.define('MailResponse', {
+    var table = db.define('MailUnsubscribe', {
         ID: {
             type: Sequelize.BIGINT,
             primaryKey: true,
@@ -9,7 +9,7 @@ module.exports = function (db) {
         },
         MailListDetailID: Sequelize.BIGINT,
         TimeCreate: Sequelize.NOW,
-        MailCampainID: Sequelize.BIGINT
+        Reason: Sequelize.STRING
     });
 
     return table;

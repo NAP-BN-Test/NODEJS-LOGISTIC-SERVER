@@ -13,12 +13,40 @@ var mMailListDetail = require('../tables/mail-list-detail');
 var mMailCampain = require('../tables/mail-campain');
 var mMailSend = require('../tables/mail-send');
 var mMailResponse = require('../tables/mail-response');
+var mMailInvalid = require('../tables/mail-invalid');
+var mMailClickLink = require('../tables/mail-click-link');
 
 var mAmazon = require('../controllers/amazon');
+var mCheckMail = require('../controllers/check-mail');
 
 var mUser = require('../tables/user');
 
-var mModules = require('../constants/modules')
+var mModules = require('../constants/modules');
+const unsubscribe = require('./unsubscribe');
+
+function handleClickLink(body) {
+    var bodyHtml = "";
+
+    var listLink = body.body.split('<a ');
+
+    if (listLink.length > 0) {
+        let tokenClickLink = `ip=${body.ip}&dbName=${body.dbName}&secretKey=${body.secretKey}&idMailCampain=${body.campainID}`;
+        let tokenClickLinkEncrypt = mModules.encryptKey(tokenClickLink);
+
+        for (let i = 0; i < listLink.length; i++) {
+            if (i % 2 == 1) {
+                bodyHtml = bodyHtml + listLink[i - 1] + '<a ';
+                var content = listLink[i].slice(0, 6) + `http://163.44.192.123:3302/crm/add_mail_click_link?token=${tokenClickLinkEncrypt}" onclick="window.open('` + listLink[i].slice(6);
+                var pos = content.indexOf('" target=');
+                content = content.slice(0, pos) + `')` + content.slice(pos);
+
+                bodyHtml = bodyHtml + content;
+            }
+        }
+
+        return bodyHtml;
+    } else return body.body;
+}
 
 
 module.exports = {
@@ -36,8 +64,11 @@ module.exports = {
                 var mMailListData = await mailList.findAll({
                     include: [
                         { model: mUser(db) },
-                        { model: mMailListDetail(db) }],
-                    order: [['TimeCreate', 'DESC']],
+                        { model: mMailListDetail(db) }
+                    ],
+                    order: [
+                        ['TimeCreate', 'DESC']
+                    ],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
                 })
@@ -88,7 +119,9 @@ module.exports = {
                         { model: mUser(db) },
                         { model: mMailSend(db) }
                     ],
-                    order: [['TimeCreate', 'DESC']],
+                    order: [
+                        ['TimeCreate', 'DESC']
+                    ],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
                 })
@@ -135,7 +168,9 @@ module.exports = {
 
                 var mailCampainData = await mailCampain.findAll({
                     include: { model: mUser(db) },
-                    order: [['TimeCreate', 'DESC']],
+                    order: [
+                        ['TimeCreate', 'DESC']
+                    ],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
                 });
@@ -263,9 +298,27 @@ module.exports = {
                 if (body.listID) {
                     let listID = JSON.parse(body.listID);
 
-                    await mMailListDetail(db).destroy({ where: { MailListID: { [Op.in]: listID } } });
-                    await mMailCampain(db).update({ MailListID: null }, { where: { MailListID: { [Op.in]: listID } } });
-                    await mMailList(db).destroy({ where: { ID: { [Op.in]: listID } } });
+                    await mMailListDetail(db).destroy({
+                        where: {
+                            MailListID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
+                    await mMailCampain(db).update({ MailListID: null }, {
+                        where: {
+                            MailListID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
+                    await mMailList(db).destroy({
+                        where: {
+                            ID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
                 }
 
                 res.json(Result.ACTION_SUCCESS);
@@ -292,7 +345,12 @@ module.exports = {
                 })
 
                 var mailListDetailData = await mMailListDetail(db).findAll({
-                    where: { Email: { [Op.in]: listMail }, MailListID: body.mailListID },
+                    where: {
+                        Email: {
+                            [Op.in]: listMail
+                        },
+                        MailListID: body.mailListID
+                    },
                     attributes: ['Email'],
                     raw: true
                 });
@@ -331,9 +389,27 @@ module.exports = {
             try {
                 if (body.listID) {
                     let listID = JSON.parse(body.listID);
-                    await mMailSend(db).destroy({ where: { MailCampainID: { [Op.in]: listID } } })
-                    await mMailResponse(db).destroy({ where: { MailCampainID: { [Op.in]: listID } } })
-                    await mMailCampain(db).destroy({ where: { ID: { [Op.in]: listID } } });
+                    await mMailSend(db).destroy({
+                        where: {
+                            MailCampainID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    })
+                    await mMailResponse(db).destroy({
+                        where: {
+                            MailCampainID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    })
+                    await mMailCampain(db).destroy({
+                        where: {
+                            ID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
                 }
 
                 res.json(Result.ACTION_SUCCESS);
@@ -353,9 +429,28 @@ module.exports = {
             try {
                 if (body.listID) {
                     let listID = JSON.parse(body.listID);
-                    await mMailSend(db).destroy({ where: { MailListDetailID: { [Op.in]: listID } } });
-                    await mMailResponse(db).destroy({ where: { MailListDetailID: { [Op.in]: listID } } });
-                    await mMailListDetail(db).destroy({ where: { ID: { [Op.in]: listID } } });
+
+                    await mMailSend(db).destroy({
+                        where: {
+                            MailListDetailID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
+                    await mMailResponse(db).destroy({
+                        where: {
+                            MailListDetailID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
+                    await mMailListDetail(db).destroy({
+                        where: {
+                            ID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
                 }
 
                 res.json(Result.ACTION_SUCCESS);
@@ -417,7 +512,34 @@ module.exports = {
                 await mMailResponse(db).create({
                     MailListDetailID: idMailDetail,
                     TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                    Type: 1,
+                    MailCampainID: idMailCampain
+                })
+
+                res.json(Result.ACTION_SUCCESS)
+            } catch (error) {
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+    },
+
+    addMailClickLink: async function (req, res) {
+        let query = req._parsedUrl.query;
+        let queryDecrypt = mModules.decryptKey(query.replace("token=", ""));
+
+        let params = queryDecrypt.split('&');
+        let ip = params[0].split('=')[1];
+        let dbName = params[1].split('=')[1];
+        let secretKey = params[2].split('=')[1];
+        let idMailCampain = params[3].split('=')[1];
+
+        database.checkServerInvalid(ip, dbName, secretKey).then(async db => {
+            try {
+                await mMailClickLink(db).create({
+                    MailListDetailID: idMailDetail,
+                    TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                     MailCampainID: idMailCampain
                 })
 
@@ -446,6 +568,7 @@ module.exports = {
                         where: { MailListID: body.mailListID }
                     })
                     let bulkCreate = [];
+                    let bulkCreateCheckMail = [];
                     mailListDetailData.forEach(async (mailItem, i) => {
 
                         let tokenHttpTrack = `ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}&idMailCampain=${body.campainID}`;
@@ -456,22 +579,37 @@ module.exports = {
                         let tokenUnsubscribeEncrypt = mModules.encryptKey(tokenUnsubscribe);
                         let unSubscribe = `<p>&nbsp;</p><p style="text-align: center;"><span style="font-size: xx-small;"><a href="http://unsubscribe.namanphu.tech/#/submit?token=${tokenUnsubscribeEncrypt}"><u><span style="color: #0088ff;">Click Here</span></u></a> to unsubscribe from this email</span></p>`
 
+                        let bodyHtml = httpTrack + body.body.replace(/#ten/g, mailItem.Name);
+                        bodyHtml = handleClickLink(body);
+                        bodyHtml = bodyHtml + unSubscribe;
 
-                        let bodyHtml = httpTrack + body.body.replace('#ten', mailItem.Name) + unSubscribe
-
-
-                        mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, bodyHtml);
-
-                        bulkCreate.push({
-                            MailCampainID: body.campainID,
-                            MailListDetailID: mailItem.ID,
-                            TimeCreate: now,
+                        mCheckMail.checkEmail(body.myMail, mailItem.Email, body.subject, bodyHtml).then(async (checkMailRes) => {
+                            if (checkMailRes == false) {
+                                bulkCreateCheckMail.push({
+                                    MailCampainID: body.campainID,
+                                    MailListDetailID: mailItem.ID,
+                                    TimeCreate: now,
+                                })
+                                if (i == mailListDetailData.length - 1) {
+                                    await mMailInvalid(db).bulkCreate(bulkCreateCheckMail);
+                                }
+                            }
                         })
-                        if (i == mailListDetailData.length - 1) {
-                            await mMailSend(db).bulkCreate(bulkCreate);
-                            res.json(Result.ACTION_SUCCESS)
-                        }
+                        mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, bodyHtml).then(async (sendMailRes) => {
+                            if (sendMailRes) {
+                                bulkCreate.push({
+                                    MailCampainID: body.campainID,
+                                    MailListDetailID: mailItem.ID,
+                                    TimeCreate: now,
+                                })
+                                if (i == mailListDetailData.length - 1) {
+                                    await mMailSend(db).bulkCreate(bulkCreate);
+                                }
+                            }
+                        });
                     });
+                    res.json(Result.ACTION_SUCCESS)
+
                 }
             } catch (error) {
                 console.log(error);

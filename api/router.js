@@ -1,4 +1,4 @@
-module.exports = function (app) {
+module.exports = function(app) {
     var company = require('./controllers/company');
     var login = require('./controllers/login');
 
@@ -217,6 +217,8 @@ module.exports = function (app) {
 
     app.route('/crm/add_mail_send').post(emailList.addMailSend);
 
+    app.route('/crm/add_mail_click_link').post(emailList.addMailClickLink);
+
     app.route('/crm/report_mail_detail').post(emailList.reportEmailDetail);
 
 
@@ -228,6 +230,10 @@ module.exports = function (app) {
     app.route('/crm/get_report_by_campain_summary').post(report.getReportByCampainSummary);
 
     app.route('/crm/get_report_by_campain_open_mail').post(report.getReportByCampainOpenMail);
+
+    app.route('/crm/get_report_by_campain_invalid_mail').post(report.getReportByCampainInvalidMail);
+
+    app.route('/crm/get_report_by_campain_unsubscribe_mail').post(report.getReportByCampainUnsubscribeMail);
 
     app.route('/crm/get_report_by_user_summary').post(report.getReportByUserSummary);
 
@@ -250,8 +256,6 @@ module.exports = function (app) {
     app.route('/aws/verify_email').post(amazon.verifyEmail);
 
     app.route('/aws/check_verify_email').post(amazon.checkVerifyEmail);
-
-    app.route('/aws/send_email').post(amazon.sendEmail);
 
 
 };

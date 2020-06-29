@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
 module.exports = function (db) {
-    var table = db.define('MailResponse', {
+    var table = db.define('MailInvalid', {
         ID: {
             type: Sequelize.BIGINT,
             primaryKey: true,

@@ -14,10 +14,65 @@ var mMailListDetail = require('../tables/mail-list-detail');
 var mMailCampain = require('../tables/mail-campain');
 var mMailSend = require('../tables/mail-send');
 var mMailResponse = require('../tables/mail-response');
+var mMailUnsubscribe = require('../tables/mail-unsubscribe');
+var mMailInvalid = require('../tables/mail-invalid');
 
 var mUser = require('../tables/user');
 
 var mModules = require('../constants/modules')
+
+/** Xử lý mảng có ngày trùng nhau gộp vào và cộng thêm 1 đơn vị */
+function handleArray(array, reason) {
+    if (!reason)
+        var arraySort = [
+            { email: array[0].email, date: array[0].date, value: 1, mailListID: array[0].mailListID }
+        ]
+    else
+        var arraySort = [
+            { email: array[0].email, date: array[0].date, value: 1, mailListID: array[0].mailListID, reason: array[0].reason }
+        ]
+
+    for (let i = 1; i < array.length; i++) {
+        if (array[i].email == arraySort[0].email && array[i].date == arraySort[0].date) {
+            arraySort[0].value += 1;
+        } else {
+            if (!reason)
+                arraySort.unshift({ email: array[i].email, date: array[i].date, value: 1, mailListID: array[i].mailListID })
+            else
+                arraySort.unshift({ email: array[i].email, date: array[i].date, value: 1, mailListID: array[i].mailListID, reason: array[i].reason })
+        }
+    }
+    return arraySort;
+}
+
+/** Xử lý mảng có ngày trùng nhau gộp vào và cộng thêm 1 đơn vị trả về mảng dùng cho biểu đồ */
+function handleArrayChart(array, daies) {
+    var arraySort = [
+        { date: array[0].date, value: 1 }
+    ]
+
+    for (let i = 1; i < array.length; i++) {
+        if (array[i].date == arraySort[0].date) {
+            arraySort[0].value += 1;
+        } else {
+            arraySort.unshift({ date: array[i].date, value: 1 })
+        }
+    }
+
+    var arr = [];
+    for (let i = -Number(daies); i <= 0; i++) {
+        let date = moment().add(i, 'days').format('DD/MM');
+        let dateFind = arraySort.find(sortItem => {
+            return sortItem.date == date;
+        });
+        if (dateFind) {
+            arr.push(dateFind);
+        } else {
+            arr.push({ date, value: 0 });
+        }
+    }
+    return arr;
+}
 
 
 module.exports = {
@@ -38,7 +93,9 @@ module.exports = {
                 var mailCampainData = await mailCampain.findAll({
                     where: where,
                     include: { model: mMailList(db) },
-                    order: [['TimeCreate', 'DESC']],
+                    order: [
+                        ['TimeCreate', 'DESC']
+                    ],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
                 });
@@ -105,49 +162,39 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                var mailList = mMailList(db);
-                mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' })
 
                 var mailCampain = mMailCampain(db);
                 mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
-                mailCampain.belongsTo(mailList, { foreignKey: 'MailListID' })
                 mailCampain.hasOne(mMailSend(db), { foreignKey: 'MailCampainID' })
 
                 var campainData = await mailCampain.findOne({
                     where: { ID: body.campainID },
+                    attributes: ['ID', 'Name', 'Subject', 'TimeCreate', 'TimeEnd', 'MailListID'],
                     include: [{
                         model: mUser(db)
                     }, {
-                        model: mailList,
-                        include: { model: mMailListDetail(db) }
-                    }, {
                         model: mMailSend(db),
-                        order: [['TimeCreate', 'DESC']],
+                        order: [
+                            ['TimeCreate', 'DESC']
+                        ],
                     }]
                 });
 
-                var mailListDetailData = await mMailListDetail(db).findAll({
-                    where: { MailListID: campainData.MailListID },
-                    attributes: ['ID'],
-                    raw: true
-                });
-                var listMailListDetailID = [];
-                mailListDetailData.forEach(item => {
-                    listMailListDetailID.push(Number(item.ID));
+                var contactCount = await mMailListDetail(db).count({
+                    where: { MailListID: campainData.MailListID }
                 })
-
                 var mailResponseCount = await mMailResponse(db).count({
-                    where: {
-                        MailListDetailID: { [Op.in]: listMailListDetailID },
-                        MailCampainID: campainData.ID
-                    }
+                    where: { MailCampainID: body.campainID }
                 });
                 var mailSendCount = await mMailSend(db).count({
-                    where: {
-                        MailListDetailID: { [Op.in]: listMailListDetailID },
-                        MailCampainID: campainData.ID
-                    }
+                    where: { MailCampainID: body.campainID }
                 });
+                var lastSend = await mMailSend(db).findOne({
+                    where: { MailCampainID: body.campainID },
+                    order: [
+                        ['TimeCreate', 'DESC']
+                    ],
+                })
 
                 var obj = {
                     name: campainData.Name,
@@ -156,10 +203,11 @@ module.exports = {
                     timeEnd: campainData.TimeEnd,
                     mailSend: mailSendCount,
                     userSend: campainData.User.Name,
-                    percentOpen: mailSendCount != 0 ? parseFloat(mailResponseCount / mailSendCount * 100).toFixed(0) + '%' : '0%',
-                    contactCount: campainData.MailList.MailListDetails.length,
-                    lastSend: campainData.MailSend.TimeCreate,
                     totalOpen: mailResponseCount,
+
+                    percentOpen: mailSendCount != 0 ? parseFloat(mailResponseCount / mailSendCount * 100).toFixed(0) + '%' : '0%',
+                    contactCount,
+                    lastSend: lastSend.TimeCreate,
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -182,98 +230,216 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+                var mailListDetail = mMailListDetail(db);
+                mailListDetail.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
 
-                var mailCampain = mMailCampain(db);
-                mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
-                var campainData = await mailCampain.findOne({
-                    where: { ID: body.campainID },
-                    include: { model: mUser(db) }
-                });
+                var mailResponse = mMailResponse(db);
+                mailResponse.belongsTo(mailListDetail, { foreignKey: 'MailListDetailID' });
 
-                var mailListDetailData = await mMailListDetail(db).findAll({
-                    where: { MailListID: campainData.MailListID },
-                    attributes: ['ID'],
-                    raw: true
-                });
-                var listMailListDetailID = [];
-                mailListDetailData.forEach(item => {
-                    listMailListDetailID.push(Number(item.ID));
-                })
-
-                var arrMail = await mMailResponse(db).findAll({
-                    where: {
-                        MailListDetailID: { [Op.in]: listMailListDetailID },
-                        MailCampainID: campainData.ID
+                var mailResponseData = await mailResponse.findAll({
+                    where: { MailCampainID: body.campainID },
+                    attributes: ['ID', 'TimeCreate'],
+                    include: {
+                        model: mailListDetail,
+                        attributes: ['Email'],
+                        include: {
+                            model: mMailList(db),
+                            attributes: ['ID']
+                        }
                     }
                 });
-
-                var arrMailCacu = []
-                arrMail.forEach(mailItem => {
-                    arrMailCacu.push({
-                        id: mailItem.ID,
-                        mailListDetailID: mailItem.MailListDetailID,
-                        timeCreate: moment.utc(mailItem.TimeCreate).format("DD/MM")
+                var arrayTable = [];
+                mailResponseData.forEach(mailResponseDataItem => {
+                    arrayTable.push({
+                        id: mailResponseDataItem.ID,
+                        date: moment.utc(mailResponseDataItem.TimeCreate).format("DD/MM"),
+                        email: mailResponseDataItem.MailListDetail.Email,
+                        mailListID: mailResponseDataItem.MailListDetail.MailList.ID ?
+                            Number(mailResponseDataItem.MailListDetail.MailList.ID) : -1
                     })
                 })
 
-                var arrOpenEachDay = arrMailCacu.reduce((r, a) => {
-                    r[a.timeCreate] = [...r[a.timeCreate] || [], a];
-                    return r;
-                }, {});
+                var array = handleArrayChart(arrayTable, body.daies);
 
-                var arrOpenTwice = arrMailCacu.reduce((r, a) => {
-                    r[a.mailListDetailID] = [...r[a.mailListDetailID] || [], a];
-                    return r;
-                }, {});
+                var arrayTableSort = handleArray(arrayTable);
 
-                var sortArrOpenEachDay = Object.keys(arrOpenEachDay).map(k => {
-                    return { date: k, value: arrOpenEachDay[k].length };
+                var total = await mMailSend(db).count({
+                    where: { MailCampainID: body.campainID }
                 });
-
-                var sortArrOpenTwice = Object.keys(arrOpenTwice).map(k => {
-                    return { date: k, value: arrOpenTwice[k].length };
-                });
-                var countArrOpenTwice = sortArrOpenTwice.filter(openTwiceItem => {
-                    return openTwiceItem.value > 1;
+                var totalOpen = 0;
+                var totalOpenTwice = 0;
+                array.forEach(arrayItem => {
+                    totalOpen = totalOpen + arrayItem.value;
+                    if (arrayItem.value > 1) totalOpenTwice = totalOpenTwice += 1;
                 })
 
-                var array = [];
-                for (let i = -Number(body.daies); i <= 0; i++) {
-                    let date = moment().add(i, 'days').format('DD/MM');
-                    let dateFind = sortArrOpenEachDay.find(openEachDayItem => {
-                        return openEachDayItem.date == date;
-                    });
-                    if (dateFind) {
-                        array.push(dateFind);
-                    } else {
-                        array.push({ date, value: 0 });
-                    }
-                }
-
-                var mailSendCount = await mMailSend(db).count({
-                    where: {
-                        MailListDetailID: { [Op.in]: listMailListDetailID },
-                        MailCampainID: campainData.ID
-                    }
-                });
-
-                var sumSortArrOpenTwice = sortArrOpenTwice.reduce(function (a, b) {
-                    return a + b.value;
-                }, 0);
-
                 var obj = {
-                    total: mailSendCount,
-                    totalOpen: arrMail.length,
-                    totalOpenTwice: countArrOpenTwice.length,
-                    advangeOpen: sortArrOpenTwice.length != 0 ? parseFloat(sumSortArrOpenTwice / sortArrOpenTwice.length).toFixed(2) : 0,
-                    percentOpen: parseFloat(sortArrOpenTwice.length / mailSendCount * 100).toFixed(0) + '%'
+                    total,
+                    totalOpen,
+                    totalOpenTwice,
+                    advangeOpen: parseFloat(totalOpen / total).toFixed(2),
+                    percentOpen: parseFloat(totalOpen / total * 100).toFixed(0) + '%'
                 }
 
                 var result = {
                     status: Constant.STATUS.SUCCESS,
                     message: '',
                     array,
-                    obj
+                    obj,
+                    arrayTableSort
+                }
+                res.json(result);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+
+    },
+
+    getReportByCampainInvalidMail: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                var mailListDetail = mMailListDetail(db);
+                mailListDetail.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
+
+                var mailInvalid = mMailInvalid(db);
+                mailInvalid.belongsTo(mailListDetail, { foreignKey: 'MailListDetailID' });
+
+                var mailInvalidData = await mailInvalid.findAll({
+                    where: { MailCampainID: body.campainID },
+                    attributes: ['ID', 'TimeCreate'],
+                    include: {
+                        model: mailListDetail,
+                        attributes: ['Email'],
+                        include: {
+                            model: mMailList(db),
+                            attributes: ['ID']
+                        }
+                    }
+                });
+                var arrayTable = [];
+                mailInvalidData.forEach(mailInvalidDataItem => {
+                    arrayTable.push({
+                        id: mailInvalidDataItem.ID,
+                        date: moment.utc(mailInvalidDataItem.TimeCreate).format("DD/MM"),
+                        email: mailInvalidDataItem.MailListDetail.Email,
+                        mailListID: mailInvalidDataItem.MailListDetail.MailList.ID ?
+                            Number(mailInvalidDataItem.MailListDetail.MailList.ID) : -1
+                    })
+                })
+
+                var array = handleArrayChart(arrayTable, body.daies);
+
+                var arrayTableSort = handleArray(arrayTable);
+
+                var total = await mMailSend(db).count({
+                    where: { MailCampainID: body.campainID }
+                });
+                var totalOpen = 0;
+                var totalOpenTwice = 0;
+                array.forEach(arrayItem => {
+                    totalOpen = totalOpen + arrayItem.value;
+                    if (arrayItem.value > 1) totalOpenTwice = totalOpenTwice += 1;
+                })
+
+                var obj = {
+                    total,
+                    totalOpen,
+                    totalOpenTwice,
+                    advangeOpen: parseFloat(totalOpen / total).toFixed(2),
+                    percentOpen: parseFloat(totalOpen / total * 100).toFixed(0) + '%'
+                }
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array,
+                    obj,
+                    arrayTableSort
+                }
+                res.json(result);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+
+    },
+
+    getReportByCampainUnsubscribeMail: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                var mailListDetail = mMailListDetail(db);
+                mailListDetail.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
+
+                var mailUnsubscribe = mMailUnsubscribe(db);
+                mailUnsubscribe.belongsTo(mailListDetail, { foreignKey: 'MailListDetailID' });
+
+                var mailUnsubscribeData = await mailUnsubscribe.findAll({
+                    where: { MailCampainID: body.campainID },
+                    attributes: ['ID', 'TimeCreate', 'Reason'],
+                    include: {
+                        model: mailListDetail,
+                        attributes: ['Email'],
+                        include: {
+                            model: mMailList(db),
+                            attributes: ['ID']
+                        }
+                    }
+                });
+                var arrayTable = [];
+                mailUnsubscribeData.forEach(mailUnsubscribeDataItem => {
+                    arrayTable.push({
+                        id: mailUnsubscribeDataItem.ID,
+                        date: moment.utc(mailUnsubscribeDataItem.TimeCreate).format("DD/MM"),
+                        email: mailUnsubscribeDataItem.MailListDetail.Email,
+                        reason: mailUnsubscribeDataItem.Reason,
+                        mailListID: mailUnsubscribeDataItem.MailListDetail.MailList.ID ?
+                            Number(mailUnsubscribeDataItem.MailListDetail.MailList.ID) : -1
+                    })
+                })
+
+                var array = handleArrayChart(arrayTable, body.daies);
+
+                var arrayTableSort = handleArray(arrayTable, true);
+
+                var total = await mMailSend(db).count({
+                    where: { MailCampainID: body.campainID }
+                });
+                var totalOpen = 0;
+                var totalOpenTwice = 0;
+                array.forEach(arrayItem => {
+                    totalOpen = totalOpen + arrayItem.value;
+                    if (arrayItem.value > 1) totalOpenTwice = totalOpenTwice += 1;
+                })
+
+                var obj = {
+                    total,
+                    totalOpen,
+                    totalOpenTwice,
+                    advangeOpen: parseFloat(totalOpen / total).toFixed(2),
+                    percentOpen: parseFloat(totalOpen / total * 100).toFixed(0) + '%'
+                }
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array,
+                    obj,
+                    arrayTableSort
                 }
                 res.json(result);
 
