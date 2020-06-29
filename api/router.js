@@ -1,4 +1,4 @@
-module.exports = function (app) {
+module.exports = function(app) {
     var company = require('./controllers/company');
     var login = require('./controllers/login');
 
@@ -251,7 +251,7 @@ module.exports = function (app) {
 
     app.route('/aws/check_verify_email').post(amazon.checkVerifyEmail);
 
-    app.route('/aws/send_email').post(amazon.sendEmail);
+    app.route('/aws/send_email').post(amazon.awsSendEmail);
 
 
 };

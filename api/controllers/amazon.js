@@ -1,4 +1,3 @@
-
 const Op = require('sequelize').Op;
 const Constant = require('../constants/constant');
 const Result = require('../constants/result');
@@ -12,7 +11,7 @@ AWS.config.update({ region: 'us-east-1' });
 
 
 module.exports = {
-    amazonResponse: (req, res) => {//take this list for dropdown
+    amazonResponse: (req, res) => { //take this list for dropdown
         let body = '';
         req.on('data', (chunk) => {
             body += chunk.toString()
@@ -44,41 +43,43 @@ module.exports = {
         })
     },
 
-    checkVerifyEmail: (req, res) => {//take this list for dropdown
+    checkVerifyEmail: (req, res) => { //take this list for dropdown
         let body = req.body;
+
+
         if (body.email) {
             var ses = new AWS.SES();
             var params = {
                 Identities: [body.email]
             };
-            ses.getIdentityVerificationAttributes(params, function (err, data) {
+            ses.getIdentityVerificationAttributes(params, function(err, data) {
                 if (err) {
                     console.log(err, err.stack);
                     res.json(Result.SYS_ERROR_RESULT);
                 } // an error occurred
                 else {
+                    console.log(data);
+
                     if (data.VerificationAttributes[body.email]) {
                         res.json(Result.ACTION_SUCCESS);
-                    }
-                    else
+                    } else
                         res.json(Result.NO_PERMISSION)
                 }
             });
         }
     },
 
-    verifyEmail: (req, res) => {//take this list for dropdown
+    verifyEmail: (req, res) => { //take this list for dropdown
         let body = req.body;
         if (body.email) {
             var ses = new AWS.SES();
             var params = {
                 EmailAddress: body.email
             };
-            ses.verifyEmailIdentity(params, function (err, data) {
+            ses.verifyEmailIdentity(params, function(err, data) {
                 if (err) {
                     console.log(err, err.stack); // an error occurred
-                }
-                else {
+                } else {
                     mUser.updateEmailUser(body.ip, body.dbName, body.userID, body.email);
 
                     var result = {
@@ -91,7 +92,11 @@ module.exports = {
         }
     },
 
-    sendEmail: async function (emailSend, emailRecive, subject, body) {//take this list for dropdown
+
+    sendEmail: async function(emailSend, emailRecive, subject, body) { //take this list for dropdown
+
+        var apiCheckMail = "https://apilayer.net/api/check?access_key=a69834eab18e99ec484e9410a47bce5b&email=a30fiend@gmail.com";
+
         var ses = new AWS.SES();
         var params = {
             Destination: {
@@ -116,16 +121,37 @@ module.exports = {
             ReplyToAddresses: [],
             Source: emailSend,
         };
-        await ses.sendEmail(params, function (err, data) {
+        await ses.sendEmail(params, function(err, data) {
             if (err) console.log(err, err.stack); // an error occurred
             else {
                 return Promise.resolve(1);
-            };           // successful response
+            }; // successful response
             /*
             data = {
              MessageId: "EXAMPLE78603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000"
             }
             */
+        });
+    },
+
+    awsSendEmail: (req, res) => {
+
+        var request = require('request')
+        var post_options = {
+            url: `https://apilayer.net/api/check?access_key=a69834eab18e99ec484e9410a47bce5b&email=${req.body.email}`,
+            method: 'GET',
+            json: true
+        };
+
+        request.get(post_options, function(err, result, bodyrq) {
+            if (err) {
+                console.log(err)
+                return false
+            }
+            if (bodyrq) {
+                console.log(bodyrq.smtp_check);
+                return bodyrq.smtp_check;
+            }
         });
     },
 

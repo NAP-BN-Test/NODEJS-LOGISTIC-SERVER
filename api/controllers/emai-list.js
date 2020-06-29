@@ -23,7 +23,7 @@ var mModules = require('../constants/modules')
 
 module.exports = {
 
-    getMailList: async function (req, res) {
+    getMailList: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -36,8 +36,11 @@ module.exports = {
                 var mMailListData = await mailList.findAll({
                     include: [
                         { model: mUser(db) },
-                        { model: mMailListDetail(db) }],
-                    order: [['TimeCreate', 'DESC']],
+                        { model: mMailListDetail(db) }
+                    ],
+                    order: [
+                        ['TimeCreate', 'DESC']
+                    ],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
                 })
@@ -72,7 +75,7 @@ module.exports = {
 
     },
 
-    getMailListDetail: async function (req, res) {
+    getMailListDetail: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -88,7 +91,9 @@ module.exports = {
                         { model: mUser(db) },
                         { model: mMailSend(db) }
                     ],
-                    order: [['TimeCreate', 'DESC']],
+                    order: [
+                        ['TimeCreate', 'DESC']
+                    ],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
                 })
@@ -124,7 +129,7 @@ module.exports = {
 
     },
 
-    getListMailCampain: async function (req, res) {
+    getListMailCampain: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -135,7 +140,9 @@ module.exports = {
 
                 var mailCampainData = await mailCampain.findAll({
                     include: { model: mUser(db) },
-                    order: [['TimeCreate', 'DESC']],
+                    order: [
+                        ['TimeCreate', 'DESC']
+                    ],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
                 });
@@ -171,7 +178,7 @@ module.exports = {
 
     },
 
-    getMailCampainDetail: async function (req, res) {
+    getMailCampainDetail: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -212,7 +219,7 @@ module.exports = {
 
     },
 
-    addMailList: async function (req, res) {
+    addMailList: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -255,7 +262,7 @@ module.exports = {
         })
     },
 
-    deleteMailList: async function (req, res) {
+    deleteMailList: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -263,9 +270,27 @@ module.exports = {
                 if (body.listID) {
                     let listID = JSON.parse(body.listID);
 
-                    await mMailListDetail(db).destroy({ where: { MailListID: { [Op.in]: listID } } });
-                    await mMailCampain(db).update({ MailListID: null }, { where: { MailListID: { [Op.in]: listID } } });
-                    await mMailList(db).destroy({ where: { ID: { [Op.in]: listID } } });
+                    await mMailListDetail(db).destroy({
+                        where: {
+                            MailListID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
+                    await mMailCampain(db).update({ MailListID: null }, {
+                        where: {
+                            MailListID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
+                    await mMailList(db).destroy({
+                        where: {
+                            ID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
                 }
 
                 res.json(Result.ACTION_SUCCESS);
@@ -278,7 +303,7 @@ module.exports = {
         })
     },
 
-    addMailListDetail: async function (req, res) {
+    addMailListDetail: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -292,7 +317,12 @@ module.exports = {
                 })
 
                 var mailListDetailData = await mMailListDetail(db).findAll({
-                    where: { Email: { [Op.in]: listMail }, MailListID: body.mailListID },
+                    where: {
+                        Email: {
+                            [Op.in]: listMail
+                        },
+                        MailListID: body.mailListID
+                    },
                     attributes: ['Email'],
                     raw: true
                 });
@@ -324,16 +354,34 @@ module.exports = {
         })
     },
 
-    deleteMailCampain: async function (req, res) {
+    deleteMailCampain: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
                 if (body.listID) {
                     let listID = JSON.parse(body.listID);
-                    await mMailSend(db).destroy({ where: { MailCampainID: { [Op.in]: listID } } })
-                    await mMailResponse(db).destroy({ where: { MailCampainID: { [Op.in]: listID } } })
-                    await mMailCampain(db).destroy({ where: { ID: { [Op.in]: listID } } });
+                    await mMailSend(db).destroy({
+                        where: {
+                            MailCampainID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    })
+                    await mMailResponse(db).destroy({
+                        where: {
+                            MailCampainID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    })
+                    await mMailCampain(db).destroy({
+                        where: {
+                            ID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
                 }
 
                 res.json(Result.ACTION_SUCCESS);
@@ -346,16 +394,34 @@ module.exports = {
         })
     },
 
-    deleteMailListDetail: async function (req, res) {
+    deleteMailListDetail: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
                 if (body.listID) {
                     let listID = JSON.parse(body.listID);
-                    await mMailSend(db).destroy({ where: { MailListDetailID: { [Op.in]: listID } } });
-                    await mMailResponse(db).destroy({ where: { MailListDetailID: { [Op.in]: listID } } });
-                    await mMailListDetail(db).destroy({ where: { ID: { [Op.in]: listID } } });
+                    await mMailSend(db).destroy({
+                        where: {
+                            MailListDetailID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
+                    await mMailResponse(db).destroy({
+                        where: {
+                            MailListDetailID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
+                    await mMailListDetail(db).destroy({
+                        where: {
+                            ID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    });
                 }
 
                 res.json(Result.ACTION_SUCCESS);
@@ -368,7 +434,7 @@ module.exports = {
         })
     },
 
-    addMailCampain: async function (req, res) {
+    addMailCampain: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -402,7 +468,7 @@ module.exports = {
         })
     },
 
-    addMailResponse: async function (req, res) {
+    addMailResponse: async function(req, res) {
         let query = req._parsedUrl.query;
         let queryDecrypt = mModules.decryptKey(query.replace("token=", ""));
 
@@ -431,7 +497,7 @@ module.exports = {
         })
     },
 
-    addMailSend: async function (req, res) {
+    addMailSend: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -446,7 +512,7 @@ module.exports = {
                         where: { MailListID: body.mailListID }
                     })
                     let bulkCreate = [];
-                    mailListDetailData.forEach(async (mailItem, i) => {
+                    mailListDetailData.forEach(async(mailItem, i) => {
 
                         let tokenHttpTrack = `ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}&idMailCampain=${body.campainID}`;
                         let tokenHttpTrackEncrypt = mModules.encryptKey(tokenHttpTrack);
@@ -458,7 +524,6 @@ module.exports = {
 
 
                         let bodyHtml = httpTrack + body.body.replace('#ten', mailItem.Name) + unSubscribe
-
 
                         mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, bodyHtml);
 
@@ -483,7 +548,7 @@ module.exports = {
         })
     },
 
-    getMailListOption: async function (req, res) {
+    getMailListOption: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -515,7 +580,7 @@ module.exports = {
     },
 
 
-    updateMailCampain: async function (req, res) {
+    updateMailCampain: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -555,7 +620,7 @@ module.exports = {
 
     },
 
-    reportEmailDetail: async function (req, res) {
+    reportEmailDetail: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
