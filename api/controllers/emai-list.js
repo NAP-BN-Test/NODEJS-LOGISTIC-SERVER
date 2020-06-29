@@ -579,9 +579,10 @@ module.exports = {
                         let tokenUnsubscribeEncrypt = mModules.encryptKey(tokenUnsubscribe);
                         let unSubscribe = `<p>&nbsp;</p><p style="text-align: center;"><span style="font-size: xx-small;"><a href="http://unsubscribe.namanphu.tech/#/submit?token=${tokenUnsubscribeEncrypt}"><u><span style="color: #0088ff;">Click Here</span></u></a> to unsubscribe from this email</span></p>`
 
-                        let bodyHtml = httpTrack + body.body.replace(/#ten/g, mailItem.Name);
+                        let bodyHtml = httpTrack + body.body;
                         bodyHtml = handleClickLink(body);
                         bodyHtml = bodyHtml + unSubscribe;
+                        bodyHtml = bodyHtml.replace(/#ten/g, mailItem.Name);
 
                         mCheckMail.checkEmail(body.myMail, mailItem.Email, body.subject, bodyHtml).then(async (checkMailRes) => {
                             if (checkMailRes == false) {
