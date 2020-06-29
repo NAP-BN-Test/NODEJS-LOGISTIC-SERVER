@@ -116,11 +116,16 @@ module.exports = {
             ReplyToAddresses: [],
             Source: emailSend,
         };
+        console.log(emailRecive);
+        
         await ses.sendEmail(params, function (err, data) {
             if (err) console.log(err, err.stack); // an error occurred
             else {
                 return Promise.resolve(1);
             };           // successful response
+
+            console.log("dataaa", data);
+            
             /*
             data = {
              MessageId: "EXAMPLE78603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000"
