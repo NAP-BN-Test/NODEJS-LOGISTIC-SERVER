@@ -9,7 +9,6 @@ var mUser = require('../controllers/user');
 var AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' });
 
-
 module.exports = {
     amazonResponse: (req, res) => { //take this list for dropdown
         let body = '';
@@ -95,8 +94,6 @@ module.exports = {
 
     sendEmail: async function(emailSend, emailRecive, subject, body) { //take this list for dropdown
 
-        var apiCheckMail = "https://apilayer.net/api/check?access_key=a69834eab18e99ec484e9410a47bce5b&email=a30fiend@gmail.com";
-
         var ses = new AWS.SES();
         var params = {
             Destination: {
@@ -131,27 +128,6 @@ module.exports = {
              MessageId: "EXAMPLE78603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000"
             }
             */
-        });
-    },
-
-    awsSendEmail: (req, res) => {
-
-        var request = require('request')
-        var post_options = {
-            url: `https://apilayer.net/api/check?access_key=a69834eab18e99ec484e9410a47bce5b&email=${req.body.email}`,
-            method: 'GET',
-            json: true
-        };
-
-        request.get(post_options, function(err, result, bodyrq) {
-            if (err) {
-                console.log(err)
-                return false
-            }
-            if (bodyrq) {
-                console.log(bodyrq.smtp_check);
-                return bodyrq.smtp_check;
-            }
         });
     },
 

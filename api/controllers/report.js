@@ -14,22 +14,32 @@ var mMailListDetail = require('../tables/mail-list-detail');
 var mMailCampain = require('../tables/mail-campain');
 var mMailSend = require('../tables/mail-send');
 var mMailResponse = require('../tables/mail-response');
+var mMailUnsubscribe = require('../tables/mail-unsubscribe');
+var mMailInvalid = require('../tables/mail-invalid');
 
 var mUser = require('../tables/user');
 
 var mModules = require('../constants/modules')
 
 /** Xử lý mảng có ngày trùng nhau gộp vào và cộng thêm 1 đơn vị */
-function handleArray(array) {
-    var arraySort = [
-        { email: array[0].email, date: array[0].date, value: 1 }
-    ]
+function handleArray(array, reason) {
+    if (!reason)
+        var arraySort = [
+            { email: array[0].email, date: array[0].date, value: 1, mailListID: array[0].mailListID }
+        ]
+    else
+        var arraySort = [
+            { email: array[0].email, date: array[0].date, value: 1, mailListID: array[0].mailListID, reason: array[0].reason }
+        ]
 
     for (let i = 1; i < array.length; i++) {
         if (array[i].email == arraySort[0].email && array[i].date == arraySort[0].date) {
             arraySort[0].value += 1;
         } else {
-            arraySort.unshift({ email: array[i].email, date: array[i].date, value: 1 })
+            if (!reason)
+                arraySort.unshift({ email: array[i].email, date: array[i].date, value: 1, mailListID: array[i].mailListID })
+            else
+                arraySort.unshift({ email: array[i].email, date: array[i].date, value: 1, mailListID: array[i].mailListID, reason: array[i].reason })
         }
     }
     return arraySort;
@@ -49,25 +59,25 @@ function handleArrayChart(array, daies) {
         }
     }
 
-    var array = [];
+    var arr = [];
     for (let i = -Number(daies); i <= 0; i++) {
         let date = moment().add(i, 'days').format('DD/MM');
         let dateFind = arraySort.find(sortItem => {
             return sortItem.date == date;
         });
         if (dateFind) {
-            array.push(dateFind);
+            arr.push(dateFind);
         } else {
-            array.push({ date, value: 0 });
+            arr.push({ date, value: 0 });
         }
     }
-    return array;
+    return arr;
 }
 
 
 module.exports = {
 
-    getListReportByCampain: async function(req, res) {
+    getListReportByCampain: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -122,7 +132,7 @@ module.exports = {
 
     },
 
-    getListReportByUser: async function(req, res) {
+    getListReportByUser: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -147,7 +157,7 @@ module.exports = {
 
     },
 
-    getReportByCampainSummary: async function(req, res) {
+    getReportByCampainSummary: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -215,20 +225,27 @@ module.exports = {
         })
     },
 
-    getReportByCampainOpenMail: async function(req, res) {
+    getReportByCampainOpenMail: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+                var mailListDetail = mMailListDetail(db);
+                mailListDetail.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
+
                 var mailResponse = mMailResponse(db);
-                mailResponse.belongsTo(mMailListDetail(db), { foreignKey: 'MailListDetailID' });
+                mailResponse.belongsTo(mailListDetail, { foreignKey: 'MailListDetailID' });
 
                 var mailResponseData = await mailResponse.findAll({
                     where: { MailCampainID: body.campainID },
                     attributes: ['ID', 'TimeCreate'],
                     include: {
-                        model: mMailListDetail(db),
+                        model: mailListDetail,
                         attributes: ['Email'],
+                        include: {
+                            model: mMailList(db),
+                            attributes: ['ID']
+                        }
                     }
                 });
                 var arrayTable = [];
@@ -236,7 +253,9 @@ module.exports = {
                     arrayTable.push({
                         id: mailResponseDataItem.ID,
                         date: moment.utc(mailResponseDataItem.TimeCreate).format("DD/MM"),
-                        email: mailResponseDataItem.MailListDetail.Email
+                        email: mailResponseDataItem.MailListDetail.Email,
+                        mailListID: mailResponseDataItem.MailListDetail.MailList.ID ?
+                            Number(mailResponseDataItem.MailListDetail.MailList.ID) : -1
                     })
                 })
 
@@ -282,7 +301,160 @@ module.exports = {
 
     },
 
-    getReportByUserSummary: async function(req, res) {
+    getReportByCampainInvalidMail: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                var mailListDetail = mMailListDetail(db);
+                mailListDetail.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
+
+                var mailInvalid = mMailInvalid(db);
+                mailInvalid.belongsTo(mailListDetail, { foreignKey: 'MailListDetailID' });
+
+                var mailInvalidData = await mailInvalid.findAll({
+                    where: { MailCampainID: body.campainID },
+                    attributes: ['ID', 'TimeCreate'],
+                    include: {
+                        model: mailListDetail,
+                        attributes: ['Email'],
+                        include: {
+                            model: mMailList(db),
+                            attributes: ['ID']
+                        }
+                    }
+                });
+                var arrayTable = [];
+                mailInvalidData.forEach(mailInvalidDataItem => {
+                    arrayTable.push({
+                        id: mailInvalidDataItem.ID,
+                        date: moment.utc(mailInvalidDataItem.TimeCreate).format("DD/MM"),
+                        email: mailInvalidDataItem.MailListDetail.Email,
+                        mailListID: mailInvalidDataItem.MailListDetail.MailList.ID ?
+                            Number(mailInvalidDataItem.MailListDetail.MailList.ID) : -1
+                    })
+                })
+
+                var array = handleArrayChart(arrayTable, body.daies);
+
+                var arrayTableSort = handleArray(arrayTable);
+
+                var total = await mMailSend(db).count({
+                    where: { MailCampainID: body.campainID }
+                });
+                var totalOpen = 0;
+                var totalOpenTwice = 0;
+                array.forEach(arrayItem => {
+                    totalOpen = totalOpen + arrayItem.value;
+                    if (arrayItem.value > 1) totalOpenTwice = totalOpenTwice += 1;
+                })
+
+                var obj = {
+                    total,
+                    totalOpen,
+                    totalOpenTwice,
+                    advangeOpen: parseFloat(totalOpen / total).toFixed(2),
+                    percentOpen: parseFloat(totalOpen / total * 100).toFixed(0) + '%'
+                }
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array,
+                    obj,
+                    arrayTableSort
+                }
+                res.json(result);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+
+    },
+
+    getReportByCampainUnsubscribeMail: async function (req, res) {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                var mailListDetail = mMailListDetail(db);
+                mailListDetail.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
+
+                var mailUnsubscribe = mMailUnsubscribe(db);
+                mailUnsubscribe.belongsTo(mailListDetail, { foreignKey: 'MailListDetailID' });
+
+                var mailUnsubscribeData = await mailUnsubscribe.findAll({
+                    where: { MailCampainID: body.campainID },
+                    attributes: ['ID', 'TimeCreate', 'Reason'],
+                    include: {
+                        model: mailListDetail,
+                        attributes: ['Email'],
+                        include: {
+                            model: mMailList(db),
+                            attributes: ['ID']
+                        }
+                    }
+                });
+                var arrayTable = [];
+                mailUnsubscribeData.forEach(mailUnsubscribeDataItem => {
+                    arrayTable.push({
+                        id: mailUnsubscribeDataItem.ID,
+                        date: moment.utc(mailUnsubscribeDataItem.TimeCreate).format("DD/MM"),
+                        email: mailUnsubscribeDataItem.MailListDetail.Email,
+                        reason: mailUnsubscribeDataItem.Reason,
+                        mailListID: mailUnsubscribeDataItem.MailListDetail.MailList.ID ?
+                            Number(mailUnsubscribeDataItem.MailListDetail.MailList.ID) : -1
+                    })
+                })
+
+                var array = handleArrayChart(arrayTable, body.daies);
+
+                var arrayTableSort = handleArray(arrayTable, true);
+
+                var total = await mMailSend(db).count({
+                    where: { MailCampainID: body.campainID }
+                });
+                var totalOpen = 0;
+                var totalOpenTwice = 0;
+                array.forEach(arrayItem => {
+                    totalOpen = totalOpen + arrayItem.value;
+                    if (arrayItem.value > 1) totalOpenTwice = totalOpenTwice += 1;
+                })
+
+                var obj = {
+                    total,
+                    totalOpen,
+                    totalOpenTwice,
+                    advangeOpen: parseFloat(totalOpen / total).toFixed(2),
+                    percentOpen: parseFloat(totalOpen / total * 100).toFixed(0) + '%'
+                }
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array,
+                    obj,
+                    arrayTableSort
+                }
+                res.json(result);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+
+        }, error => {
+            res.json(error)
+        })
+
+    },
+
+    getReportByUserSummary: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -314,7 +486,7 @@ module.exports = {
         })
     },
 
-    getReportByUserMailSend: async function(req, res) {
+    getReportByUserMailSend: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
