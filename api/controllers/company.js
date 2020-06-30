@@ -233,6 +233,7 @@ module.exports = {
 
                             address: elm.Address,
                             phone: elm.Phone,
+                            email: elm.Email,
                             website: elm.Website,
                             timeCreate: mModules.toDatetime(elm.TimeCreate),
 
