@@ -229,11 +229,7 @@ module.exports = function(app) {
 
     app.route('/crm/get_report_by_campain_summary').post(report.getReportByCampainSummary);
 
-    app.route('/crm/get_report_by_campain_open_mail').post(report.getReportByCampainOpenMail);
-
-    app.route('/crm/get_report_by_campain_invalid_mail').post(report.getReportByCampainInvalidMail);
-
-    app.route('/crm/get_report_by_campain_unsubscribe_mail').post(report.getReportByCampainUnsubscribeMail);
+    app.route('/crm/get_report_by_campain_mail_type').post(report.getReportByCampainMailType);
 
     app.route('/crm/get_report_by_user_summary').post(report.getReportByUserSummary);
 
