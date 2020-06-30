@@ -42,5 +42,24 @@ module.exports = {
         CLICK_LINK: 3,
         INVALID: 4,
         UNSUBSCRIBE: 5
+    },
+
+    TIME_SELECT: {
+        TODAY: 1,
+        YESTERDAY: 2,
+        LAST_24H: 3,
+        LAST_7DAY: 4,
+        LAST_30DAY: 5,
+        THIS_MONTH: 6,
+        LAST_MONTH: 7,
+        ALL_TIME: 8,
+        SELECT: 9,
+    },
+
+    TIME_TYPE: {
+        HOUR: 1,  //Giờ
+        DAY: 2,   //Thứ trong tuần
+        DATE: 3,   //Ngày trong tháng
+        MONTH: 4   //Tháng trong năm
     }
 }
