@@ -214,10 +214,14 @@ module.exports = {
 
                 var mailCampain = mMailCampain(db);
                 mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' });
+                mailCampain.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
 
                 var mailCampainData = await mailCampain.findOne({
                     where: { ID: body.campainID },
-                    include: { model: mUser(db) }
+                    include: [
+                        { model: mUser(db) },
+                        { model: mMailList(db) }
+                    ]
                 });
 
                 var obj = {
@@ -228,7 +232,8 @@ module.exports = {
                     createTime: mModules.toDatetime(mailCampainData.TimeCreate),
                     endTime: mailCampainData.TimeEnd,
                     body: mailCampainData.Body,
-                    mailListID: Number(mailCampainData.MailListID)
+                    mailListID: Number(mailCampainData.MailListID),
+                    mailListName: mailCampainData.MailList.Name ? mailCampainData.MailList.Name : ""
                 }
 
                 var result = {
@@ -579,8 +584,8 @@ module.exports = {
                         let tokenUnsubscribeEncrypt = mModules.encryptKey(tokenUnsubscribe);
                         let unSubscribe = `<p>&nbsp;</p><p style="text-align: center;"><span style="font-size: xx-small;"><a href="http://unsubscribe.namanphu.tech/#/submit?token=${tokenUnsubscribeEncrypt}"><u><span style="color: #0088ff;">Click Here</span></u></a> to unsubscribe from this email</span></p>`
 
-                        let bodyHtml = httpTrack + body.body;
-                        bodyHtml = handleClickLink(body);
+                        let bodyHtml = handleClickLink(body);
+                        bodyHtml = httpTrack + bodyHtml;
                         bodyHtml = bodyHtml + unSubscribe;
                         bodyHtml = bodyHtml.replace(/#ten/g, mailItem.Name);
 
