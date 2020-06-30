@@ -16,7 +16,7 @@ var mMailResponse = require('../tables/mail-response');
 
 var mUser = require('../tables/user');
 
-var mModules = require('../constants/modules')
+var mModules = require('../constants/modules');
 
 /** Xử lý mảng có ngày trùng nhau gộp vào và cộng thêm 1 đơn vị */
 function handleArray(array, reason) {
@@ -76,10 +76,31 @@ function handleArrayChart(array, daies) {
     return arr;
 }
 
+/** Xử lý lấy ra lý do nhiều nhất */
+function handleReasonUnsubcribe(array) {
+    if (array.length > 0) {
+        var arraySort = [
+            { reason: array[0].reason, value: 1 }
+        ]
+        for (let i = 1; i < array.length; i++) {
+            if (array[i].reason == arraySort[0].reason) {
+                arraySort[0].value += 1;
+            } else {
+                arraySort.unshift({ reason: array[i].reason, value: 1 })
+            }
+        }
+        arraySort = arraySort.sort((a, b) => {
+            return b.value - a.value
+        });
+
+        return arraySort[0].reason;
+    } else return "";
+}
+
 
 module.exports = {
 
-    getListReportByCampain: async function (req, res) {
+    getListReportByCampain: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -134,7 +155,7 @@ module.exports = {
 
     },
 
-    getListReportByUser: async function (req, res) {
+    getListReportByUser: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -159,7 +180,7 @@ module.exports = {
 
     },
 
-    getReportByCampainSummary: async function (req, res) {
+    getReportByCampainSummary: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -167,7 +188,7 @@ module.exports = {
 
                 var mailCampain = mMailCampain(db);
                 mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
-                mailCampain.hasOne(mMailSend(db), { foreignKey: 'MailCampainID' })
+                mailCampain.hasOne(mMailResponse(db), { foreignKey: 'MailCampainID' })
 
                 var campainData = await mailCampain.findOne({
                     where: { ID: body.campainID },
@@ -175,7 +196,7 @@ module.exports = {
                     include: [{
                         model: mUser(db)
                     }, {
-                        model: mMailSend(db),
+                        model: mMailResponse(db),
                         order: [
                             ['TimeCreate', 'DESC']
                         ],
@@ -188,10 +209,10 @@ module.exports = {
                 var mailResponseCount = await mMailResponse(db).count({
                     where: { MailCampainID: body.campainID }
                 });
-                var mailSendCount = await mMailSend(db).count({
+                var mailSendCount = await mMailResponse(db).count({
                     where: { MailCampainID: body.campainID }
                 });
-                var lastSend = await mMailSend(db).findOne({
+                var lastSend = await mMailResponse(db).findOne({
                     where: { MailCampainID: body.campainID },
                     order: [
                         ['TimeCreate', 'DESC']
@@ -227,7 +248,7 @@ module.exports = {
         })
     },
 
-    getReportByCampainMailType: async function (req, res) {
+    getReportByCampainMailType: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -270,26 +291,50 @@ module.exports = {
 
                 var arrayTableSort = handleArray(arrayTable, body.mailType == Constant.MAIL_RESPONSE_TYPE.UNSUBSCRIBE);
 
-                // var totalEmail = 
-                var totalSend = await mMailResponse(db).count({
+                var totalEmail = await mMailResponse(db).count({ // Tổng số email đã thao tác với chiến dịch mà không trùng nhau
+                    where: { MailCampainID: body.campainID },
+                    distinct: true,
+                    col: 'MailListDetailID'
+                });
+
+                var totalTypeDistinct = await mMailResponse(db).count({ // Tổng số email tương ứng với các loại và không trùng nhau
                     where: {
                         MailCampainID: body.campainID,
-                        Type: Constant.MAIL_RESPONSE_TYPE.SEND
-                    }
+                        Type: body.mailType
+                    },
+                    distinct: true,
+                    col: 'MailListDetailID'
                 });
-                var totalType = 0;
-                var totalTypeTwice = 0;
+
+                var totalType = 0; // tổng số lần cho mỗi loại mail response
+                var totalTypeTwice = 0; // tổng số loại mail response thao tác trên 2 lần
+                var mainReason = handleReasonUnsubcribe(arrayTable); // Lý do nhiều nhất nếu là loại unsubscribe
+
                 array.forEach(arrayItem => {
                     totalType = totalType + arrayItem.value;
                     if (arrayItem.value > 1) totalTypeTwice = totalTypeTwice += 1;
-                })
+                });
+
+                // BC gửi mail
+                var nearestSend = await mMailResponse(db).findOne({
+                    where: {
+                        MailCampainID: body.campainID,
+                        Type: Constant.MAIL_RESPONSE_TYPE.SEND
+                    },
+                    order: [
+                        ['TimeCreate', 'DESC']
+                    ],
+                    attributes: ['TimeCreate'],
+                    raw: true
+                });
 
                 var obj = {
-                    total,
+                    totalEmail,
                     totalType,
                     totalTypeTwice,
-                    advangeType: parseFloat(totalType / total).toFixed(2),
-                    percentType: parseFloat(totalType / total * 100).toFixed(0) + '%'
+                    advangeType: parseFloat(totalTypeDistinct / totalEmail).toFixed(2), // tỉ lệ là số mail response / tổng số email của chiến dịch
+                    nearestSend: nearestSend ? nearestSend.TimeCreate : null,
+                    mainReason
                 }
 
                 var result = {
@@ -312,7 +357,7 @@ module.exports = {
 
     },
 
-    getReportByUserSummary: async function (req, res) {
+    getReportByUserSummary: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -344,7 +389,7 @@ module.exports = {
         })
     },
 
-    getReportByUserMailSend: async function (req, res) {
+    getReportByUserMailSend: async function(req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {

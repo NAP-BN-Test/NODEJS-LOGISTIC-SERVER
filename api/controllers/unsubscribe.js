@@ -1,4 +1,3 @@
-
 const Op = require('sequelize').Op;
 const Constant = require('../constants/constant');
 const Result = require('../constants/result');
@@ -7,7 +6,7 @@ var database = require('../db');
 
 var mModule = require('../constants/modules');
 
-var mMailUnsubscribe = require('../tables/mail-unsubscribe');
+var mMailResponse = require('../tables/mail-response');
 var mMailListDetail = require('../tables/mail-list-detail');
 
 
@@ -24,10 +23,11 @@ module.exports = {
                     attributes: ['ID']
                 });
                 if (mailListDetailObj) {
-                    await mMailUnsubscribe(db).create({
+                    await mMailResponse(db).create({
                         MailListDetailID: mailListDetailObj.ID,
                         TimeCreate: now,
-                        Reason: body.reason
+                        Reason: body.reason,
+                        Type: Constant.MAIL_RESPONSE_TYPE.UNSUBSCRIBE
                     })
 
                     res.json(Result.ACTION_SUCCESS)
