@@ -12,7 +12,9 @@ module.exports = function (db) {
         Name: Sequelize.STRING,
         Roles: Sequelize.INTEGER,
         Phone: Sequelize.STRING,
-        Email: Sequelize.STRING
+        Email: Sequelize.STRING,
+        TimeCreate: Sequelize.NOW,
+        TimeLogin: Sequelize.NOW
     });
 
     return table;

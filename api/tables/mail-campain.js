@@ -10,11 +10,9 @@ module.exports = function (db) {
         Name: Sequelize.STRING,
         Subject: Sequelize.STRING,
         TimeCreate: Sequelize.NOW,
-        TimeEnd: Sequelize.NOW,
         OwnerID: Sequelize.BIGINT,
         MailListID: Sequelize.BIGINT,
         Body: Sequelize.STRING,
-        SendCount: Sequelize.INTEGER
     });
 
     return table;

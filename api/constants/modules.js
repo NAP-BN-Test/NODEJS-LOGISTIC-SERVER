@@ -24,7 +24,53 @@ var arrMailStatus = [
     { id: 4, name: 'Nhầm email' }
 ]
 
+var dayInWeek = ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+
 module.exports = {
+    toDatetimeHour: function (time) {
+        if (time) {
+            var hour = moment(time).hours();
+            return hour + ":00, " + moment(time).format('DD/MM/YYYY');
+        }
+        else return null
+    },
+
+    toHour: function (time) {
+        if (time) {
+            return moment(time).hours() + ":00";
+        }
+        else return null
+    },
+
+    toDatetimeDay: function (time) {
+        if (time) {
+            var day = dayInWeek[moment(time).days()];
+            return day + ", " + moment(time).format('DD/MM/YYYY');
+        }
+        else return null
+    },
+
+    toDay: function (time) {
+        if (time) {
+            return dayInWeek[moment(time).days()];
+        }
+        else return null
+    },
+
+    toDatetimeMonth: function (time) {
+        if (time) {
+            return "Tháng " + moment(time).format('MM/YYYY');
+        }
+        else return null
+    },
+
+    toMonth: function (time) {
+        if (time) {
+            return "T" + moment(time).format('MM/YYYY');
+        }
+        else return null
+    },
+
     toDatetime: function (time) {
         if (time)
             return moment(time).format('DD/MM/YYYY HH:mm');

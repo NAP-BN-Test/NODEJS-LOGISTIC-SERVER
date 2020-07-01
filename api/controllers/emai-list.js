@@ -47,7 +47,7 @@ function handleClickLink(body) {
 
 module.exports = {
 
-    getMailList: async function(req, res) {
+    getMailList: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -99,7 +99,7 @@ module.exports = {
 
     },
 
-    getMailListDetail: async function(req, res) {
+    getMailListDetail: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -135,7 +135,7 @@ module.exports = {
                         email: item.Email,
                         owner: item.User.Name,
                         createTime: mModules.toDatetime(item.TimeCreate),
-                        mailCount: item.MailSends.length,
+                        mailCount: item.MailResponses.length,
                         contactName: item.Name
                     })
                 })
@@ -147,6 +147,7 @@ module.exports = {
                 }
                 res.json(result);
             } catch (error) {
+                console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)
             }
 
@@ -156,7 +157,7 @@ module.exports = {
 
     },
 
-    getListMailCampain: async function(req, res) {
+    getListMailCampain: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -205,7 +206,7 @@ module.exports = {
 
     },
 
-    getMailCampainDetail: async function(req, res) {
+    getMailCampainDetail: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -251,7 +252,7 @@ module.exports = {
 
     },
 
-    addMailList: async function(req, res) {
+    addMailList: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -294,7 +295,7 @@ module.exports = {
         })
     },
 
-    deleteMailList: async function(req, res) {
+    deleteMailList: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -335,7 +336,7 @@ module.exports = {
         })
     },
 
-    addMailListDetail: async function(req, res) {
+    addMailListDetail: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -386,7 +387,7 @@ module.exports = {
         })
     },
 
-    deleteMailCampain: async function(req, res) {
+    deleteMailCampain: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -419,7 +420,7 @@ module.exports = {
         })
     },
 
-    deleteMailListDetail: async function(req, res) {
+    deleteMailListDetail: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -452,7 +453,7 @@ module.exports = {
         })
     },
 
-    addMailCampain: async function(req, res) {
+    addMailCampain: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -466,7 +467,6 @@ module.exports = {
                     TimeEnd: moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS'),
                     OwnerID: Number(body.userID),
                     MailListID: Number(body.mailListID),
-                    SendCount: 1
                 })
 
                 var result = {
@@ -486,7 +486,7 @@ module.exports = {
         })
     },
 
-    addMailResponse: async function(req, res) {
+    addMailResponse: async function (req, res) {
         let query = req._parsedUrl.query;
         let queryDecrypt = mModules.decryptKey(query.replace("token=", ""));
 
@@ -514,7 +514,7 @@ module.exports = {
         })
     },
 
-    addMailClickLink: async function(req, res) {
+    addMailClickLink: async function (req, res) {
         let query = req._parsedUrl.query;
         let queryDecrypt = mModules.decryptKey(query.replace("token=", ""));
 
@@ -543,7 +543,7 @@ module.exports = {
         })
     },
 
-    addMailSend: async function(req, res) {
+    addMailSend: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -559,13 +559,13 @@ module.exports = {
                     })
                     let bulkCreate = [];
                     let bulkCreateCheckMail = [];
-                    mailListDetailData.forEach(async(mailItem, i) => {
+                    mailListDetailData.forEach(async (mailItem, i) => {
 
                         let tokenHttpTrack = `ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}&idMailCampain=${body.campainID}`;
                         let tokenHttpTrackEncrypt = mModules.encryptKey(tokenHttpTrack);
                         let httpTrack = `<img src="http://163.44.192.123:3302/crm/open_mail?token=${tokenHttpTrackEncrypt}" height="1" width="1""/>`
 
-                        let tokenUnsubscribe = `email=${mailItem.Email}&ip=${body.ip}&dbName=${body.dbName}&secretKey=${body.secretKey}`;
+                        let tokenUnsubscribe = `email=${mailItem.Email}&ip=${body.ip}&dbName=${body.dbName}&secretKey=${body.secretKey}&campainID=${body.campainID}`;
                         let tokenUnsubscribeEncrypt = mModules.encryptKey(tokenUnsubscribe);
                         let unSubscribe = `<p>&nbsp;</p><p style="text-align: center;"><span style="font-size: xx-small;"><a href="http://unsubscribe.namanphu.tech/#/submit?token=${tokenUnsubscribeEncrypt}"><u><span style="color: #0088ff;">Click Here</span></u></a> to unsubscribe from this email</span></p>`
 
@@ -574,7 +574,7 @@ module.exports = {
                         bodyHtml = bodyHtml + unSubscribe;
                         bodyHtml = bodyHtml.replace(/#ten/g, mailItem.Name);
 
-                        mCheckMail.checkEmail(body.myMail, mailItem.Email, body.subject, bodyHtml).then(async(checkMailRes) => {
+                        mCheckMail.checkEmail(body.myMail, mailItem.Email, body.subject, bodyHtml).then(async (checkMailRes) => {
                             if (checkMailRes == false) {
                                 bulkCreateCheckMail.push({
                                     MailCampainID: body.campainID,
@@ -587,7 +587,7 @@ module.exports = {
                                 }
                             }
                         })
-                        mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, bodyHtml).then(async(sendMailRes) => {
+                        mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, bodyHtml).then(async (sendMailRes) => {
                             if (sendMailRes) {
                                 bulkCreate.push({
                                     MailCampainID: body.campainID,
@@ -614,7 +614,7 @@ module.exports = {
         })
     },
 
-    getMailListOption: async function(req, res) {
+    getMailListOption: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -646,7 +646,7 @@ module.exports = {
     },
 
 
-    updateMailCampain: async function(req, res) {
+    updateMailCampain: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -686,7 +686,7 @@ module.exports = {
 
     },
 
-    reportEmailDetail: async function(req, res) {
+    reportEmailDetail: async function (req, res) {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
