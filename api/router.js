@@ -1,4 +1,4 @@
-module.exports = function(app) {
+module.exports = function (app) {
     var company = require('./controllers/company');
     var login = require('./controllers/login');
 
@@ -225,15 +225,19 @@ module.exports = function(app) {
     //Report
     app.route('/crm/get_list_report_by_campain').post(report.getListReportByCampain);
 
-    app.route('/crm/get_list_report_by_user').post(report.getListReportByUser);
+    app.route('/crm/get_list_report_by_maillist').post(report.getListReportByMaillist);
 
     app.route('/crm/get_report_by_campain_summary').post(report.getReportByCampainSummary);
 
+    app.route('/crm/get_report_by_maillist_summary').post(report.getReportByMailListSummary);
+
     app.route('/crm/get_report_by_campain_mail_type').post(report.getReportByCampainMailType);
+
+    app.route('/crm/get_report_by_maillist_type').post(report.getReportByMailListType);
 
     app.route('/crm/get_report_by_user_summary').post(report.getReportByUserSummary);
 
-    app.route('/crm/get_report_by_user_mail_send').post(report.getReportByUserMailSend);
+    app.route('/crm/get_report_by_user_mail_type').post(report.getReportByUserMailType);
 
 
     // Upload file

@@ -27,6 +27,7 @@ module.exports = {
                         MailListDetailID: mailListDetailObj.ID,
                         TimeCreate: now,
                         Reason: body.reason,
+                        MailCampainID: body.campainID,
                         Type: Constant.MAIL_RESPONSE_TYPE.UNSUBSCRIBE
                     })
 
