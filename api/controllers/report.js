@@ -1033,8 +1033,6 @@ module.exports = {
                     raw: true
                 });
 
-                console.log(userData);
-
                 var obj = {
                     timeCreate: userData.TimeCreate ? userData.TimeCreate : null,
                     timeLogin: userData.TimeLogin ? userData.TimeLogin : null,
@@ -1090,7 +1088,7 @@ module.exports = {
                     attributes: ['ID', 'TimeCreate', 'Reason'],
                     include: {
                         model: mMailListDetail(db),
-                        where: { MailListID: body.mailListID },
+                        where: { OwnerID: body.userID },
                         attributes: ['Email']
                     }
                 });
@@ -1114,7 +1112,7 @@ module.exports = {
                 var totalEmail = await mailResponse.count({ // Tổng số email đã thao tác với chiến dịch mà không trùng nhau
                     include: {
                         model: mMailListDetail(db),
-                        where: { MailListID: body.mailListID }
+                        where: { OwnerID: body.userID }
                     },
                     distinct: true,
                     col: 'MailListDetailID'
@@ -1126,7 +1124,7 @@ module.exports = {
                     },
                     include: {
                         model: mMailListDetail(db),
-                        where: { MailListID: body.mailListID }
+                        where: { OwnerID: body.userID }
                     },
                     distinct: true,
                     col: 'MailListDetailID'
@@ -1148,7 +1146,7 @@ module.exports = {
                     },
                     include: {
                         model: mMailListDetail(db),
-                        where: { MailListID: body.mailListID }
+                        where: { OwnerID: body.userID }
                     },
                     order: [
                         ['TimeCreate', 'DESC']
