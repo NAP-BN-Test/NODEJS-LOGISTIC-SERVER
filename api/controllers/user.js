@@ -4,6 +4,7 @@ const Constant = require('../constants/constant');
 const Result = require('../constants/result');
 
 var database = require('../db');
+var moment = require('moment');
 
 var mUser = require('../tables/user');
 
@@ -12,9 +13,6 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-
-
-
             if (body.all) {
                 mUser(db).findAll().then(data => {
                     var array = [];
@@ -80,38 +78,46 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
-
-
-            checkUser(body.ip, body.dbName, body.username).then(role => {
-                if (role == Constant.USER_ROLE.MANAGER) {
-                    mUser(db).findOne({ where: { Username: body.regUsername } }).then(user => {
-                        if (user) {
-                            let result = {
+            try {
+                var role = await mUser(db).findOne({
+                    where: { ID: body.userID },
+                    attributes: ['Roles']
+                });
+                if (role) {
+                    var result;
+                    if (role.Roles == Constant.USER_ROLE.MANAGER) {
+                        var userExist = await mUser(db).findOne({
+                            where: { Username: body.regUsername }
+                        });
+                        if (userExist) {
+                            result = {
                                 status: Constant.STATUS.FAIL,
                                 message: Constant.MESSAGE.INVALID_USER
                             }
-                            res.json(result)
+                            res.json(result);
                         } else {
-                            mUser(db).create({
+                            var userCreate = await mUser.create({
                                 Name: body.regName,
                                 Username: body.regUsername,
                                 Password: body.regPassword,
                                 Phone: body.regPhone ? body.regPhone : "",
                                 Email: body.regEmail ? body.regEmail : "",
-                                Roles: Constant.USER_ROLE.STAFF
-                            }).then(() => {
+                                Roles: Constant.USER_ROLE.STAFF,
+                                TimeCreate: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+                            });
+                            if (userCreate)
                                 res.json(Result.ACTION_SUCCESS)
-                            }).catch(() => {
-                                res.json(Result.SYS_ERROR_RESULT);
-                            })
+                            else
+                                res.json(Result.INVALID_USER)
                         }
-                    })
+                    }
                 } else {
                     res.json(Result.NO_PERMISSION);
                 }
-            }).catch(() => {
+            } catch (error) {
+                console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)
-            })
+            }
         }).catch(() => {
             res.json(Result.SYS_ERROR_RESULT)
         })

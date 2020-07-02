@@ -2,6 +2,7 @@ const Result = require('../constants/result');
 const Constant = require('../constants/constant');
 
 var database = require('../db');
+var moment = require('moment');
 
 var mUser = require('../tables/user');
 
@@ -25,9 +26,15 @@ module.exports = {
                     role: data.Roles,
                 }
                 if (obj) {
-                    req.session.userID = data.ID
+                    req.session.userID = data.ID;
+
+                    await mUser(db).update({
+                        TimeLogin: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+                    }, {
+                        where: { Username: body.username }
+                    })
                 }
-                
+
                 var result = {
                     status: Constant.STATUS.SUCCESS,
                     message: '',
@@ -35,6 +42,7 @@ module.exports = {
                 }
                 res.json(result);
             } catch (error) {
+                console.log(error);
                 res.json(Result.LOGIN_FAIL)
             }
 
