@@ -41,7 +41,7 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                user.checkUser(body.ip, body.dbName, body.username).then(async role => {
+                user.checkUser(body.ip, body.dbName, body.userID).then(async role => {
                     let company = mCompany(db);
                     company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
                     company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
@@ -436,7 +436,7 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
-            user.checkUser(body.ip, body.dbName, body.username).then(role => {
+            user.checkUser(body.ip, body.dbName, body.userID).then(role => {
 
                 let where = [{ Name: { [Op.like]: "%" + body.searchKey + "%" } }]
                 if (role != Constant.USER_ROLE.MANAGER) {

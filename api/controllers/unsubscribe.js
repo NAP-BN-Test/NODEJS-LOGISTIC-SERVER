@@ -4,7 +4,7 @@ const Result = require('../constants/result');
 
 var database = require('../db');
 
-var mModule = require('../constants/modules');
+var moment = require('moment');
 
 var mMailResponse = require('../tables/mail-response');
 var mMailListDetail = require('../tables/mail-list-detail');
@@ -18,9 +18,10 @@ module.exports = {
             try {
                 let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
-                var mailListDetailObj = mMailListDetail(db).findOne({
+                var mailListDetailObj = await mMailListDetail(db).findOne({
                     where: { Email: body.email },
-                    attributes: ['ID']
+                    attributes: ['ID'],
+                    raw: true
                 });
                 if (mailListDetailObj) {
                     await mMailResponse(db).create({

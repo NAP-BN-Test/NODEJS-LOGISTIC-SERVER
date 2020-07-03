@@ -146,7 +146,7 @@ module.exports = {
 
             email.hasMany(mComment(db), { foreignKey: 'ActivityID', as: 'Comments' });
 
-            user.checkUser(body.ip, body.dbName, body.username).then(role => {
+            user.checkUser(body.ip, body.dbName, body.userID).then(role => {
 
                 let userFind = [];
                 if (body.userIDFind) {

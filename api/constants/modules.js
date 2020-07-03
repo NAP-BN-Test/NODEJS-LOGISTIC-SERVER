@@ -138,5 +138,13 @@ module.exports = {
         }, keyHex, options);
 
         return resultArray.toString(cryptoJS.enc.Utf8);
-    }
+    },
+
+    handleWhereClause: async function (listObj) {
+        let obj = {};
+        for (let field of listObj) {
+            obj[field.key] = field.value
+        }
+        return obj
+      }
 }

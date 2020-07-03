@@ -15,10 +15,12 @@ var mMailResponse = require('../tables/mail-response');
 
 var mAmazon = require('../controllers/amazon');
 var mCheckMail = require('../controllers/check-mail');
+var cUser = require('../controllers/user');
 
 var mUser = require('../tables/user');
 
 var mModules = require('../constants/modules');
+const { MAIL_RESPONSE_TYPE } = require('../constants/constant');
 
 function handleClickLink(body) {
     var bodyHtml = "";
@@ -30,8 +32,10 @@ function handleClickLink(body) {
         let tokenClickLinkEncrypt = mModules.encryptKey(tokenClickLink);
 
         for (let i = 0; i < listLink.length; i++) {
-            if (i % 2 == 1) {
-                bodyHtml = bodyHtml + listLink[i - 1] + '<a ';
+            if (i % 2 == 0) {
+                bodyHtml = bodyHtml + listLink[i] + '<a ';
+            }
+            else if (i % 2 == 1) {
                 var content = listLink[i].slice(0, 6) + `http://163.44.192.123:3302/crm/add_mail_click_link?token=${tokenClickLinkEncrypt}" onclick="window.open('` + listLink[i].slice(6);
                 var pos = content.indexOf('" target=');
                 content = content.slice(0, pos) + `')` + content.slice(pos);
@@ -53,11 +57,16 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
 
+                var userRole = await cUser.checkUser(body.ip, body.dbName, body.userID);
+                var where = [];
+                if (userRole) where = await mModules.handleWhereClause([{ key: 'OwnerID', value: Number(body.userID) }]);
+
                 var mailList = mMailList(db);
                 mailList.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
                 mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' })
 
                 var mMailListData = await mailList.findAll({
+                    where: where,
                     include: [
                         { model: mUser(db) },
                         { model: mMailListDetail(db) }
@@ -115,6 +124,7 @@ module.exports = {
                         { model: mUser(db) },
                         {
                             model: mMailResponse(db),
+                            required: false,
                             where: { Type: Constant.MAIL_RESPONSE_TYPE.SEND }
                         }
                     ],
@@ -129,6 +139,7 @@ module.exports = {
                     where: { MailListID: body.mailListID }
                 })
                 var array = [];
+
                 mMailListDetailData.forEach(item => {
                     array.push({
                         id: Number(item.ID),
@@ -162,11 +173,15 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+                var userRole = await cUser.checkUser(body.ip, body.dbName, body.userID);
+                var where = [];
+                if (userRole) where = await mModules.handleWhereClause([{ key: 'OwnerID', value: Number(body.userID) }]);
 
                 var mailCampain = mMailCampain(db);
                 mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' });
 
                 var mailCampainData = await mailCampain.findAll({
+                    where: where,
                     include: { model: mUser(db) },
                     order: [
                         ['TimeCreate', 'DESC']
@@ -501,7 +516,8 @@ module.exports = {
                 await mMailResponse(db).create({
                     MailListDetailID: idMailDetail,
                     TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                    MailCampainID: idMailCampain
+                    MailCampainID: idMailCampain,
+                    Type: MAIL_RESPONSE_TYPE.OPEN
                 })
 
                 res.json(Result.ACTION_SUCCESS)
@@ -558,7 +574,6 @@ module.exports = {
                         where: { MailListID: body.mailListID }
                     })
                     let bulkCreate = [];
-                    let bulkCreateCheckMail = [];
                     mailListDetailData.forEach(async (mailItem, i) => {
 
                         let tokenHttpTrack = `ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}&idMailCampain=${body.campainID}`;
@@ -570,35 +585,29 @@ module.exports = {
                         let unSubscribe = `<p>&nbsp;</p><p style="text-align: center;"><span style="font-size: xx-small;"><a href="http://unsubscribe.namanphu.tech/#/submit?token=${tokenUnsubscribeEncrypt}"><u><span style="color: #0088ff;">Click Here</span></u></a> to unsubscribe from this email</span></p>`
 
                         let bodyHtml = handleClickLink(body);
+
                         bodyHtml = httpTrack + bodyHtml;
                         bodyHtml = bodyHtml + unSubscribe;
                         bodyHtml = bodyHtml.replace(/#ten/g, mailItem.Name);
 
-                        mCheckMail.checkEmail(body.myMail, mailItem.Email, body.subject, bodyHtml).then(async (checkMailRes) => {
+                        mCheckMail.checkEmail(mailItem.Email).then(async (checkMailRes) => {
                             if (checkMailRes == false) {
-                                bulkCreateCheckMail.push({
+                                await mMailResponse(db).create({
                                     MailCampainID: body.campainID,
                                     MailListDetailID: mailItem.ID,
                                     TimeCreate: now,
                                     Type: Constant.MAIL_RESPONSE_TYPE.INVALID
-                                })
-                                if (i == mailListDetailData.length - 1) {
-                                    await mMailResponse(db).bulkCreate(bulkCreateCheckMail);
-                                }
+                                });
                             }
                         })
                         mAmazon.sendEmail(body.myMail, mailItem.Email, body.subject, bodyHtml).then(async (sendMailRes) => {
-                            if (sendMailRes) {
-                                bulkCreate.push({
+                            if (sendMailRes)
+                                await mMailResponse(db).create({
                                     MailCampainID: body.campainID,
                                     MailListDetailID: mailItem.ID,
                                     TimeCreate: now,
                                     Type: Constant.MAIL_RESPONSE_TYPE.SEND
-                                })
-                                if (i == mailListDetailData.length - 1) {
-                                    await mMailResponse(db).bulkCreate(bulkCreate);
-                                }
-                            }
+                                });
                         });
                     });
                     res.json(Result.ACTION_SUCCESS)
@@ -619,7 +628,11 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                var mMailListData = await mMailList(db).findAll();
+                var userRole = await cUser.checkUser(body.ip, body.dbName, body.userID);
+                var where = [];
+                if (userRole) where = await mModules.handleWhereClause([{ key: 'OwnerID', value: Number(body.userID) }]);
+
+                var mMailListData = await mMailList(db).findAll({ where: where });
                 var array = [];
                 mMailListData.forEach(item => {
                     array.push({
