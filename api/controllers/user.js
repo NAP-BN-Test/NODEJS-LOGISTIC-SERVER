@@ -53,10 +53,10 @@ module.exports = {
         })
     },
 
-    checkUser: async function (ip, dbName, username) {
+    checkUser: async function (ip, dbName, userID) {
         var db = await database.checkServerInvalid(ip, dbName, '00a2152372fa8e0e62edbb45dd82831a');
         try {
-            var data = await mUser(db).findOne({ where: { Username: username } })
+            var data = await mUser(db).findOne({ where: { ID: userID } })
             return Promise.resolve(data.Roles);
         } catch (error) {
             return Promise.reject(error)
@@ -96,7 +96,7 @@ module.exports = {
                             }
                             res.json(result);
                         } else {
-                            var userCreate = await mUser.create({
+                            var userCreate = await mUser(db).create({
                                 Name: body.regName,
                                 Username: body.regUsername,
                                 Password: body.regPassword,

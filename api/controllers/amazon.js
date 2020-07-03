@@ -51,7 +51,7 @@ module.exports = {
             var params = {
                 Identities: [body.email]
             };
-            ses.getIdentityVerificationAttributes(params, function(err, data) {
+            ses.getIdentityVerificationAttributes(params, function (err, data) {
                 if (err) {
                     console.log(err, err.stack);
                     res.json(Result.SYS_ERROR_RESULT);
@@ -75,7 +75,7 @@ module.exports = {
             var params = {
                 EmailAddress: body.email
             };
-            ses.verifyEmailIdentity(params, function(err, data) {
+            ses.verifyEmailIdentity(params, function (err, data) {
                 if (err) {
                     console.log(err, err.stack); // an error occurred
                 } else {
@@ -92,43 +92,46 @@ module.exports = {
     },
 
 
-    sendEmail: async function(emailSend, emailRecive, subject, body) { //take this list for dropdown
-
-        var ses = new AWS.SES();
-        var params = {
-            Destination: {
-                BccAddresses: [], // bcc email
-                CcAddresses: [], // cc email
-                ToAddresses: [
-                    emailRecive
-                ]
-            },
-            Message: {
-                Body: {
-                    Html: {
+    sendEmail: async function (emailSend, emailRecive, subject, body) { //take this list for dropdown
+        return new Promise(res => {
+            var ses = new AWS.SES();
+            var params = {
+                Destination: {
+                    BccAddresses: [], // bcc email
+                    CcAddresses: [], // cc email
+                    ToAddresses: [
+                        emailRecive
+                    ]
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: "UTF-8",
+                            Data: body
+                        }
+                    },
+                    Subject: {
                         Charset: "UTF-8",
-                        Data: body
+                        Data: subject
                     }
                 },
-                Subject: {
-                    Charset: "UTF-8",
-                    Data: subject
+                ReplyToAddresses: [],
+                Source: emailSend,
+            };
+            ses.sendEmail(params, function (err, data) {
+                if (err) {
+                    console.log(err, err.stack); // an error occurred
+                    res();
+                } else {
+                    res(1);
+                }; // successful response
+                /*
+                data = {
+                 MessageId: "EXAMPLE78603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000"
                 }
-            },
-            ReplyToAddresses: [],
-            Source: emailSend,
-        };
-        await ses.sendEmail(params, function(err, data) {
-            if (err) console.log(err, err.stack); // an error occurred
-            else {
-                return Promise.resolve(1);
-            }; // successful response
-            /*
-            data = {
-             MessageId: "EXAMPLE78603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000"
-            }
-            */
-        });
+                */
+            });
+        })
     },
 
 }

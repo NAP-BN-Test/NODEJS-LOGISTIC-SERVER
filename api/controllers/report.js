@@ -8,6 +8,8 @@ var moment = require('moment');
 
 var database = require('../db');
 
+var cUser = require('../controllers/user');
+
 var mMailList = require('../tables/mail-list');
 var mMailListDetail = require('../tables/mail-list-detail');
 
@@ -17,9 +19,12 @@ var mMailResponse = require('../tables/mail-response');
 var mUser = require('../tables/user');
 
 var mModules = require('../constants/modules');
+const { MAIL_RESPONSE_TYPE } = require('../constants/constant');
 
 /** Xử lý mảng có ngày trùng nhau gộp vào và cộng thêm 1 đơn vị */
 function handleArray(array, body, reason) {
+
+    var arraySort = [];
 
     if (body.timeType == Constant.TIME_TYPE.HOUR) {
         if (array.length > 0) {
@@ -30,15 +35,15 @@ function handleArray(array, body, reason) {
                     email: item.email,
                     reason: item.reason,
                     mailListID: item.mailListID,
-                    time: moment(item.time).format('YYYY-MM-DD HH')
+                    time: moment.utc(item.time).format('YYYY-MM-DD HH')
                 })
             });
             if (!reason)
-                var arraySort = [
+                arraySort = [
                     { email: arrayHandleTime[0].email, time: arrayHandleTime[0].time, value: 1, mailListID: arrayHandleTime[0].mailListID }
                 ]
             else
-                var arraySort = [
+                arraySort = [
                     { email: arrayHandleTime[0].email, time: arrayHandleTime[0].time, value: 1, mailListID: arrayHandleTime[0].mailListID, reason: arrayHandleTime[0].reason }
                 ]
 
@@ -55,7 +60,6 @@ function handleArray(array, body, reason) {
             arraySort.forEach(item => {
                 item.time = mModules.toDatetimeHour(item.time);
             })
-            return arraySort;
         } else return [];
     } else if (body.timeType == Constant.TIME_TYPE.DAY) {
         if (array.length > 0) {
@@ -66,15 +70,15 @@ function handleArray(array, body, reason) {
                     email: item.email,
                     reason: item.reason,
                     mailListID: item.mailListID,
-                    time: moment(item.time).format('YYYY-MM-DD')
+                    time: moment.utc(item.time).format('YYYY-MM-DD')
                 })
             });
             if (!reason)
-                var arraySort = [
+                arraySort = [
                     { email: arrayHandleTime[0].email, time: arrayHandleTime[0].time, value: 1, mailListID: arrayHandleTime[0].mailListID }
                 ]
             else
-                var arraySort = [
+                arraySort = [
                     { email: arrayHandleTime[0].email, time: arrayHandleTime[0].time, value: 1, mailListID: arrayHandleTime[0].mailListID, reason: arrayHandleTime[0].reason }
                 ]
 
@@ -91,7 +95,6 @@ function handleArray(array, body, reason) {
             arraySort.forEach(item => {
                 item.time = mModules.toDatetimeDay(item.time);
             })
-            return arraySort;
         } else return [];
     } else if (body.timeType == Constant.TIME_TYPE.DATE) {
         if (array.length > 0) {
@@ -102,16 +105,16 @@ function handleArray(array, body, reason) {
                     email: item.email,
                     reason: item.reason,
                     mailListID: item.mailListID,
-                    time: moment(item.time).format('DD/MM/YYYY')
+                    time: moment.utc(item.time).format('DD/MM/YYYY')
                 })
             });
 
             if (!reason)
-                var arraySort = [
+                arraySort = [
                     { email: arrayHandleTime[0].email, time: arrayHandleTime[0].time, value: 1, mailListID: arrayHandleTime[0].mailListID }
                 ]
             else
-                var arraySort = [
+                arraySort = [
                     { email: arrayHandleTime[0].email, time: arrayHandleTime[0].time, value: 1, mailListID: arrayHandleTime[0].mailListID, reason: arrayHandleTime[0].reason }
                 ]
 
@@ -125,7 +128,6 @@ function handleArray(array, body, reason) {
                         arraySort.unshift({ email: arrayHandleTime[i].email, time: arrayHandleTime[i].time, value: 1, mailListID: arrayHandleTime[i].mailListID, reason: arrayHandleTime[i].reason })
                 }
             }
-            return arraySort;
         } else return [];
     } else if (body.timeType == Constant.TIME_TYPE.MONTH) {
         if (array.length > 0) {
@@ -136,16 +138,16 @@ function handleArray(array, body, reason) {
                     email: item.email,
                     reason: item.reason,
                     mailListID: item.mailListID,
-                    time: moment(item.time).format('YYYY-MM')
+                    time: moment.utc(item.time).format('YYYY-MM')
                 })
             });
 
             if (!reason)
-                var arraySort = [
+                arraySort = [
                     { email: arrayHandleTime[0].email, time: arrayHandleTime[0].time, value: 1, mailListID: arrayHandleTime[0].mailListID }
                 ]
             else
-                var arraySort = [
+                arraySort = [
                     { email: arrayHandleTime[0].email, time: arrayHandleTime[0].time, value: 1, mailListID: arrayHandleTime[0].mailListID, reason: arrayHandleTime[0].reason }
                 ]
 
@@ -162,17 +164,18 @@ function handleArray(array, body, reason) {
             arraySort.forEach(item => {
                 item.time = mModules.toDatetimeMonth(item.time);
             })
-            return arraySort;
         } else return [];
     }
-
+    return arraySort;
 }
 
 /** Xử lý mảng có ngày trùng nhau gộp vào và cộng thêm 1 đơn vị trả về mảng dùng cho biểu đồ */
 function handleArrayChart(array, body) {
 
+    var arraySort = [];
+    var arr = [];
+
     if (body.timeType == Constant.TIME_TYPE.HOUR) {
-        var arraySort = [];
         if (array.length > 0) {
             var arrayHandleTime = [];
             array.forEach(item => {
@@ -181,11 +184,11 @@ function handleArrayChart(array, body) {
                     email: item.email,
                     reason: item.reason,
                     mailListID: item.mailListID,
-                    time: moment(item.time).format('YYYY-MM-DD HH')
+                    time: moment.utc(item.time).format('YYYY-MM-DD HH')
                 })
             });
 
-            var arraySort = [
+            arraySort = [
                 { time: arrayHandleTime[0].time, value: 1 }
             ]
 
@@ -197,10 +200,9 @@ function handleArrayChart(array, body) {
                 }
             }
         }
-        var daies = (parseFloat(((moment(body.timeTo).valueOf() - moment(body.timeFrom).valueOf()) / 3600000) + "").toFixed(0)) - 1;
-        var arr = [];
+        var daies = (parseFloat(((moment.utc(body.timeTo).valueOf() - moment.utc(body.timeFrom).valueOf()) / 3600000) + "").toFixed(0)) - 1;
         for (let i = -Number(daies); i <= 0; i++) {
-            let time = moment(body.timeTo).add(i, 'hours').format('YYYY-MM-DD HH');
+            let time = moment.utc(body.timeTo).add(i, 'hours').format('YYYY-MM-DD HH');
             let timeFind = arraySort.find(sortItem => {
                 return sortItem.time == time;
             });
@@ -213,9 +215,7 @@ function handleArrayChart(array, body) {
         arr.forEach(item => {
             item.time = mModules.toHour(item.time);
         })
-        return arr;
     } else if (body.timeType == Constant.TIME_TYPE.DAY) {
-        var arraySort = [];
         if (array.length > 0) {
             var arrayHandleTime = [];
             array.forEach(item => {
@@ -224,11 +224,11 @@ function handleArrayChart(array, body) {
                     email: item.email,
                     reason: item.reason,
                     mailListID: item.mailListID,
-                    time: moment(item.time).format('YYYY-MM-DD')
+                    time: moment.utc(item.time).format('YYYY-MM-DD')
                 })
             });
 
-            var arraySort = [
+            arraySort = [
                 { time: arrayHandleTime[0].time, value: 1 }
             ]
 
@@ -241,10 +241,9 @@ function handleArrayChart(array, body) {
             }
         }
 
-        var daies = (parseFloat(((moment(body.timeTo).valueOf() - moment(body.timeFrom).valueOf()) / 86400000) + "").toFixed(0)) - 2;
-        var arr = [];
+        var daies = (parseFloat(((moment.utc(body.timeTo).valueOf() - moment.utc(body.timeFrom).valueOf()) / 86400000) + "").toFixed(0)) - 2;
         for (let i = -Number(daies); i <= 0; i++) {
-            let time = moment().add(i, 'days').format('YYYY-MM-DD');
+            let time = moment.utc().add(i, 'days').format('YYYY-MM-DD');
             let timeFind = arraySort.find(sortItem => {
                 return sortItem.time == time;
             });
@@ -257,9 +256,7 @@ function handleArrayChart(array, body) {
         arr.forEach(item => {
             item.time = mModules.toDay(item.time);
         })
-        return arr;
     } else if (body.timeType == Constant.TIME_TYPE.DATE) {
-        var arraySort = [];
         if (array.length > 0) {
             var arrayHandleTime = [];
             array.forEach(item => {
@@ -268,11 +265,11 @@ function handleArrayChart(array, body) {
                     email: item.email,
                     reason: item.reason,
                     mailListID: item.mailListID,
-                    time: moment(item.time).format('DD/MM')
+                    time: moment.utc(item.time).format('DD/MM')
                 })
             });
 
-            var arraySort = [
+            arraySort = [
                 { time: arrayHandleTime[0].time, value: 1 }
             ]
 
@@ -285,10 +282,9 @@ function handleArrayChart(array, body) {
             }
         }
 
-        var daies = (parseFloat(((moment(body.timeTo).valueOf() - moment(body.timeFrom).valueOf()) / 86400000) + "").toFixed(0)) - 1;
-        var arr = [];
+        var daies = (parseFloat(((moment.utc(body.timeTo).valueOf() - moment.utc(body.timeFrom).valueOf()) / 86400000) + "").toFixed(0)) - 1;
         for (let i = -Number(daies); i <= 0; i++) {
-            let time = moment(body.timeTo).add(i, 'days').format('DD/MM');
+            let time = moment.utc(body.timeTo).add(i, 'days').format('DD/MM');
             let timeFind = arraySort.find(sortItem => {
                 return sortItem.time == time;
             });
@@ -298,10 +294,7 @@ function handleArrayChart(array, body) {
                 arr.push({ time, value: 0 });
             }
         }
-        return arr;
     } else if (body.timeType == Constant.TIME_TYPE.MONTH) {
-        var arraySort = [];
-
         if (array.length > 0) {
             var arrayHandleTime = [];
             array.forEach(item => {
@@ -310,11 +303,11 @@ function handleArrayChart(array, body) {
                     email: item.email,
                     reason: item.reason,
                     mailListID: item.mailListID,
-                    time: moment(item.time).format('YYYY-MM')
+                    time: moment.utc(item.time).format('YYYY-MM')
                 })
             });
 
-            var arraySort = [
+            arraySort = [
                 { time: arrayHandleTime[0].time, value: 1 }
             ]
 
@@ -329,12 +322,11 @@ function handleArrayChart(array, body) {
 
         var daies;
         if (body.timeFrom)
-            daies = moment(body.timeTo).months() - moment(body.timeFrom).months()
+            daies = moment.utc(body.timeTo).months() - moment.utc(body.timeFrom).months()
         else daies = 12;
 
-        var arr = [];
         for (let i = -Number(daies); i <= 0; i++) {
-            let time = moment(body.timeTo).add(i, 'months').format('YYYY-MM');
+            let time = moment.utc(body.timeTo).add(i, 'months').format('YYYY-MM');
             let timeFind = arraySort.find(sortItem => {
                 return sortItem.time == time;
             });
@@ -347,8 +339,8 @@ function handleArrayChart(array, body) {
         arr.forEach(item => {
             item.time = mModules.toMonth(item.time);
         })
-        return arr;
     }
+    return arr;
 }
 
 /** Xử lý lấy ra lý do nhiều nhất */
@@ -380,14 +372,15 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+                var userRole = await cUser.checkUser(body.ip, body.dbName, body.userID);
+                var where = [];
+                if (userRole) where = await mModules.handleWhereClause([{ key: 'OwnerID', value: Number(body.userID) }]);
+
+                console.log(where);
 
                 var mailCampain = mMailCampain(db);
                 mailCampain.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
 
-                let where = [];
-                if (body.userIDFind) {
-                    where = { OwnerID: body.userIDFind }
-                }
                 var mailCampainData = await mailCampain.findAll({
                     where: where,
                     include: { model: mMailList(db) },
@@ -433,11 +426,15 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+                var userRole = await cUser.checkUser(body.ip, body.dbName, body.userID);
+                var where = [];
+                if (userRole) where = await mModules.handleWhereClause([{ key: 'OwnerID', value: Number(body.userID) }]);
 
                 var mailList = mMailList(db);
                 mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' });
 
                 var mailListData = await mailList.findAll({
+                    where: where,
                     include: {
                         model: mMailListDetail(db),
                     },
@@ -560,12 +557,24 @@ module.exports = {
                         Type: Constant.MAIL_RESPONSE_TYPE.UNSUBSCRIBE
                     }
                 });
-                var totalInvalid = await mMailResponse(db).count({
+                var listMailListDetailIDData = await mMailResponse(db).findAll({
                     where: {
                         MailCampainID: body.campainID,
                         Type: Constant.MAIL_RESPONSE_TYPE.INVALID
-                    }
+                    },
+                    attributes: ['MailListDetailID'],
+                    raw: true
                 });
+                var listMailListDetailID = [];
+                if (listMailListDetailIDData.length > 0)
+                    listMailListDetailIDData.forEach(listMailListDetailIDItem => {
+                        listMailListDetailID.push(Number(listMailListDetailIDItem.MailListDetailID))
+                    })
+                var totalInvalid = await mMailListDetail(db).count({
+                    where: { ID: { [Op.in]: listMailListDetailID } },
+                    distinct: true,
+                    col: 'Email'
+                })
 
                 var obj = {
                     name: campainData.Name,
@@ -609,7 +618,7 @@ module.exports = {
                 var mWhere;
                 if (body.timeFrom) {
                     mWhere = {
-                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                        TimeCreate: { [Op.between]: [new Date(moment.utc(body.timeFrom)), new Date(moment.utc(body.timeTo))] },
                         MailCampainID: body.campainID,
                         Type: body.mailType
                     }
@@ -619,6 +628,7 @@ module.exports = {
                         Type: body.mailType
                     }
                 }
+
                 var mailResponseData = await mailResponse.findAll({
                     where: mWhere,
                     attributes: ['ID', 'TimeCreate', 'Reason'],
@@ -638,7 +648,21 @@ module.exports = {
                         mailListID: mailResponseDataItem.MailListDetail.MailListID ?
                             Number(mailResponseDataItem.MailListDetail.MailListID) : -1
                     })
-                })
+                });
+
+                if (body.mailType == MAIL_RESPONSE_TYPE.INVALID || body.mailType == MAIL_RESPONSE_TYPE.UNSUBSCRIBE) {
+                    if (arrayTable.length > 1) {
+                        var arrayUnquie = [arrayTable[0]];
+
+                        arrayTable.forEach(itemTable => {
+                            let index = arrayUnquie.findIndex(itemUnquie => {
+                                return itemUnquie.email == itemTable.email;
+                            });
+                            if (index < 0) arrayUnquie.push(itemTable)
+                        });
+                        arrayTable = arrayUnquie
+                    }
+                }
 
                 var array = handleArrayChart(arrayTable, body);
 
@@ -790,7 +814,9 @@ module.exports = {
                     include: {
                         model: mMailListDetail(db),
                         where: { MailListID: body.mailListID }
-                    }
+                    },
+                    distinct: true,
+                    col: 'MailListDetailID'
                 });
 
                 var obj = {
@@ -861,6 +887,20 @@ module.exports = {
                             Number(mailResponseDataItem.MailListDetail.MailListID) : -1
                     })
                 })
+
+                if (body.mailType == MAIL_RESPONSE_TYPE.INVALID || body.mailType == MAIL_RESPONSE_TYPE.UNSUBSCRIBE) {
+                    if (arrayTable.length > 1) {
+                        var arrayUnquie = [arrayTable[0]];
+
+                        arrayTable.forEach(itemTable => {
+                            let index = arrayUnquie.findIndex(itemUnquie => {
+                                return itemUnquie.email == itemTable.email;
+                            });
+                            if (index < 0) arrayUnquie.push(itemTable)
+                        });
+                        arrayTable = arrayUnquie
+                    }
+                }
 
                 var array = handleArrayChart(arrayTable, body);
 
@@ -986,13 +1026,25 @@ module.exports = {
                         where: { OwnerID: body.userID }
                     }
                 });
-                var totalInvalid = await mailResponse.count({
+                var listMailListDetailIDData = await mailResponse.findAll({
                     where: { Type: Constant.MAIL_RESPONSE_TYPE.INVALID },
                     include: {
                         model: mMailListDetail(db),
-                        where: { OwnerID: body.userID }
-                    }
+                        where: { OwnerID: body.userID },
+                    },
+                    attributes: ['MailListDetailID'],
+                    raw: true
                 });
+                var listMailListDetailID = [];
+                if (listMailListDetailIDData.length > 0)
+                    listMailListDetailIDData.forEach(listMailListDetailIDItem => {
+                        listMailListDetailID.push(Number(listMailListDetailIDItem.MailListDetailID))
+                    })
+                var totalInvalid = await mMailListDetail(db).count({
+                    where: { ID: { [Op.in]: listMailListDetailID } },
+                    distinct: true,
+                    col: 'Email'
+                })
                 var totalUnsubscribe = await mailResponse.count({
                     where: { Type: Constant.MAIL_RESPONSE_TYPE.UNSUBSCRIBE },
                     include: {
@@ -1104,6 +1156,20 @@ module.exports = {
                             Number(mailResponseDataItem.MailListDetail.MailListID) : -1
                     })
                 })
+
+                if (body.mailType == MAIL_RESPONSE_TYPE.INVALID || body.mailType == MAIL_RESPONSE_TYPE.UNSUBSCRIBE) {
+                    if (arrayTable.length > 1) {
+                        var arrayUnquie = [arrayTable[0]];
+
+                        arrayTable.forEach(itemTable => {
+                            let index = arrayUnquie.findIndex(itemUnquie => {
+                                return itemUnquie.email == itemTable.email;
+                            });
+                            if (index < 0) arrayUnquie.push(itemTable)
+                        });
+                        arrayTable = arrayUnquie
+                    }
+                }
 
                 var array = handleArrayChart(arrayTable, body);
 

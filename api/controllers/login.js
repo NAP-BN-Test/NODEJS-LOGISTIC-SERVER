@@ -12,10 +12,10 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            const data = await mUser(db).findOne({
-                where: { Username: body.username, Password: body.password }
-            })
             try {
+                var data = await mUser(db).findOne({
+                    where: { Username: body.username, Password: body.password }
+                })
                 var obj = {
                     id: data.ID,
                     name: data.Name,

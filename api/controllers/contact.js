@@ -373,7 +373,7 @@ module.exports = {
             console.log(body);
 
 
-            user.checkUser(body.ip, body.dbName, body.username).then(role => {
+            user.checkUser(body.ip, body.dbName, body.userID).then(role => {
                 let where = [{ Name: { [Op.like]: "%" + body.searchKey + "%" } }];
 
                 if (role != Constant.USER_ROLE.MANAGER) {
