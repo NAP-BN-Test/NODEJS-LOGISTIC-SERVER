@@ -96,7 +96,7 @@ module.exports = {
                             }
                             res.json(result);
                         } else {
-                            var userCreate = await mUser.create({
+                            var userCreate = await mUser(db).create({
                                 Name: body.regName,
                                 Username: body.regUsername,
                                 Password: body.regPassword,
