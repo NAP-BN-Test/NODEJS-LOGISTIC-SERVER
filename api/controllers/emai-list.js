@@ -28,7 +28,7 @@ function handleClickLink(body) {
     var listLink = body.body.split('<a ');
 
     if (listLink.length > 0) {
-        let tokenClickLink = `ip=${body.ip}&dbName=${body.dbName}&secretKey=${body.secretKey}&idMailCampain=${body.campainID}`;
+        let tokenClickLink = `ip=${body.ip}&dbName=${body.dbName}&secretKey=${body.secretKey}&idMailCampain=${body.campainID}&idMailListDetail=${body.MailListDetailID}`;
         let tokenClickLinkEncrypt = mModules.encryptKey(tokenClickLink);
 
         for (let i = 0; i < listLink.length; i++) {
@@ -36,10 +36,7 @@ function handleClickLink(body) {
                 bodyHtml = bodyHtml + listLink[i] + '<a ';
             }
             else if (i % 2 == 1) {
-                var content = listLink[i].slice(0, 6) + `http://163.44.192.123:3302/crm/add_mail_click_link?token=${tokenClickLinkEncrypt}" onclick="window.open('` + listLink[i].slice(6);
-                var pos = content.indexOf('" target=');
-                content = content.slice(0, pos) + `')` + content.slice(pos);
-
+                var content = listLink[i].slice(0, 6) + `http://163.44.192.123:3302/crm/add_mail_click_link?token=${tokenClickLinkEncrypt}&url=` + listLink[i].slice(6);
                 bodyHtml = bodyHtml + content;
             }
         }
@@ -531,21 +528,14 @@ module.exports = {
     },
 
     addMailClickLink: async function (req, res) {
-        let query = req._parsedUrl.query;
-        let queryDecrypt = mModules.decryptKey(query.replace("token=", ""));
+        let body = req.body;
 
-        let params = queryDecrypt.split('&');
-        let ip = params[0].split('=')[1];
-        let dbName = params[1].split('=')[1];
-        let secretKey = params[2].split('=')[1];
-        let idMailCampain = params[3].split('=')[1];
-
-        database.checkServerInvalid(ip, dbName, secretKey).then(async db => {
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
                 await mMailResponse(db).create({
-                    MailListDetailID: idMailDetail,
+                    MailListDetailID: body.mailListDetailID,
                     TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                    MailCampainID: idMailCampain,
+                    MailCampainID: body.campainID,
                     Type: Constant.MAIL_RESPONSE_TYPE.CLICK_LINK
                 })
 
@@ -573,7 +563,7 @@ module.exports = {
                     var mailListDetailData = await mMailListDetail(db).findAll({
                         where: { MailListID: body.mailListID }
                     })
-                    let bulkCreate = [];
+                    
                     mailListDetailData.forEach(async (mailItem, i) => {
 
                         let tokenHttpTrack = `ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}&idMailCampain=${body.campainID}`;

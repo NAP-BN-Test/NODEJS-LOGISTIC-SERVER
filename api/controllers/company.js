@@ -242,7 +242,7 @@ module.exports = {
 
                             follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
                             checked: false,
-                            companyType: elm.Type == 3 ? 'Agent' : elm.Type == 4 ? 'Company' : elm.Type == 2 ? 'Có' : 'Không',
+                            companyType: elm.Type == 0 ? 'Có' : 'Không',
                             stageID: elm.DealStage ? elm.DealStage.ID : -1,
                             stageName: elm.DealStage ? elm.DealStage.Name : "",
 
