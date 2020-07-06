@@ -238,7 +238,7 @@ module.exports = {
                             timeCreate: mModules.toDatetime(elm.TimeCreate),
 
                             cityID: elm.City ? elm.City.ID : -1,
-                            city: elm.City ? elm.City.NameVI : "",
+                            city: elm.City ? elm.City.Name : "",
 
                             follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
                             checked: false,
@@ -303,7 +303,7 @@ module.exports = {
                     timeActive: data['TimeActive'],
                     website: data['Website'],
                     cityID: data.City ? data.City.ID : -1,
-                    city: data.City ? data.City.NameVI : "",
+                    city: data.City ? data.City.Name : "",
                     follow: data.UserFollows[0] ? data.UserFollows[0]['Follow'] : false,
                     stageID: data.DealStage ? data.DealStage.ID : -1,
                     stageName: data.DealStage ? data.DealStage.Name : ""
@@ -481,10 +481,15 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
+            //get stageID with Stage = 1;
+            var stageData = await mDealStage(db).findOne({
+                where: { Stage: 1 },
+                attributes: ['ID'],
+                raw: true
+            });
 
             var company = mCompany(db);
             company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
-
             company.create({
                 UserID: body.userID,
                 Name: body.name,
@@ -494,7 +499,8 @@ module.exports = {
                 Address: body.address,
                 CityID: body.cityID,
                 TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                Type: 1
+                Type: 1,
+                StageID: stageData.ID
             }).then(data => {
                 var obj;
                 if (body.role == Constant.COMPANY_ROLE.PARENT) {

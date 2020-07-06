@@ -9,8 +9,7 @@ module.exports = function (db) {
         },
         CountryID: Sequelize.BIGINT,
         Code: Sequelize.STRING,
-        NameVI: Sequelize.STRING,
-        NameEN: Sequelize.STRING
+        Name: Sequelize.STRING
     });
 
     return table;

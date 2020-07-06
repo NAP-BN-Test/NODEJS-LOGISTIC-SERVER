@@ -29,6 +29,8 @@ module.exports = function (app) {
     var amazon = require('./controllers/amazon');
     var unsubscribe = require('./controllers/unsubscribe');
 
+    var category = require('./controllers/category')
+
 
     // todoList Routes
     app.route('/crm/user_login').post(login.login);
@@ -257,5 +259,22 @@ module.exports = function (app) {
 
     app.route('/aws/check_verify_email').post(amazon.checkVerifyEmail);
 
+
+    //Category
+    app.route('/crm/get_category_city').post(category.getListCity);
+    app.route('/crm/add_category_city').post(category.addCity);
+    app.route('/crm/update_category_city').post(category.updateCity);
+    app.route('/crm/delete_category_city').post(category.deleteCity);
+
+    app.route('/crm/get_all_category_country').post(category.getListAllCountry);
+    app.route('/crm/get_category_country').post(category.getListCountry);
+    app.route('/crm/add_category_country').post(category.addCountry);
+    app.route('/crm/update_category_country').post(category.updateCountry);
+    app.route('/crm/delete_category_country').post(category.deleteCountry);
+
+    app.route('/crm/get_category_step').post(category.getListStep);
+    app.route('/crm/add_category_step').post(category.addStep);
+    app.route('/crm/update_category_step').post(category.updateStep);
+    app.route('/crm/delete_category_step').post(category.deleteStep);
 
 };

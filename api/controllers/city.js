@@ -21,7 +21,7 @@ module.exports = {
                     data.forEach(elm => {
                         array.push({
                             id: elm['ID'],
-                            name: elm['NameVI'],
+                            name: elm['Name'],
                         })
                     });
                     var result = {
