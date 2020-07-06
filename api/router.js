@@ -217,7 +217,7 @@ module.exports = function (app) {
 
     app.route('/crm/add_mail_send').post(emailList.addMailSend);
 
-    app.route('/crm/add_mail_click_link').get(emailList.addMailClickLink);
+    app.route('/crm/add_mail_click_link').post(emailList.addMailClickLink);
 
     app.route('/crm/report_mail_detail').post(emailList.reportEmailDetail);
 

@@ -22,13 +22,13 @@ var mUser = require('../tables/user');
 var mModules = require('../constants/modules');
 const { MAIL_RESPONSE_TYPE } = require('../constants/constant');
 
-function handleClickLink(body) {
+function handleClickLink(body, mailListDetailID) {
     var bodyHtml = "";
 
     var listLink = body.body.split('<a ');
 
     if (listLink.length > 0) {
-        let tokenClickLink = `ip=${body.ip}&dbName=${body.dbName}&secretKey=${body.secretKey}&idMailCampain=${body.campainID}&idMailListDetail=${body.MailListDetailID}`;
+        let tokenClickLink = `ip=${body.ip}&dbName=${body.dbName}&secretKey=${body.secretKey}&idMailCampain=${body.campainID}&idMailListDetail=${mailListDetailID}`;
         let tokenClickLinkEncrypt = mModules.encryptKey(tokenClickLink);
 
         for (let i = 0; i < listLink.length; i++) {
@@ -36,7 +36,7 @@ function handleClickLink(body) {
                 bodyHtml = bodyHtml + listLink[i] + '<a ';
             }
             else if (i % 2 == 1) {
-                var content = listLink[i].slice(0, 6) + `http://163.44.192.123:3302/crm/add_mail_click_link?token=${tokenClickLinkEncrypt}&url=` + listLink[i].slice(6);
+                var content = listLink[i].slice(0, 6) + `clicklink.namanphu.tech?token=${tokenClickLinkEncrypt}&url=` + listLink[i].slice(6);
                 bodyHtml = bodyHtml + content;
             }
         }
@@ -532,6 +532,9 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+
+                console.log(body);
+                
                 await mMailResponse(db).create({
                     MailListDetailID: body.mailListDetailID,
                     TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
@@ -574,7 +577,7 @@ module.exports = {
                         let tokenUnsubscribeEncrypt = mModules.encryptKey(tokenUnsubscribe);
                         let unSubscribe = `<p>&nbsp;</p><p style="text-align: center;"><span style="font-size: xx-small;"><a href="http://unsubscribe.namanphu.tech/#/submit?token=${tokenUnsubscribeEncrypt}"><u><span style="color: #0088ff;">Click Here</span></u></a> to unsubscribe from this email</span></p>`
 
-                        let bodyHtml = handleClickLink(body);
+                        let bodyHtml = handleClickLink(body, mailItem.ID);
 
                         bodyHtml = httpTrack + bodyHtml;
                         bodyHtml = bodyHtml + unSubscribe;
