@@ -858,7 +858,7 @@ module.exports = {
                 var mWhere;
                 if (body.timeFrom) {
                     mWhere = {
-                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                        TimeCreate: { [Op.between]: [new Date(moment.utc(body.timeFrom)), new Date(moment.utc(body.timeTo))] },
                         Type: body.mailType
                     }
                 } else {
@@ -1127,7 +1127,7 @@ module.exports = {
                 var mWhere;
                 if (body.timeFrom) {
                     mWhere = {
-                        TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
+                        TimeCreate: { [Op.between]: [new Date(moment.utc(body.timeFrom)), new Date(moment.utc(body.timeTo))] },
                         Type: body.mailType
                     }
                 } else {
@@ -1135,6 +1135,9 @@ module.exports = {
                         Type: body.mailType
                     }
                 }
+
+                console.log(mWhere);
+                
                 var mailResponseData = await mailResponse.findAll({
                     where: mWhere,
                     attributes: ['ID', 'TimeCreate', 'Reason'],
@@ -1144,6 +1147,9 @@ module.exports = {
                         attributes: ['Email']
                     }
                 });
+
+                console.log(mailResponseData);
+                
 
                 var arrayTable = [];
                 mailResponseData.forEach(mailResponseDataItem => {
@@ -1170,6 +1176,8 @@ module.exports = {
                         arrayTable = arrayUnquie
                     }
                 }
+
+                
 
                 var array = handleArrayChart(arrayTable, body);
 
