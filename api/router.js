@@ -277,4 +277,13 @@ module.exports = function (app) {
     app.route('/crm/update_category_step').post(category.updateStep);
     app.route('/crm/delete_category_step').post(category.deleteStep);
 
+
+    //history
+    var history = require('./controllers/history')
+
+    app.route('/crm/get_history').post(history.getListHistory);
+    app.route('/crm/add_history').post(history.addHistory);
+    app.route('/crm/delete_history').post(history.deleteHistory);
+
+
 };

@@ -146,5 +146,13 @@ module.exports = {
             obj[field.key] = field.value
         }
         return obj
-      }
+    },
+
+    arrayToObj(array) {
+        let obj = {};
+        for (let field of array) {
+            obj[field.key] = field.value
+        }
+        return obj;
+    }
 }
