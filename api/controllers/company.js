@@ -723,51 +723,46 @@ module.exports = {
                     listcompanyID.push(Number(item + ""));
                 });
 
-                mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
+                mUser(db).findOne({ where: { ID: body.userID } }).then(async user => {
                     if (user.Roles == Constant.USER_ROLE.MANAGER) {
-                        rmCompanyChild(db).update(
-                            { CompanyID: null },
-                            { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                        ).then(() => {
-                            rmCall(db).update(
-                                { CompanyID: null },
-                                { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                            ).then(() => {
-                                rmEmail(db).update(
-                                    { CompanyID: null },
-                                    { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                                ).then(() => {
-                                    rmMeet(db).update(
-                                        { CompanyID: null },
-                                        { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                                    ).then(() => {
-                                        rmNote(db).update(
-                                            { CompanyID: null },
-                                            { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                                        ).then(() => {
-                                            rmContact(db).update(
-                                                { CompanyID: null },
-                                                { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                                            ).then(() => {
-                                                rmDeal(db).update(
-                                                    { CompanyID: null },
-                                                    { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                                                ).then(() => {
-                                                    rmUserFlow(db).update(
-                                                        { CompanyID: null },
-                                                        { where: { CompanyID: { [Op.in]: listcompanyID } } }
-                                                    ).then(() => {
-                                                        mCompany(db).destroy({ where: { ID: { [Op.in]: listcompanyID } } }).then(() => {
-                                                            res.json(Result.ACTION_SUCCESS);
-                                                        })
-                                                    })
-                                                })
-                                            })
-                                        })
-                                    })
-                                })
-                            })
-                        })
+
+                        await rmCompanyChild(db).destroy(
+                            {
+                                where: {
+                                    [Op.or]: {
+                                        ParentID: { [Op.in]: listcompanyID },
+                                        ChildID: { [Op.in]: listcompanyID }
+                                    }
+                                }
+                            }
+                        );
+                        await rmCall(db).destroy({
+                            where: { CompanyID: { [Op.in]: listcompanyID } }
+                        });
+                        await rmEmail(db).destroy({
+                            where: { CompanyID: { [Op.in]: listcompanyID } }
+                        });
+                        await rmMeet(db).destroy({
+                            where: { CompanyID: { [Op.in]: listcompanyID } }
+                        });
+                        await rmNote(db).destroy({
+                            where: { CompanyID: { [Op.in]: listcompanyID } }
+                        });
+                        await rmContact(db).destroy({
+                            where: { CompanyID: { [Op.in]: listcompanyID } }
+                        });
+                        await rmDeal(db).destroy({
+                            where: { CompanyID: { [Op.in]: listcompanyID } }
+                        });
+                        await rmUserFlow(db).destroy({
+                            where: { CompanyID: { [Op.in]: listcompanyID } }
+                        });
+                        await mCompany(db).destroy({
+                            where: { ID: { [Op.in]: listcompanyID } }
+                        });
+
+                        res.json(Result.ACTION_SUCCESS);
+                        
                     } else {
                         mCompany(db).update({ UserID: null }, { where: { ID: { [Op.in]: listcompanyID } } }).then(() => {
                             res.json(Result.ACTION_SUCCESS);
