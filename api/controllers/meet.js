@@ -34,8 +34,6 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
-
-
             let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
             mMeet(db).create({

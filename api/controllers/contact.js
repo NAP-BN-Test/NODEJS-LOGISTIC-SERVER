@@ -368,11 +368,6 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
-
-
-            console.log(body);
-
-
             user.checkUser(body.ip, body.dbName, body.userID).then(role => {
                 let where = [{ Name: { [Op.like]: "%" + body.searchKey + "%" } }];
 
@@ -444,9 +439,6 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-
-
-
             let listUpdate = [];
 
             if (body.contactName)
@@ -464,7 +456,7 @@ module.exports = {
             if (body.contactJobTile)
                 listUpdate.push({ key: 'JobTile', value: body.contactJobTile });
 
-
+                
             let update = {};
             for (let field of listUpdate) {
                 update[field.key] = field.value

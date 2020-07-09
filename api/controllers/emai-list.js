@@ -25,18 +25,17 @@ const { MAIL_RESPONSE_TYPE } = require('../constants/constant');
 function handleClickLink(body, mailListDetailID) {
     var bodyHtml = "";
 
-    var listLink = body.body.split('<a ');
+    var listLink = body.body.split('<a');
 
     if (listLink.length > 0) {
         let tokenClickLink = `ip=${body.ip}&dbName=${body.dbName}&secretKey=${body.secretKey}&idMailCampain=${body.campainID}&idMailListDetail=${mailListDetailID}`;
         let tokenClickLinkEncrypt = mModules.encryptKey(tokenClickLink);
 
+        bodyHtml = listLink[0];
+
         for (let i = 0; i < listLink.length; i++) {
-            if (i % 2 == 0) {
-                bodyHtml = bodyHtml + listLink[i] + '<a ';
-            }
-            else if (i % 2 == 1) {
-                var content = listLink[i].slice(0, 6) + `clicklink.namanphu.tech?token=${tokenClickLinkEncrypt}&url=` + listLink[i].slice(6);
+            if (i > 0) {
+                var content = "<a" + listLink[i].slice(0, 6) + `clicklink.namanphu.tech?token=${tokenClickLinkEncrypt}&url=` + listLink[i].slice(6);
                 bodyHtml = bodyHtml + content;
             }
         }
@@ -533,8 +532,6 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
 
-                console.log(body);
-                
                 await mMailResponse(db).create({
                     MailListDetailID: body.mailListDetailID,
                     TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
@@ -566,7 +563,7 @@ module.exports = {
                     var mailListDetailData = await mMailListDetail(db).findAll({
                         where: { MailListID: body.mailListID }
                     })
-                    
+
                     mailListDetailData.forEach(async (mailItem, i) => {
 
                         let tokenHttpTrack = `ip=${body.ip}&dbName=${body.dbName}&idMailDetail=${mailItem.ID}&idMailCampain=${body.campainID}`;

@@ -9,6 +9,10 @@ var mCity = require('../tables/city');
 var mStep = require('../tables/deal-stage');
 var mCountry = require('../tables/country');
 
+var mJobTile = require('../tables/category-job-tile');
+var mCallOutcome = require('../tables/category-call-outcome');
+var mMailOutcome = require('../tables/category-mail-outcome');
+
 
 module.exports = {
     //===============City
@@ -240,8 +244,6 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
             try {
-                console.log(body);
-
                 let update = [];
                 if (body.code)
                     update.push({ key: 'Code', value: body.code });
@@ -291,8 +293,6 @@ module.exports = {
     //===============Step
     getListStep: (req, res) => {
         let body = req.body;
-
-        console.log(body);
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
@@ -460,6 +460,330 @@ module.exports = {
                     array: array,
                 }
                 res.json(result)
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+
+    //===============JobTile
+    getListJobTile: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                var categoryData = await mJobTile(db).findAll({
+                    where: { Name: { [Op.like]: '%' + body.searchKey + '%' } },
+                    raw: true,
+                    order: [
+                        ['Name', 'ASC']
+                    ]
+                });
+                var array = [];
+                if (categoryData.length > 0) {
+                    categoryData.forEach(elm => {
+                        array.push({
+                            id: elm.ID,
+                            name: elm.Name
+                        })
+                    });
+                }
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array: array,
+                }
+                res.json(result)
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    updateJobTile: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                let update = [];
+                if (body.name)
+                    update.push({ key: 'Name', value: body.name });
+
+                database.updateTable(update, mJobTile(db), body.categoryID).then(response => {
+                    if (response == 1) {
+                        res.json(Result.ACTION_SUCCESS);
+                    } else {
+                        res.json(Result.SYS_ERROR_RESULT);
+                    }
+                })
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    addJobTile: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                await mJobTile(db).create({
+                    Name: body.name
+                });
+
+                res.json(Result.ACTION_SUCCESS);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    deleteJobTile: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                let listIDJson = JSON.parse(body.listID);
+                let listID = [];
+                listIDJson.forEach(item => {
+                    listID.push(Number(item + ""));
+                });
+
+                mJobTile(db).destroy({ where: { ID: { [Op.in]: listID } } });
+
+                res.json(Result.ACTION_SUCCESS);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+
+    //===============CallOutcome
+    getListCallOutcome: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                var categoryData = await mCallOutcome(db).findAll({
+                    where: { Name: { [Op.like]: '%' + body.searchKey + '%' } },
+                    raw: true,
+                    order: [
+                        ['Name', 'ASC']
+                    ]
+                });
+                var array = [];
+                if (categoryData.length > 0) {
+                    categoryData.forEach(elm => {
+                        array.push({
+                            id: elm.ID,
+                            name: elm.Name
+                        })
+                    });
+                }
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array: array,
+                }
+                res.json(result)
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    updateCallOutcome: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                let update = [];
+                if (body.name)
+                    update.push({ key: 'Name', value: body.name });
+
+                database.updateTable(update, mCallOutcome(db), body.categoryID).then(response => {
+                    if (response == 1) {
+                        res.json(Result.ACTION_SUCCESS);
+                    } else {
+                        res.json(Result.SYS_ERROR_RESULT);
+                    }
+                })
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    addCallOutcome: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                await mCallOutcome(db).create({
+                    Name: body.name
+                });
+
+                res.json(Result.ACTION_SUCCESS);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    deleteCallOutcome: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                let listIDJson = JSON.parse(body.listID);
+                let listID = [];
+                listIDJson.forEach(item => {
+                    listID.push(Number(item + ""));
+                });
+
+                mCallOutcome(db).destroy({ where: { ID: { [Op.in]: listID } } });
+
+                res.json(Result.ACTION_SUCCESS);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+
+    //===============MailOutcome
+    getListMailOutcome: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                var categoryData = await mMailOutcome(db).findAll({
+                    where: { Name: { [Op.like]: '%' + body.searchKey + '%' } },
+                    raw: true,
+                    order: [
+                        ['Name', 'ASC']
+                    ]
+                });
+                var array = [];
+                if (categoryData.length > 0) {
+                    categoryData.forEach(elm => {
+                        array.push({
+                            id: elm.ID,
+                            name: elm.Name
+                        })
+                    });
+                }
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array: array,
+                }
+                res.json(result)
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    updateMailOutcome: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                let update = [];
+                if (body.name)
+                    update.push({ key: 'Name', value: body.name });
+
+                database.updateTable(update, mMailOutcome(db), body.categoryID).then(response => {
+                    if (response == 1) {
+                        res.json(Result.ACTION_SUCCESS);
+                    } else {
+                        res.json(Result.SYS_ERROR_RESULT);
+                    }
+                })
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    addMailOutcome: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                await mMailOutcome(db).create({
+                    Name: body.name
+                });
+
+                res.json(Result.ACTION_SUCCESS);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    deleteMailOutcome: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                let listIDJson = JSON.parse(body.listID);
+                let listID = [];
+                listIDJson.forEach(item => {
+                    listID.push(Number(item + ""));
+                });
+
+                mMailOutcome(db).destroy({ where: { ID: { [Op.in]: listID } } });
+
+                res.json(Result.ACTION_SUCCESS);
+
             } catch (error) {
                 console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)

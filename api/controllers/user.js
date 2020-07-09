@@ -122,6 +122,83 @@ module.exports = {
             res.json(Result.SYS_ERROR_RESULT)
         })
 
-    }
+    },
+
+
+    getListUserCategory: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                let whereSearch = [
+                    { Username: { [Op.like]: '%' + body.searchKey + '%' } },
+                    { Name: { [Op.like]: '%' + body.searchKey + '%' } },
+                    { Phone: { [Op.like]: '%' + body.searchKey + '%' } },
+                    { Email: { [Op.like]: '%' + body.searchKey + '%' } },
+                ];
+
+                var categoryData = await mUser(db).findAll({
+                    where: { [Op.or]: whereSearch },
+                    raw: true,
+                    order: [
+                        ['Username', 'ASC']
+                    ]
+                });
+                var array = [];
+                if (categoryData.length > 0) {
+                    categoryData.forEach(elm => {
+                        array.push({
+                            id: elm.ID,
+                            name: elm.Name,
+                            username: elm.Username,
+                            phone: elm.Phone,
+                            email: elm.Email
+                        })
+                    });
+                }
+
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array: array,
+                }
+                res.json(result)
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
+
+    deleteUser: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            try {
+                let listIDJson = JSON.parse(body.listID);
+                let listID = [];
+                listIDJson.forEach(item => {
+                    listID.push(Number(item + ""));
+                });
+
+                mUser(db).destroy({
+                    where: {
+                        ID: { [Op.in]: listID },
+                        Roles: { [Op.ne]: Constant.USER_ROLE.MANAGER }
+                    }
+                });
+
+                res.json(Result.ACTION_SUCCESS);
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+
+            }
+        })
+    },
 
 }

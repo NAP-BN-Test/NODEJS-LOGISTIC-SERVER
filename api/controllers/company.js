@@ -385,7 +385,6 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
 
-
             let listUpdate = [];
 
             if (body.companyName)
@@ -506,7 +505,9 @@ module.exports = {
                 if (body.role == Constant.COMPANY_ROLE.PARENT) {
                     mCompany(db).update(
                         { ParentID: data.ID },
-                        { where: { ID: body.companyID } });
+                        {
+                            where: { ID: body.companyID }
+                        });
                     obj = {
                         id: data.ID,
                         name: data.Name,

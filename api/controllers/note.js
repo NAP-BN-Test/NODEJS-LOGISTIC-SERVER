@@ -45,11 +45,11 @@ module.exports = {
 
                 if (body.companyID) {
                     var company = mCompany(db);
-                    company.update({ LastActivity: now }, { where: { ID: body.CompanyID } })
+                    company.update({ LastActivity: now }, { where: { ID: body.companyID } })
                 }
                 if (body.contactID) {
                     var contact = mContact(db);
-                    contact.update({ LastActivity: now }, { where: { ID: body.ContactID } })
+                    contact.update({ LastActivity: now }, { where: { ID: body.contactID } })
                 }
 
                 if (body.listAssociate) {

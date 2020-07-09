@@ -36,6 +36,8 @@ module.exports = function (app) {
     app.route('/crm/user_login').post(login.login);
 
     app.route('/crm/add_user').post(user.addUser);
+    app.route('/crm/get_category_list_user').post(user.getListUserCategory);
+    app.route('/crm/delete_user').post(user.deleteUser);
 
     //Company
     app.route('/crm/get_list_company').post(company.getListCompany);
@@ -277,6 +279,20 @@ module.exports = function (app) {
     app.route('/crm/update_category_step').post(category.updateStep);
     app.route('/crm/delete_category_step').post(category.deleteStep);
 
+    app.route('/crm/get_category_job_tile').post(category.getListJobTile);
+    app.route('/crm/add_category_job_tile').post(category.addJobTile);
+    app.route('/crm/update_category_job_tile').post(category.updateJobTile);
+    app.route('/crm/delete_category_job_tile').post(category.deleteJobTile);
+
+    app.route('/crm/get_category_mail_outcome').post(category.getListMailOutcome);
+    app.route('/crm/add_category_mail_outcome').post(category.addMailOutcome);
+    app.route('/crm/update_category_mail_outcome').post(category.updateMailOutcome);
+    app.route('/crm/delete_category_mail_outcome').post(category.deleteMailOutcome);
+
+    app.route('/crm/get_category_call_outcome').post(category.getListCallOutcome);
+    app.route('/crm/add_category_call_outcome').post(category.addCallOutcome);
+    app.route('/crm/update_category_call_outcome').post(category.updateCallOutcome);
+    app.route('/crm/delete_category_call_outcome').post(category.deleteCallOutcome);
 
     //history
     var history = require('./controllers/history')
