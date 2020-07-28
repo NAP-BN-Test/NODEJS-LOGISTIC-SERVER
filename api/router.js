@@ -301,5 +301,28 @@ module.exports = function (app) {
     app.route('/crm/add_history').post(history.addHistory);
     app.route('/crm/delete_history').post(history.deleteHistory);
 
+    // mailmerge
+
+    var mailmerge = require('./controllers/mailmerge-campaign');
+    app.route('/crm/add_mailmerge').post(mailmerge.addMailmergeCampaign);
+    app.route('/crm/get_detail_mailmerge').post(mailmerge.getDetailMailmerge);
+    app.route('/crm/delete_mailmerge').post(mailmerge.deleteMailmerge);
+    app.route('/crm/update_mailmerge').post(mailmerge.updateMailmerge);
+
+    // template
+
+    var mailmerge = require('./controllers/mailmerge-campaign');
+    app.route('/crm/add_template').post(mailmerge.addTemplate);
+    app.route('/crm/get_detail_template').post(mailmerge.getDetailTemplate);
+    app.route('/crm/delete_template').post(mailmerge.deleteTemplate);
+    app.route('/crm/update_template').post(mailmerge.updateTemplate);
+
+    // additional-infomation
+    var infomation = require('./controllers/additional-infomation');
+    app.route('/crm/add_additional_infomation').post(infomation.addAdditionalInformation);
+    app.route('/crm/get_detail_additional_infomation').post(infomation.getDetailAdditionalInformation);
+    app.route('/crm/delete_additional_infomation').post(infomation.deleteAdditionalInformation);
+    app.route('/crm/update_additional_infomation').post(infomation.updateAdditionalInformation);
+
 
 };
