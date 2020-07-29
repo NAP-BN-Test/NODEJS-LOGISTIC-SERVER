@@ -25,6 +25,7 @@ module.exports = {
                     if (data) {
                         data.forEach(item => {
                             array.push({
+                                ID: item.ID,
                                 OurRef: item.OurRef ? item.OurRef : null,
                                 PAT: item.PAT ? item.PAT : null,
                                 Applicant: item.Create_ApplicantDate ? item.Applicant : null,
