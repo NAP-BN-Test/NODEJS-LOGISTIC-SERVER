@@ -313,11 +313,11 @@ module.exports = function (app) {
     // template
 
     var mailmerge = require('./controllers/mailmerge-campaign');
-    app.route('/crm/add_template_campaign').post(mailmerge.addTemplate);
-    app.route('/crm/get_detail_template_campaign').post(mailmerge.getDetailTemplate);
-    app.route('/crm/delete_template_campaign').post(mailmerge.deleteTemplate);
-    app.route('/crm/update_template_campaign').post(mailmerge.updateTemplate);
-    app.route('/crm/get_list_template_campaign').post(mailmerge.getListTemplate);
+    app.route('/crm/add_template').post(mailmerge.addTemplate);
+    app.route('/crm/get_detail_template').post(mailmerge.getDetailTemplate);
+    app.route('/crm/delete_template').post(mailmerge.deleteTemplate);
+    app.route('/crm/update_template').post(mailmerge.updateTemplate);
+    app.route('/crm/get_list_template').post(mailmerge.getListTemplate);
 
     // additional-infomation
     var infomation = require('./controllers/additional-infomation');
