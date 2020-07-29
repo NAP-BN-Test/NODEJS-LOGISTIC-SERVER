@@ -14,6 +14,46 @@ let mAdditionalInformation = require('../tables/additional-infomation');
 let mTemplate = require('../tables/template');
 
 module.exports = {
+    getListMailmergeCampaign: (req, res) => {
+        let body = req.body;
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            mMailmergeCampaign(db).count().then(all => {
+                mMailmergeCampaign(db).findAll({
+                    order: [['TimeCreate', 'DESC']],
+                    offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                    limit: Number(body.itemPerPage)
+                }).then(data => {
+                    let array = [];
+                    if (data) {
+                        data.forEach(item => {
+                            array.push({
+                                ID: item.ID,
+                                Name: item.Name ? item.Name : null,
+                                Template_ID: item.Template_ID ? item.Template_ID : null,
+                                Create_Date: item.Create_Date ? item.Create_Date : null,
+                                Create_User: item.Create_User ? item.Create_User : null,
+                                Number_Adress: item.Number_Adress ? item.Number_Adress : null,
+                                Description: item.Description ? item.Description : null,
+                                UserID: item.UserID ? item.UserID : null,
+                                TimeStart: item.timeStart ? item.timeStart : null,
+                                TimeRemind: item.timeRemind ? item.timeRemind : null,
+                                TimeCreate: item.TimeCreate,
+                                TimeUpdate: item.TimeUpdate,
+                            });
+                        });
+
+                        var result = {
+                            status: Constant.STATUS.SUCCESS,
+                            message: '',
+                            array, all
+                        }
+
+                        res.json(result);
+                    }
+                })
+            })
+        })
+    },
     addMailmergeCampaign: (req, res) => {
         let body = req.body;
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
@@ -159,6 +199,42 @@ module.exports = {
     },
 
     // --------------------- Template -----------------------------------------------------------
+    getListTemplate: (req, res) => {
+        let body = req.body;
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            mTemplate(db).count().then(all => {
+                mTemplate(db).findAll({
+                    order: [['TimeCreate', 'DESC']],
+                    offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                    limit: Number(body.itemPerPage)
+                }).then(data => {
+                    let array = [];
+                    if (data) {
+                        data.forEach(item => {
+                            array.push({
+                                ID: item.ID,
+                                body: item.body ? item.body : null,
+                                dataID: item.dataID ? item.dataID : null,
+                                TimeStart: item.timeStart ? item.timeStart : null,
+                                TimeRemind: item.timeRemind ? item.timeRemind : null,
+                                TimeCreate: item.TimeCreate,
+                                TimeUpdate: item.TimeUpdate,
+                                Description: item.description ? item.description : null
+                            });
+                        });
+
+                        var result = {
+                            status: Constant.STATUS.SUCCESS,
+                            message: '',
+                            array, all
+                        }
+
+                        res.json(result);
+                    }
+                })
+            })
+        })
+    },
     addTemplate: (req, res) => {
         let body = req.body;
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');

@@ -308,6 +308,7 @@ module.exports = function (app) {
     app.route('/crm/get_detail_mailmerge').post(mailmerge.getDetailMailmerge);
     app.route('/crm/delete_mailmerge').post(mailmerge.deleteMailmerge);
     app.route('/crm/update_mailmerge').post(mailmerge.updateMailmerge);
+    app.route('/crm/get_list_mailmerge').post(mailmerge.getListMailmergeCampaign);
 
     // template
 
@@ -316,6 +317,7 @@ module.exports = function (app) {
     app.route('/crm/get_detail_template').post(mailmerge.getDetailTemplate);
     app.route('/crm/delete_template').post(mailmerge.deleteTemplate);
     app.route('/crm/update_template').post(mailmerge.updateTemplate);
+    app.route('/crm/get_list_template').post(mailmerge.getListTemplate);
 
     // additional-infomation
     var infomation = require('./controllers/additional-infomation');
@@ -323,6 +325,6 @@ module.exports = function (app) {
     app.route('/crm/get_detail_additional_infomation').post(infomation.getDetailAdditionalInformation);
     app.route('/crm/delete_additional_infomation').post(infomation.deleteAdditionalInformation);
     app.route('/crm/update_additional_infomation').post(infomation.updateAdditionalInformation);
-
+    app.route('/crm/get_list_additional_infomation').post(infomation.getListAdditionalInformation);
 
 };

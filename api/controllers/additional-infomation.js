@@ -12,6 +12,57 @@ const modules = require('../constants/modules');
 let mAdditionalInformation = require('../tables/additional-infomation');
 
 module.exports = {
+    getListAdditionalInformation: (req, res) => {
+        let body = req.body;
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            mAdditionalInformation(db).count().then(all => {
+                mAdditionalInformation(db).findAll({
+                    order: [['TimeCreate', 'DESC']],
+                    offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                    limit: Number(body.itemPerPage)
+                }).then(data => {
+                    let array = [];
+                    if (data) {
+                        data.forEach(item => {
+                            array.push({
+                                OurRef: item.OurRef ? item.OurRef : null,
+                                PAT: item.PAT ? item.PAT : null,
+                                Applicant: item.Create_ApplicantDate ? item.Applicant : null,
+                                ApplicantNo: item.ApplicantNo ? item.ApplicantNo : null,
+                                ClassA: item.ClassA ? item.ClassA : null,
+                                FilingDate: item.FilingDate ? item.FilingDate : null,
+                                PriorTrademark: item.PriorTrademark ? item.PriorTrademark : null,
+                                OwnerID: item.OwnerID ? item.OwnerID : null,
+                                RedNo: item.RedNo ? item.RedNo : null,
+                                ClassB: item.ClassB ? item.ClassB : null,
+                                Firm: item.Firm ? item.Firm : null,
+                                Address: item.Address ? item.Address : null,
+                                Tel: item.Tel ? item.Tel : null,
+                                Fax: item.Fax ? item.Fax : null,
+                                Email: item.Email ? item.Email : null,
+                                Status: item.Status ? item.Status : null,
+                                Rerminder: item.Rerminder ? item.Rerminder : null,
+                                UserID: item.UserID ? item.UserID : null,
+                                TimeStart: moment(item.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS') ? item.timeStart : null,
+                                TimeRemind: item.timeRemind ? moment(item.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
+                                TimeCreate: item.TimeCreate,
+                                TimeUpdate: item.TimeUpdate,
+                                Description: item.description,
+                            });
+                        });
+
+                        var result = {
+                            status: Constant.STATUS.SUCCESS,
+                            message: '',
+                            array, all
+                        }
+
+                        res.json(result);
+                    }
+                })
+            })
+        })
+    },
     addAdditionalInformation: (req, res) => {
         let body = req.body;
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
