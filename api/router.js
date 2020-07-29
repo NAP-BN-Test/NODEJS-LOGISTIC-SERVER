@@ -305,19 +305,19 @@ module.exports = function (app) {
 
     var mailmerge = require('./controllers/mailmerge-campaign');
     app.route('/crm/add_mailmerge_campaign').post(mailmerge.addMailmergeCampaign);
-    app.route('/crm/get_detail_mailmerge_campaign').post(mailmerge.getDetailMailmerge);
-    app.route('/crm/delete_mailmerge_campaign').post(mailmerge.deleteMailmerge);
-    app.route('/crm/update_mailmerge_campaign').post(mailmerge.updateMailmerge);
+    app.route('/crm/get_detail_mailmerge_campaign').post(mailmerge.getDetailMailmergeCampaign);
+    app.route('/crm/delete_mailmerge_campaign').post(mailmerge.deleteMailmergeCampaign);
+    app.route('/crm/update_mailmerge_campaign').post(mailmerge.updateMailmergeCampaign);
     app.route('/crm/get_list_mailmerge_campaign').post(mailmerge.getListMailmergeCampaign);
 
     // template
 
     var mailmerge = require('./controllers/mailmerge-campaign');
-    app.route('/crm/add_template').post(mailmerge.addTemplate);
-    app.route('/crm/get_detail_template').post(mailmerge.getDetailTemplate);
-    app.route('/crm/delete_template').post(mailmerge.deleteTemplate);
-    app.route('/crm/update_template').post(mailmerge.updateTemplate);
-    app.route('/crm/get_list_template').post(mailmerge.getListTemplate);
+    app.route('/crm/add_mailmerge_template').post(mailmerge.addMailmergeTemplate);
+    app.route('/crm/get_detail_mailmerge_template').post(mailmerge.getDetailMailmergeTemplate);
+    app.route('/crm/delete_mailmerge_template').post(mailmerge.deleteMailmergeTemplate);
+    app.route('/crm/update_mailmerge_template').post(mailmerge.updateMailmergeTemplate);
+    app.route('/crm/get_list_mailmerge_template').post(mailmerge.getListMailmergeTemplate);
 
     // additional-infomation
     var infomation = require('./controllers/additional-infomation');

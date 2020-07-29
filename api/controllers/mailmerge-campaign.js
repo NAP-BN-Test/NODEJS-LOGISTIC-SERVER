@@ -102,7 +102,7 @@ module.exports = {
             })
         })
     },
-    updateMailmerge: (req, res) => {
+    updateMailmergeCampaign: (req, res) => {
         let body = req.body;
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
@@ -143,7 +143,7 @@ module.exports = {
             }
         })
     },
-    getDetailMailmerge: (req, res) => {
+    getDetailMailmergeCampaign: (req, res) => {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -182,7 +182,7 @@ module.exports = {
             })
         })
     },
-    deleteMailmerge: (req, res) => {
+    deleteMailmergeCampaign: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             mMailmergeCampaign(db).destroy({ where: { ID: body.ID } }).then(() => {
@@ -199,7 +199,7 @@ module.exports = {
     },
 
     // --------------------- Template -----------------------------------------------------------
-    getListTemplate: (req, res) => {
+    getListMailmergeTemplate: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             mTemplate(db).count().then(all => {
@@ -235,7 +235,7 @@ module.exports = {
             })
         })
     },
-    addTemplate: (req, res) => {
+    addMailmergeTemplate: (req, res) => {
         let body = req.body;
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -274,7 +274,7 @@ module.exports = {
             })
         })
     },
-    updateTemplate: (req, res) => {
+    updateMailmergeTemplate: (req, res) => {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -308,7 +308,7 @@ module.exports = {
             }
         })
     },
-    getDetailTemplate: (req, res) => {
+    getDetailMailmergeTemplate: (req, res) => {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -343,7 +343,7 @@ module.exports = {
             })
         })
     },
-    deleteTemplate: (req, res) => {
+    deleteMailmergeTemplate: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             mTemplate(db).destroy({ where: { ID: body.ID } }).then(() => {
