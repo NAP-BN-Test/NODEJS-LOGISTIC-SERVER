@@ -7,6 +7,7 @@ module.exports = function (db) {
             primaryKey: true,
             autoIncrement: true
         },
+        Name: Sequelize.STRING,
         body: Sequelize.TEXT,
         dataID: Sequelize.BIGINT,
         TimeCreate: Sequelize.NOW,

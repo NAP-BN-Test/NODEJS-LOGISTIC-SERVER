@@ -9,6 +9,7 @@ module.exports = {
         INVALID_COMPANY: "Công ty đã tồn tại!",
         NO_PERMISSION: "Bạn không có quyền thực hiện thao tác này!",
         INVALID_USER: "Tên đăng nhập đã tồn tại!",
+        BINDING_ERROR: "Lỗi ràng buộc",
     },
 
     USER_ROLE: {

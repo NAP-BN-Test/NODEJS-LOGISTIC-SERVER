@@ -2,8 +2,8 @@ const Result = require('./constants/result');
 const Sequelize = require('sequelize');
 
 async function checkServer(ip, dbName) {
-  const dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
-    host: '163.44.192.123',
+  const dbServer = new Sequelize('CustomerDB', 'sa', '1234', {
+    host: 'localhost',
     dialect: 'mssql',
     operatorsAliases: '0',
     pool: {
@@ -52,8 +52,8 @@ module.exports = {
 
   checkServerInvalid: async function (ip, dbName, secretKey) {
     if (secretKey == '00a2152372fa8e0e62edbb45dd82831a') {
-      const dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
-        host: '163.44.192.123',
+      const dbServer = new Sequelize('CustomerDB', 'sa', '1234', {
+        host: 'localhost',
         dialect: 'mssql',
         operatorsAliases: '0',
         pool: {
@@ -110,7 +110,7 @@ module.exports = {
         return Promise.resolve(mainServer)
       } catch (error) {
         dbServer.close();
-        return Promise.reject(error)
+        return Promise.reject(Result.LOGIN_FAIL)
       }
     } else {
       return Promise.reject(Result.NO_PERMISSION)

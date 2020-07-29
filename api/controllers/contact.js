@@ -456,7 +456,7 @@ module.exports = {
             if (body.contactJobTile)
                 listUpdate.push({ key: 'JobTile', value: body.contactJobTile });
 
-                
+
             let update = {};
             for (let field of listUpdate) {
                 update[field.key] = field.value

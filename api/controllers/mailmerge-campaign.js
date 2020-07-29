@@ -214,6 +214,7 @@ module.exports = {
                         data.forEach(item => {
                             array.push({
                                 ID: item.ID,
+                                Name: item.Name,
                                 body: item.body ? item.body : null,
                                 dataID: item.dataID ? item.dataID : null,
                                 TimeStart: mModules.toDatetime(item.timeStart) ? item.timeStart : null,
@@ -241,6 +242,7 @@ module.exports = {
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             mTemplate(db).create({
+                Name: body.Name,
                 body: body.body ? body.body : null,
                 dataID: body.dataID ? body.dataID : null,
                 TimeStart: moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS') ? body.timeStart : null,
@@ -251,6 +253,7 @@ module.exports = {
             }).then(data => {
                 obj = {
                     ID: data.ID,
+                    Name: data.Name,
                     body: data.body ? data.body : null,
                     dataID: data.dataID ? data.dataID : null,
                     TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
@@ -284,6 +287,8 @@ module.exports = {
                 let update = [];
                 if (body.body)
                     update.push({ key: 'body', value: body.body });
+                if (body.Name)
+                    update.push({ key: 'Name', value: body.Name });
                 if (body.dataID)
                     update.push({ key: 'dataID', value: body.dataID });
                 if (body.Description)
@@ -319,6 +324,7 @@ module.exports = {
                 if (data) {
                     obj = {
                         ID: data.ID,
+                        Name: data.Name,
                         body: data.body ? data.body : null,
                         dataID: data.dataID ? data.dataID : null,
                         TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
@@ -359,5 +365,27 @@ module.exports = {
             });
         })
     },
-    // --------------------------AdditionalInfomation-----------------------------------------------------------------------------------------------
+    getAllMailmergeTemplate: (req, res) => {//take this list for dropdown
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            mTemplate(db).findAll().then(data => {
+                var array = [];
+
+                data.forEach(elm => {
+                    array.push({
+                        id: elm['ID'],
+                        name: elm['Name'],
+                    })
+                });
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array: array
+                }
+                res.json(result)
+            })
+
+        })
+    },
 }

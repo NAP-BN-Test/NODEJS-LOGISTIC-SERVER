@@ -318,6 +318,7 @@ module.exports = function (app) {
     app.route('/crm/delete_mailmerge_template').post(mailmerge.deleteMailmergeTemplate);
     app.route('/crm/update_mailmerge_template').post(mailmerge.updateMailmergeTemplate);
     app.route('/crm/get_list_mailmerge_template').post(mailmerge.getListMailmergeTemplate);
+    app.route('/crm/get_all_mailmerge_template').post(mailmerge.getAllMailmergeTemplate);
 
     // additional-infomation
     var infomation = require('./controllers/additional-infomation');

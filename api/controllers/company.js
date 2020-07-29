@@ -762,7 +762,7 @@ module.exports = {
                         });
 
                         res.json(Result.ACTION_SUCCESS);
-                        
+
                     } else {
                         mCompany(db).update({ UserID: null }, { where: { ID: { [Op.in]: listcompanyID } } }).then(() => {
                             res.json(Result.ACTION_SUCCESS);
@@ -819,8 +819,6 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-
-
             rmDeal(db).destroy({ where: { ID: body.dealID } }).then(() => {
                 res.json(Result.ACTION_SUCCESS)
             });
