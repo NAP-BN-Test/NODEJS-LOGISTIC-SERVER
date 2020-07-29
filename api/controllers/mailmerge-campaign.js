@@ -12,6 +12,7 @@ const modules = require('../constants/modules');
 let mMailmergeCampaign = require('../tables/mailmerge-campaign');
 let mAdditionalInformation = require('../tables/additional-infomation');
 let mTemplate = require('../tables/template');
+var mModules = require('../constants/modules')
 
 module.exports = {
     getListMailmergeCampaign: (req, res) => {
@@ -30,15 +31,15 @@ module.exports = {
                                 ID: item.ID,
                                 Name: item.Name ? item.Name : null,
                                 Template_ID: item.Template_ID ? item.Template_ID : null,
-                                Create_Date: item.Create_Date ? item.Create_Date : null,
+                                Create_Date: mModules.toDatetime(item.Create_Date) ? item.Create_Date : null,
                                 Create_User: item.Create_User ? item.Create_User : null,
                                 Number_Address: item.Number_Address ? item.Number_Address : null,
                                 Description: item.Description ? item.Description : null,
                                 UserID: item.UserID ? item.UserID : null,
-                                TimeStart: item.timeStart ? item.timeStart : null,
-                                TimeRemind: item.timeRemind ? item.timeRemind : null,
-                                TimeCreate: item.TimeCreate,
-                                TimeUpdate: item.TimeUpdate,
+                                TimeStart: mModules.toDatetime(item.timeStart) ? item.timeStart : null,
+                                TimeRemind: mModules.toDatetime(item.timeRemind) ? item.timeRemind : null,
+                                TimeCreate: mModules.toDatetime(item.TimeCreate),
+                                TimeUpdate: mModules.toDatetime(item.TimeUpdate),
                             });
                         });
 
@@ -76,15 +77,15 @@ module.exports = {
                     ID: data.ID,
                     Name: data.Name ? data.Name : null,
                     Template_ID: data.Template_ID ? data.Template_ID : null,
-                    Create_Date: data.Create_Date ? data.Create_Date : null,
+                    Create_Date: mModules.toDatetime(data.Create_Date) ? data.Create_Date : null,
                     Create_User: data.Create_User ? data.Create_User : null,
                     Number_Address: data.Number_Address ? data.Number_Address : null,
                     Description: data.Description ? data.Description : null,
                     UserID: data.UserID ? data.UserID : null,
-                    TimeStart: data.timeStart ? data.timeStart : null,
-                    TimeRemind: data.timeRemind ? data.timeRemind : null,
-                    TimeCreate: data.TimeCreate,
-                    TimeUpdate: data.TimeUpdate,
+                    TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
+                    TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
+                    TimeCreate: mModules.toDatetime(data.TimeCreate),
+                    TimeUpdate: mModules.toDatetime(data.TimeUpdate),
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -155,15 +156,15 @@ module.exports = {
                         ID: data.ID,
                         Name: data.Name ? data.Name : null,
                         Template_ID: data.Template_ID ? data.Template_ID : null,
-                        Create_Date: data.Create_Date ? data.Create_Date : null,
+                        Create_Date: mModules.toDatetime(data.Create_Date) ? data.Create_Date : null,
                         Create_User: data.Create_User ? data.Create_User : null,
                         Number_Address: data.Number_Address ? data.Number_Address : null,
                         Description: data.Description ? data.Description : null,
                         UserID: data.UserID ? data.UserID : null,
-                        TimeStart: data.timeStart ? data.timeStart : null,
-                        TimeRemind: data.timeRemind ? data.timeRemind : null,
-                        TimeCreate: data.TimeCreate,
-                        TimeUpdate: data.TimeUpdate,
+                        TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
+                        TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
+                        TimeCreate: mModules.toDatetime(data.TimeCreate),
+                        TimeUpdate: mModules.toDatetime(data.TimeUpdate),
                     }
                     var result = {
                         status: Constant.STATUS.SUCCESS,
@@ -215,10 +216,10 @@ module.exports = {
                                 ID: item.ID,
                                 body: item.body ? item.body : null,
                                 dataID: item.dataID ? item.dataID : null,
-                                TimeStart: item.timeStart ? item.timeStart : null,
-                                TimeRemind: item.timeRemind ? item.timeRemind : null,
-                                TimeCreate: item.TimeCreate,
-                                TimeUpdate: item.TimeUpdate,
+                                TimeStart: mModules.toDatetime(item.timeStart) ? item.timeStart : null,
+                                TimeRemind: mModules.toDatetime(item.timeRemind) ? item.timeRemind : null,
+                                TimeCreate: mModules.toDatetime(item.TimeCreate),
+                                TimeUpdate: mModules.toDatetime(item.TimeUpdate),
                                 Description: item.description ? item.description : null
                             });
                         });
@@ -252,10 +253,10 @@ module.exports = {
                     ID: data.ID,
                     body: data.body ? data.body : null,
                     dataID: data.dataID ? data.dataID : null,
-                    TimeStart: data.timeStart ? data.timeStart : null,
-                    TimeRemind: data.timeRemind ? data.timeRemind : null,
-                    TimeCreate: data.TimeCreate,
-                    TimeUpdate: data.TimeUpdate,
+                    TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
+                    TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
+                    TimeCreate: mModules.toDatetime(data.TimeCreate),
+                    TimeUpdate: mModules.toDatetime(data.TimeUpdate),
                     Description: data.description ? data.description : null
                 }
                 var result = {
@@ -320,10 +321,10 @@ module.exports = {
                         ID: data.ID,
                         body: data.body ? data.body : null,
                         dataID: data.dataID ? data.dataID : null,
-                        TimeStart: data.timeStart ? data.timeStart : null,
-                        TimeRemind: data.timeRemind ? data.timeRemind : null,
-                        TimeCreate: data.TimeCreate,
-                        TimeUpdate: data.TimeUpdate,
+                        TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
+                        TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
+                        TimeCreate: mModules.toDatetime(data.TimeCreate),
+                        TimeUpdate: mModules.toDatetime(data.TimeUpdate),
                         Description: data.description ? data.description : null
                     }
                     var result = {

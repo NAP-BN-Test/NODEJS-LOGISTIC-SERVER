@@ -44,11 +44,11 @@ module.exports = {
                                 Status: item.Status ? item.Status : null,
                                 Rerminder: item.Rerminder ? item.Rerminder : null,
                                 UserID: item.UserID ? item.UserID : null,
-                                TimeStart: moment(item.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS') ? item.timeStart : null,
-                                TimeRemind: item.timeRemind ? moment(item.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
-                                TimeCreate: item.TimeCreate,
-                                TimeUpdate: item.TimeUpdate,
-                                Description: item.description,
+                                TimeStart: mModules.toDatetime(item.timeStart) ? item.timeStart : null,
+                                TimeRemind: mModules.toDatetime(item.timeRemind) ? item.timeRemind : null,
+                                TimeCreate: mModules.toDatetime(item.TimeCreate),
+                                TimeUpdate: mModules.toDatetime(item.TimeUpdate),
+                                Description: mModules.toDatetime(item.description),
                             });
                         });
 
@@ -113,11 +113,11 @@ module.exports = {
                     Status: data.Status ? data.Status : null,
                     Rerminder: data.Rerminder ? data.Rerminder : null,
                     UserID: data.UserID ? data.UserID : null,
-                    TimeStart: moment(data.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS') ? data.timeStart : null,
-                    TimeRemind: data.timeRemind ? moment(data.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
-                    TimeCreate: data.TimeCreate,
-                    TimeUpdate: data.TimeUpdate,
-                    Description: data.description,
+                    TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
+                    TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
+                    TimeCreate: mModules.toDatetime(data.TimeCreate),
+                    TimeUpdate: mModules.toDatetime(data.TimeUpdate),
+                    Description: mModules.toDatetime(data.description),
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -230,11 +230,11 @@ module.exports = {
                         Status: data.Status ? data.Status : null,
                         Rerminder: data.Rerminder ? data.Rerminder : null,
                         UserID: data.UserID ? data.UserID : null,
-                        TimeStart: moment(data.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS') ? data.timeStart : null,
-                        TimeRemind: data.timeRemind ? moment(data.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
-                        TimeCreate: data.TimeCreate,
-                        TimeUpdate: data.TimeUpdate,
-                        Description: data.description
+                        TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
+                        TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
+                        TimeCreate: mModules.toDatetime(data.TimeCreate),
+                        TimeUpdate: mModules.toDatetime(data.TimeUpdate),
+                        Description: mModules.toDatetime(data.description)
                     }
                     var result = {
                         status: Constant.STATUS.SUCCESS,
