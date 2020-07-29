@@ -32,7 +32,7 @@ module.exports = {
                                 Template_ID: item.Template_ID ? item.Template_ID : null,
                                 Create_Date: item.Create_Date ? item.Create_Date : null,
                                 Create_User: item.Create_User ? item.Create_User : null,
-                                Number_Adress: item.Number_Adress ? item.Number_Adress : null,
+                                Number_Address: item.Number_Address ? item.Number_Address : null,
                                 Description: item.Description ? item.Description : null,
                                 UserID: item.UserID ? item.UserID : null,
                                 TimeStart: item.timeStart ? item.timeStart : null,
@@ -64,7 +64,7 @@ module.exports = {
                 Template_ID: body.Template_ID ? body.Template_ID : null,
                 Create_Date: body.Create_Date ? body.Create_Date : null,
                 Create_User: body.Create_User ? body.Create_User : null,
-                Number_Adress: body.Number_Adress ? body.Number_Adress : null,
+                Number_Address: body.Number_Address ? body.Number_Address : null,
                 UserID: body.UserID ? body.UserID : null,
                 TimeStart: moment(body.timeStart).format('YYYY-MM-DD HH:mm:ss.SSS') ? body.timeStart : null,
                 TimeRemind: body.timeRemind ? moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
@@ -78,7 +78,7 @@ module.exports = {
                     Template_ID: data.Template_ID ? data.Template_ID : null,
                     Create_Date: data.Create_Date ? data.Create_Date : null,
                     Create_User: data.Create_User ? data.Create_User : null,
-                    Number_Adress: data.Number_Adress ? data.Number_Adress : null,
+                    Number_Address: data.Number_Address ? data.Number_Address : null,
                     Description: data.Description ? data.Description : null,
                     UserID: data.UserID ? data.UserID : null,
                     TimeStart: data.timeStart ? data.timeStart : null,
@@ -118,8 +118,8 @@ module.exports = {
                     update.push({ key: 'Create_Date', value: body.Create_Date });
                 if (body.Create_User)
                     update.push({ key: 'Create_User', value: body.Create_User });
-                if (body.Number_Adress)
-                    update.push({ key: 'Number_Adress', value: body.Number_Adress });
+                if (body.Number_Address)
+                    update.push({ key: 'Number_Address', value: body.Number_Address });
                 if (body.Description)
                     update.push({ key: 'Description', value: body.Description });
                 if (body.UserID)
@@ -157,7 +157,7 @@ module.exports = {
                         Template_ID: data.Template_ID ? data.Template_ID : null,
                         Create_Date: data.Create_Date ? data.Create_Date : null,
                         Create_User: data.Create_User ? data.Create_User : null,
-                        Number_Adress: data.Number_Adress ? data.Number_Adress : null,
+                        Number_Address: data.Number_Address ? data.Number_Address : null,
                         Description: data.Description ? data.Description : null,
                         UserID: data.UserID ? data.UserID : null,
                         TimeStart: data.timeStart ? data.timeStart : null,

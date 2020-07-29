@@ -11,7 +11,7 @@ module.exports = function (db) {
         Template_ID: Sequelize.BIGINT,
         Create_Date: Sequelize.NOW,
         Create_User: Sequelize.INTEGER,
-        Number_Adress: Sequelize.INTEGER,
+        Number_Address: Sequelize.INTEGER,
         TimeCreate: Sequelize.NOW,
         TimeStart: Sequelize.NOW,
         Description: Sequelize.STRING,
