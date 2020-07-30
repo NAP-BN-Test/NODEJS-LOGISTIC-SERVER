@@ -12,18 +12,28 @@ const modules = require('../constants/modules');
 let mMailmergeCampaign = require('../tables/mailmerge-campaign');
 let mAdditionalInformation = require('../tables/additional-infomation');
 let mTemplate = require('../tables/template');
-var mModules = require('../constants/modules')
+var mModules = require('../constants/modules');
+let mUser = require('../tables/user');
+const result = require('../constants/result');
 
 module.exports = {
     getListMailmergeCampaign: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mMailmergeCampaign(db).count().then(all => {
-                mMailmergeCampaign(db).findAll({
+            let Mailmerge = mMailmergeCampaign(db);
+            Mailmerge.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
+            Mailmerge.belongsTo(mTemplate(db), { foreignKey: 'Template_ID', sourceKey: 'Template_ID', as: 'Template' });
+
+            Mailmerge.count().then(all => {
+                Mailmerge.findAll({
+                    include: [
+                        { model: mUser(db), required: false, as: 'User' },
+                        { model: mTemplate(db), required: false, as: 'Template' }
+                    ],
                     order: [['TimeCreate', 'DESC']],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
-                }).then(data => {
+                }).then(async data => {
                     let array = [];
                     if (data) {
                         data.forEach(item => {
@@ -31,8 +41,10 @@ module.exports = {
                                 ID: item.ID,
                                 Name: item.Name ? item.Name : null,
                                 Template_ID: item.Template_ID ? item.Template_ID : null,
+                                TemplateName: item.Template ? item.Template.Name : "",
                                 Create_Date: mModules.toDatetime(item.Create_Date) ? item.Create_Date : null,
                                 Create_User: item.Create_User ? item.Create_User : null,
+                                UserName: item.User ? item.User.Name : "",
                                 Number_Address: item.Number_Address ? item.Number_Address : null,
                                 Description: item.Description ? item.Description : null,
                                 UserID: item.UserID ? item.UserID : null,
@@ -148,19 +160,29 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mMailmergeCampaign(db).findOne({
-                where: { ID: body.ID },
-            }).then(data => {
+            let Mailmerge = mMailmergeCampaign(db);
+            Mailmerge.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User_Name' });
+            Mailmerge.belongsTo(mTemplate(db), { foreignKey: 'Template_ID', sourceKey: 'Template_ID', as: 'Tempalte_Name' });
+
+            Mailmerge.findOne({
+                include: [
+                    { model: mUser(db), required: false, as: 'User_Name' },
+                    { model: mTemplate(db), required: false, as: 'Tempalte_Name' }
+                ],
+                where: { ID: body.ID }
+            }).then(async data => {
                 if (data) {
                     obj = {
                         ID: data.ID,
                         Name: data.Name ? data.Name : null,
                         Template_ID: data.Template_ID ? data.Template_ID : null,
+                        Tempalte_Name: data.Tempalte_Name ? data.Tempalte_Name.Name : "",
                         Create_Date: mModules.toDatetime(data.Create_Date) ? data.Create_Date : null,
                         Create_User: data.Create_User ? data.Create_User : null,
                         Number_Address: data.Number_Address ? data.Number_Address : null,
                         Description: data.Description ? data.Description : null,
                         UserID: data.UserID ? data.UserID : null,
+                        User_Name: data.User_Name ? data.User_Name.Name : "",
                         TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
                         TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
                         TimeCreate: mModules.toDatetime(data.TimeCreate),
@@ -173,6 +195,7 @@ module.exports = {
                     }
                     res.json(result);
                 }
+
                 else {
                     var result = {
                         status: Constant.STATUS.FAIL,
@@ -186,16 +209,30 @@ module.exports = {
     deleteMailmergeCampaign: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mMailmergeCampaign(db).destroy({ where: { ID: body.ID } }).then(() => {
-                res.json(Result.ACTION_SUCCESS);
-            }, err => {
-                var result = {
-                    status: Constant.STATUS.FAIL,
-                    message: Constant.MESSAGE.BINDING_ERROR,
-                    ojb: err.fields
-                }
-                res.json(result);
-            });
+
+            if (body.MailmergeCampaignIDs) {
+                let listMailmergeCampaign = body.MailmergeCampaignIDs;
+                let listMailmergeCampaignID = [];
+                listMailmergeCampaign.forEach(item => {
+                    listMailmergeCampaignID.push(Number(item + ""));
+                });
+
+                mUser(db).findOne({ where: { ID: body.userID } }).then(async user => {
+                    if (user.Roles == Constant.USER_ROLE.MANAGER) {
+                        await mMailmergeCampaign(db).destroy(
+                            {
+                                where: {
+                                    [Op.or]: {
+                                        ID: { [Op.in]: listMailmergeCampaignID }
+                                    }
+                                }
+                            },
+                        ).then(() => {
+                            res.json(Result.ACTION_SUCCESS);
+                        });
+                    }
+                });
+            }
         })
     },
 
@@ -203,8 +240,14 @@ module.exports = {
     getListMailmergeTemplate: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mTemplate(db).count().then(all => {
-                mTemplate(db).findAll({
+            let Template = mTemplate(db);
+            Template.belongsTo(mAdditionalInformation(db), { foreignKey: 'dataID', sourceKey: 'dataID', as: 'dataName' });
+
+            Template.count().then(all => {
+                Template.findAll({
+                    include: [
+                        { model: mAdditionalInformation(db), required: false, as: 'dataName' }
+                    ],
                     order: [['TimeCreate', 'DESC']],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
@@ -217,6 +260,7 @@ module.exports = {
                                 Name: item.Name,
                                 body: item.body ? item.body : null,
                                 dataID: item.dataID ? item.dataID : null,
+                                dataName: item.dataName ? item.dataName.OurRef : "",
                                 TimeStart: mModules.toDatetime(item.timeStart) ? item.timeStart : null,
                                 TimeRemind: mModules.toDatetime(item.timeRemind) ? item.timeRemind : null,
                                 TimeCreate: mModules.toDatetime(item.TimeCreate),
@@ -318,7 +362,13 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mTemplate(db).findOne({
+            let Template = mTemplate(db);
+            Template.belongsTo(mAdditionalInformation(db), { foreignKey: 'dataID', sourceKey: 'dataID', as: 'dataName' });
+
+            Template.findOne({
+                include: [
+                    { model: mAdditionalInformation(db), required: false, as: 'dataName' }
+                ],
                 where: { ID: body.ID },
             }).then(data => {
                 if (data) {
@@ -327,6 +377,7 @@ module.exports = {
                         Name: data.Name,
                         body: data.body ? data.body : null,
                         dataID: data.dataID ? data.dataID : null,
+                        dataName: data.dataName ? data.dataName.OurRef : "",
                         TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
                         TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
                         TimeCreate: mModules.toDatetime(data.TimeCreate),
@@ -353,16 +404,40 @@ module.exports = {
     deleteMailmergeTemplate: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mTemplate(db).destroy({ where: { ID: body.ID } }).then(() => {
-                res.json(Result.ACTION_SUCCESS);
-            }, err => {
-                var result = {
-                    status: Constant.STATUS.FAIL,
-                    message: Constant.MESSAGE.BINDING_ERROR,
-                    ojb: err.fields
-                }
-                res.json(result);
-            });
+
+            if (body.MailmergeTemplateIDs) {
+                let listMailmergeTemplate = body.MailmergeTemplateIDs;
+                let listMailmergeTemplateID = [];
+                listMailmergeTemplate.forEach(item => {
+                    listMailmergeTemplateID.push(Number(item + ""));
+                });
+
+                mTemplate(db).findOne({ where: { ID: body.userID } }).then(async user => {
+                    // if (user.Roles == Constant.USER_ROLE.MANAGER) {
+                    let update = [];
+                    update.Template_ID = null;
+                    await mMailmergeCampaign(db).update(update,
+                        {
+                            where: {
+                                [Op.or]: {
+                                    Template_ID: { [Op.in]: listMailmergeTemplateID }
+                                }
+                            }
+                        });
+                    await mTemplate(db).destroy(
+                        {
+                            where: {
+                                [Op.or]: {
+                                    ID: { [Op.in]: listMailmergeTemplateID }
+                                }
+                            }
+                        },
+                    ).then(() => {
+                        res.json(Result.ACTION_SUCCESS);
+                    });
+                    // }
+                });
+            }
         })
     },
     getAllMailmergeTemplate: (req, res) => {//take this list for dropdown
