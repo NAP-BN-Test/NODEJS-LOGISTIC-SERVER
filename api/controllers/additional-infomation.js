@@ -6,8 +6,8 @@ const Result = require('../constants/result');
 var moment = require('moment');
 
 var database = require('../db');
-var user = require('../controllers/user');
-const modules = require('../constants/modules');
+let mUser = require('../tables/user');
+var mModules = require('../constants/modules');
 
 let mAdditionalInformation = require('../tables/additional-infomation');
 
@@ -15,8 +15,16 @@ module.exports = {
     getListAdditionalInformation: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mAdditionalInformation(db).count().then(all => {
-                mAdditionalInformation(db).findAll({
+            let AdditionalInformation = mAdditionalInformation(db);
+            AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
+            AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
+
+            AdditionalInformation.count().then(all => {
+                AdditionalInformation.findAll({
+                    include: [
+                        { model: mUser(db), required: false, as: 'User' },
+                        { model: mUser(db), required: false, as: 'Owner' }
+                    ],
                     order: [['TimeCreate', 'DESC']],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage)
@@ -34,6 +42,7 @@ module.exports = {
                                 FilingDate: item.FilingDate ? item.FilingDate : null,
                                 PriorTrademark: item.PriorTrademark ? item.PriorTrademark : null,
                                 OwnerID: item.OwnerID ? item.OwnerID : null,
+                                Owner: item.Owner ? item.Owner.Name : "",
                                 RedNo: item.RedNo ? item.RedNo : null,
                                 ClassB: item.ClassB ? item.ClassB : null,
                                 Firm: item.Firm ? item.Firm : null,
@@ -44,6 +53,7 @@ module.exports = {
                                 Status: item.Status ? item.Status : null,
                                 Rerminder: item.Rerminder ? item.Rerminder : null,
                                 UserID: item.UserID ? item.UserID : null,
+                                UserName: item.User ? item.User.Name : "",
                                 TimeStart: mModules.toDatetime(item.timeStart) ? item.timeStart : null,
                                 TimeRemind: mModules.toDatetime(item.timeRemind) ? item.timeRemind : null,
                                 TimeCreate: mModules.toDatetime(item.TimeCreate),
@@ -206,7 +216,14 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mAdditionalInformation(db).findOne({
+            let AdditionalInformation = mAdditionalInformation(db);
+            AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
+            AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
+            AdditionalInformation.findOne({
+                include: [
+                    { model: mUser(db), required: false, as: 'User' },
+                    { model: mUser(db), required: false, as: 'Owner' }
+                ],
                 where: { ID: body.ID },
             }).then(data => {
                 if (data) {
@@ -220,6 +237,7 @@ module.exports = {
                         FilingDate: data.FilingDate ? data.FilingDate : null,
                         PriorTrademark: data.PriorTrademark ? data.PriorTrademark : null,
                         OwnerID: data.OwnerID ? data.OwnerID : null,
+                        Owner: data.Owner ? data.Owner.Name : "",
                         RedNo: data.RedNo ? data.RedNo : null,
                         ClassB: data.ClassB ? data.ClassB : null,
                         Firm: data.Firm ? data.Firm : null,
@@ -230,6 +248,7 @@ module.exports = {
                         Status: data.Status ? data.Status : null,
                         Rerminder: data.Rerminder ? data.Rerminder : null,
                         UserID: data.UserID ? data.UserID : null,
+                        UserName: data.User ? data.User.Name : "",
                         TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
                         TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
                         TimeCreate: mModules.toDatetime(data.TimeCreate),
@@ -256,16 +275,30 @@ module.exports = {
     deleteAdditionalInformation: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mAdditionalInformation(db).destroy({ where: { ID: body.ID } }).then(() => {
-                res.json(Result.ACTION_SUCCESS);
-            });
-        }, err => {
-            var result = {
-                status: Constant.STATUS.FAIL,
-                message: Constant.MESSAGE.BINDING_ERROR,
-                ojb: err.fields
+
+            if (body.AdditionalInformationIDs) {
+                let listAdditionalInformation = body.AdditionalInformationIDs;
+                let listAdditionalInformationID = [];
+                listAdditionalInformation.forEach(item => {
+                    listAdditionalInformationID.push(Number(item + ""));
+                });
+
+                mUser(db).findOne({ where: { ID: body.userID } }).then(async user => {
+                    if (user.Roles == Constant.USER_ROLE.MANAGER) {
+                        await mAdditionalInformation(db).destroy(
+                            {
+                                where: {
+                                    [Op.or]: {
+                                        ID: { [Op.in]: listAdditionalInformationID }
+                                    }
+                                }
+                            },
+                        ).then(() => {
+                            res.json(Result.ACTION_SUCCESS);
+                        });
+                    }
+                });
             }
-            res.json(result);
-        });
+        })
     },
 }
