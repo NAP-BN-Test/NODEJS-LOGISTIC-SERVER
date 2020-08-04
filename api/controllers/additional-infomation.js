@@ -229,6 +229,7 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let AdditionalInformation = mAdditionalInformation(db);
+
             AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
             AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
             AdditionalInformation.findOne({
@@ -270,7 +271,7 @@ module.exports = {
                     var result = {
                         status: Constant.STATUS.SUCCESS,
                         message: '',
-                        obj: obj
+                        array: obj
                     }
                     res.json(result);
                 }

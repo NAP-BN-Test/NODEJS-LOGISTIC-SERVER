@@ -321,7 +321,10 @@ module.exports = function (app) {
     app.route('/crm/get_all_additional_infomation').post(infomation.getAllAdditionalInformation);
 
     // handle create additional-information
-    app.route('/crm/add_maillist_and_infomation').post(mailmerge.getDatafromInfomation);
+    app.route('/crm/get_all_data_maillist').post(mailmerge.getDatafromInformation);
+
+    var handle_body = require('./controllers/handle_body');
+    app.route('/crm/test').post(handle_body.handlePushDataToBody);
 
 
 };

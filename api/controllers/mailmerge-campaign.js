@@ -272,12 +272,13 @@ module.exports = {
     //         }
     //     })
     // },
-    getDatafromInfomation: (req, res) => {
+    getDatafromInformation: (req, res) => {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             var mail_list_detail = [];
-            var infomation = [];
+            var information = [];
+            console.log(body.MailListID);
             if (body.MailListID) {
                 var MailList = await mMailList(db).findAll({
                     where: {
@@ -293,14 +294,14 @@ module.exports = {
                 })
                 add_info = await getAdditionalInfomation(db, ListDataId)
                 add_info.forEach(inf => {
-                    infomation.push(inf.dataValues);
+                    information.push(inf.dataValues);
                 })
                 let result = {
                     status: Constant.STATUS.SUCCESS,
                     message: '',
                     name_mail_list: MailList[0].dataValues.Name,
                     mail_list_detail,
-                    infomation
+                    information
                 }
                 res.json(result);
             }
