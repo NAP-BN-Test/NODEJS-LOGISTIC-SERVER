@@ -9,6 +9,8 @@ var database = require('../db');
 
 var mMailList = require('../tables/mail-list');
 var mMailListDetail = require('../tables/mail-list-detail');
+let mAdditionalInformation = require('../tables/additional-infomation');
+let mTemplate = require('../tables/template');
 
 var mMailCampain = require('../tables/mail-campain');
 var mMailResponse = require('../tables/mail-response');
@@ -112,12 +114,15 @@ module.exports = {
 
                 var mailListDetail = mMailListDetail(db);
                 mailListDetail.belongsTo(mUser(db), { foreignKey: 'OwnerID' });
+                mailListDetail.belongsTo(mAdditionalInformation(db), { foreignKey: 'DataID', sourceKey: 'ID', as: 'Data' });
                 mailListDetail.hasMany(mMailResponse(db), { foreignKey: 'MailListDetailID' });
 
                 var mMailListDetailData = await mailListDetail.findAll({
                     where: { MailListID: body.mailListID },
                     include: [
                         { model: mUser(db) },
+                        { model: mMailResponse(db) },
+                        { model: mAdditionalInformation(db), required: false, as: 'Data' },
                         {
                             model: mMailResponse(db),
                             required: false,
@@ -143,7 +148,9 @@ module.exports = {
                         owner: item.User.Name,
                         createTime: mModules.toDatetime(item.TimeCreate),
                         mailCount: item.MailResponses.length,
-                        contactName: item.Name
+                        contactName: item.Name,
+                        DataID: item.DataID ? item.DataID : null,
+                        DataName: item.Data ? item.Data.OurRef : null
                     })
                 })
                 var result = {
@@ -175,16 +182,42 @@ module.exports = {
 
                 var mailCampain = mMailCampain(db);
                 mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' });
+                mailCampain.belongsTo(mTemplate(db), { foreignKey: 'TemplateID', sourceKey: 'TemplateID', as: 'Template' });
 
-                var mailCampainData = await mailCampain.findAll({
-                    where: where,
-                    include: { model: mUser(db) },
-                    order: [
-                        ['TimeCreate', 'DESC']
-                    ],
-                    offset: Number(body.itemPerPage) * (Number(body.page) - 1),
-                    limit: Number(body.itemPerPage)
-                });
+
+                if (body.Type == 'MailMerge') {
+                    var mailCampainData = await mailCampain.findAll({
+                        where: [
+                            where,
+                            { Type: 'MailMerge' }
+                        ],
+                        include: [
+                            { model: mUser(db) },
+                            { model: mTemplate(db), required: false, as: 'Template' }
+                        ],
+                        order: [
+                            ['TimeCreate', 'DESC']
+                        ],
+                        offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                        limit: Number(body.itemPerPage)
+                    });
+                } else {
+                    var mailCampainData = await mailCampain.findAll({
+                        where: [
+                            where,
+                            { Type: 'MailList' }
+                        ],
+                        include: [
+                            { model: mUser(db) },
+                            { model: mTemplate(db), required: false, as: 'Template' }
+                        ],
+                        order: [
+                            ['TimeCreate', 'DESC']
+                        ],
+                        offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                        limit: Number(body.itemPerPage)
+                    });
+                }
 
                 var mailCampainCount = await mailCampain.count();
 
@@ -196,7 +229,11 @@ module.exports = {
                         subject: item.Subject,
                         owner: item.User.Name,
                         createTime: mModules.toDatetime(item.TimeCreate),
-                        nearestSend: '2020-05-30 14:00'
+                        nearestSend: '2020-05-30 14:00',
+                        TemplateID: item.TemplateID,
+                        TemplateName: item.Template ? item.Template.Name : '',
+                        NumberAddressBook: item.NumberAddressBook,
+                        Description: item.Description
                     })
                 })
 
@@ -208,6 +245,7 @@ module.exports = {
                 }
                 res.json(result);
             } catch (error) {
+                console.log(error);
                 res.json(Result.SYS_ERROR_RESULT)
             }
 
@@ -226,7 +264,6 @@ module.exports = {
                 var mailCampain = mMailCampain(db);
                 mailCampain.belongsTo(mUser(db), { foreignKey: 'OwnerID' });
                 mailCampain.belongsTo(mMailList(db), { foreignKey: 'MailListID' });
-
                 var mailCampainData = await mailCampain.findOne({
                     where: { ID: body.campainID },
                     include: [
@@ -244,7 +281,9 @@ module.exports = {
                     endTime: mailCampainData.TimeEnd,
                     body: mailCampainData.Body,
                     mailListID: Number(mailCampainData.MailListID),
-                    mailListName: mailCampainData.MailList.Name ? mailCampainData.MailList.Name : ""
+                    mailListName: mailCampainData.MailList.Name ? mailCampainData.MailList.Name : "",
+                    Description: mailCampainData.Description,
+                    Type: mailCampainData.Type
                 }
 
                 var result = {
@@ -285,7 +324,7 @@ module.exports = {
                             Email: mailItem,
                             OwnerID: body.userID,
                             TimeCreate: now,
-                            MailListID: mailList.ID
+                            MailListID: mailList.ID,
                         })
                     })
 
@@ -382,7 +421,8 @@ module.exports = {
                             Name: mailItem.name,
                             OwnerID: Number(body.userID),
                             TimeCreate: now,
-                            MailListID: Number(body.mailListID)
+                            MailListID: Number(body.mailListID),
+                            dataID: Number(body.DataID)
                         })
                 })
 
@@ -470,15 +510,20 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
                 let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
-
-                mailCampainData = await mMailCampain(db).create({
+                data = {
                     Name: body.name,
-                    Subject: body.subject,
                     TimeCreate: now,
                     TimeEnd: moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS'),
                     OwnerID: Number(body.userID),
-                    MailListID: Number(body.mailListID),
-                })
+                    Type: body.Type
+                }
+                if (body.Type === "MailList") {
+                    data['MailListID'] = Number(body.mailListID) ? body.mailListID : null;
+                    data['Subject'] = body.subject ? body.subject : null;
+                } else {
+                    data['TemplateID'] = body.TemplateID ? body.TemplateID : null;
+                }
+                mailCampainData = await mMailCampain(db).create(data)
 
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -488,7 +533,7 @@ module.exports = {
                 res.json(result);
 
             } catch (error) {
-                console.log(error);
+                console.log(error + "");
                 res.json(Result.SYS_ERROR_RESULT)
             }
 
@@ -670,16 +715,25 @@ module.exports = {
                 if (body.body) {
                     update.push({ key: 'Body', value: body.body });
                 }
-                if (body.mailListID)
-                    update.push({ key: 'MailListID', value: body.mailListID });
+                if (body.Type == 'MailList') {
+                    if (body.mailListID)
+                        update.push({ key: 'MailListID', value: body.mailListID });
+                } else {
+                    if (body.TemplateID)
+                        update.push({ key: 'TemplateID', value: body.TemplateID });
+                    if (body.Description)
+                        update.push({ key: 'Description', value: body.Description });
+                    if (body.NumberAddressBook)
+                        update.push({ key: 'NumberAddressBook', value: Number(body.NumberAddressBook) });
 
+                }
                 database.updateTable(update, mMailCampain(db), body.campainID).then(mailCampainRes => {
                     if (mailCampainRes == 1) {
                         res.json(Result.ACTION_SUCCESS);
                     }
                 })
             } catch (error) {
-                console.log(error);
+                console.log(error + "");
                 res.json(Result.SYS_ERROR_RESULT)
             }
 

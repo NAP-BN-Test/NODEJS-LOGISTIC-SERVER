@@ -11,6 +11,7 @@ module.exports = function (db) {
         OwnerID: Sequelize.BIGINT,
         TimeCreate: Sequelize.NOW,
         MailListID: Sequelize.BIGINT,
+        DataID: Sequelize.BIGINT,
         Name: Sequelize.STRING,
     });
 

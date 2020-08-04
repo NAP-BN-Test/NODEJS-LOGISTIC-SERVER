@@ -9,7 +9,6 @@ module.exports = function (db) {
         },
         Name: Sequelize.STRING,
         body: Sequelize.TEXT,
-        dataID: Sequelize.BIGINT,
         TimeCreate: Sequelize.NOW,
         TimeStart: Sequelize.NOW,
         Description: Sequelize.STRING,

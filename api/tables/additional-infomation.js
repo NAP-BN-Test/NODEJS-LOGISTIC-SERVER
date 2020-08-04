@@ -11,7 +11,7 @@ module.exports = function (db) {
         OurRef: Sequelize.STRING,
         PAT: Sequelize.STRING,
         Applicant: Sequelize.STRING,
-        ApplicantNo: Sequelize.STRING,
+        ApplicationNo: Sequelize.STRING,
         ClassA: Sequelize.STRING,
         FilingDate: Sequelize.DATE,
         PriorTrademark: Sequelize.STRING,

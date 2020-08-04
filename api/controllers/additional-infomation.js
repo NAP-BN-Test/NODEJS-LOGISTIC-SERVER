@@ -10,6 +10,8 @@ let mUser = require('../tables/user');
 var mModules = require('../constants/modules');
 
 let mAdditionalInformation = require('../tables/additional-infomation');
+var mMailListDetail = require('../tables/mail-list-detail');
+
 
 module.exports = {
     getListAdditionalInformation: (req, res) => {
@@ -37,7 +39,7 @@ module.exports = {
                                 OurRef: item.OurRef ? item.OurRef : null,
                                 PAT: item.PAT ? item.PAT : null,
                                 Applicant: item.Create_ApplicantDate ? item.Applicant : null,
-                                ApplicantNo: item.ApplicantNo ? item.ApplicantNo : null,
+                                ApplicationNo: item.ApplicationNo ? item.ApplicationNo : null,
                                 ClassA: item.ClassA ? item.ClassA : null,
                                 FilingDate: item.FilingDate ? item.FilingDate : null,
                                 PriorTrademark: item.PriorTrademark ? item.PriorTrademark : null,
@@ -83,7 +85,7 @@ module.exports = {
                 OurRef: body.OurRef ? body.OurRef : null,
                 PAT: body.PAT ? body.PAT : null,
                 Applicant: body.Create_ApplicantDate ? body.Applicant : null,
-                ApplicantNo: body.ApplicantNo ? body.ApplicantNo : null,
+                ApplicationNo: body.ApplicationNo ? body.ApplicationNo : null,
                 ClassA: body.ClassA ? body.ClassA : null,
                 FilingDate: body.FilingDate ? body.FilingDate : null,
                 PriorTrademark: body.PriorTrademark ? body.PriorTrademark : null,
@@ -103,12 +105,12 @@ module.exports = {
                 TimeCreate: now,
                 TimeUpdate: now,
                 Description: body.description,
-            }).then(data => {
+            }).then(async data => {
                 obj = {
                     OurRef: data.OurRef ? data.OurRef : null,
                     PAT: data.PAT ? data.PAT : null,
                     Applicant: data.Create_ApplicantDate ? data.Applicant : null,
-                    ApplicantNo: data.ApplicantNo ? data.ApplicantNo : null,
+                    ApplicationNo: data.ApplicationNo ? data.ApplicationNo : null,
                     ClassA: data.ClassA ? data.ClassA : null,
                     FilingDate: data.FilingDate ? data.FilingDate : null,
                     PriorTrademark: data.PriorTrademark ? data.PriorTrademark : null,
@@ -134,6 +136,16 @@ module.exports = {
                     message: Constant.MESSAGE.ACTION_SUCCESS,
                     obj: obj
                 }
+                await mMailListDetail(db).create({
+                    Email: data.Email ? data.Email : null,
+                    OwnerID: data.UserID ? data.UserID : null,
+                    TimeCreate: mModules.toDatetime(data.TimeCreate),
+                    MailListID: body.MailListID,
+                    Name: data.OurRef ? data.OurRef : null,
+                    DataID: data.ID,
+                }).then(data => {
+                    console.log(data.ID);
+                })
                 res.json(result);
             }, err => {
                 var result = {
@@ -159,8 +171,8 @@ module.exports = {
                     update.push({ key: 'PAT', value: body.PAT });
                 if (body.Applicant)
                     update.push({ key: 'Applicant', value: body.Applicant });
-                if (body.ApplicantNo)
-                    update.push({ key: 'ApplicantNo', value: body.ApplicantNo });
+                if (body.ApplicationNo)
+                    update.push({ key: 'ApplicationNo', value: body.ApplicationNo });
                 if (body.ClassA)
                     update.push({ key: 'ClassA', value: body.ClassA });
                 if (body.FilingDate)
@@ -232,7 +244,7 @@ module.exports = {
                         OurRef: data.OurRef ? data.OurRef : null,
                         PAT: data.PAT ? data.PAT : null,
                         Applicant: data.Create_ApplicantDate ? data.Applicant : null,
-                        ApplicantNo: data.ApplicantNo ? data.ApplicantNo : null,
+                        ApplicationNo: data.ApplicationNo ? data.ApplicationNo : null,
                         ClassA: data.ClassA ? data.ClassA : null,
                         FilingDate: data.FilingDate ? data.FilingDate : null,
                         PriorTrademark: data.PriorTrademark ? data.PriorTrademark : null,
@@ -277,7 +289,7 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
             if (body.AdditionalInformationIDs) {
-                let listAdditionalInformation = body.AdditionalInformationIDs;
+                let listAdditionalInformation = JSON.parse(body.AdditionalInformationIDs);
                 let listAdditionalInformationID = [];
                 listAdditionalInformation.forEach(item => {
                     listAdditionalInformationID.push(Number(item + ""));
@@ -299,6 +311,29 @@ module.exports = {
                     }
                 });
             }
+        })
+    },
+    getAllAdditionalInformation: (req, res) => {//take this list for dropdown
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            mAdditionalInformation(db).findAll().then(data => {
+                var array = [];
+
+                data.forEach(elm => {
+                    array.push({
+                        id: elm['ID'],
+                        OurRef: elm['OurRef'],
+                    })
+                });
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array: array
+                }
+                res.json(result)
+            })
+
         })
     },
 }

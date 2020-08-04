@@ -301,15 +301,6 @@ module.exports = function (app) {
     app.route('/crm/add_history').post(history.addHistory);
     app.route('/crm/delete_history').post(history.deleteHistory);
 
-    // mailmerge
-
-    var mailmerge = require('./controllers/mailmerge-campaign');
-    app.route('/crm/add_mailmerge_campaign').post(mailmerge.addMailmergeCampaign);
-    app.route('/crm/get_detail_mailmerge_campaign').post(mailmerge.getDetailMailmergeCampaign);
-    app.route('/crm/delete_mailmerge_campaign').post(mailmerge.deleteMailmergeCampaign);
-    app.route('/crm/update_mailmerge_campaign').post(mailmerge.updateMailmergeCampaign);
-    app.route('/crm/get_list_mailmerge_campaign').post(mailmerge.getListMailmergeCampaign);
-
     // template
 
     var mailmerge = require('./controllers/mailmerge-campaign');
@@ -327,5 +318,10 @@ module.exports = function (app) {
     app.route('/crm/delete_additional_infomation').post(infomation.deleteAdditionalInformation);
     app.route('/crm/update_additional_infomation').post(infomation.updateAdditionalInformation);
     app.route('/crm/get_list_additional_infomation').post(infomation.getListAdditionalInformation);
+    app.route('/crm/get_all_additional_infomation').post(infomation.getAllAdditionalInformation);
+
+    // handle create additional-information
+    app.route('/crm/add_maillist_and_infomation').post(mailmerge.getDatafromInfomation);
+
 
 };

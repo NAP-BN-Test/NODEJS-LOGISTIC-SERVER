@@ -12,7 +12,11 @@ module.exports = function (db) {
         TimeCreate: Sequelize.NOW,
         OwnerID: Sequelize.BIGINT,
         MailListID: Sequelize.BIGINT,
+        TemplateID: Sequelize.BIGINT,
+        NumberAddressBook: Sequelize.INTEGER,
         Body: Sequelize.STRING,
+        Description: Sequelize.STRING,
+        Type: Sequelize.STRING
     });
 
     return table;
