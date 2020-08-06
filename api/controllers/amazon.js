@@ -42,16 +42,15 @@ module.exports = {
         })
     },
 
-    checkVerifyEmail: (req, res) => { //take this list for dropdown
+    checkVerifyEmail: async (req, res) => { //take this list for dropdown
         let body = req.body;
-
 
         if (body.email) {
             var ses = new AWS.SES();
             var params = {
                 Identities: [body.email]
             };
-            ses.getIdentityVerificationAttributes(params, function (err, data) {
+            await ses.getIdentityVerificationAttributes(params, function (err, data) {
                 if (err) {
                     console.log(err, err.stack);
                     res.json(Result.SYS_ERROR_RESULT);
@@ -66,10 +65,10 @@ module.exports = {
                 }
             });
         }
+        else res.json(Result.NO_PERMISSION);
     },
 
     verifyEmail: (req, res) => { //take this list for dropdown
-        let body = req.body;
         if (body.email) {
             var ses = new AWS.SES();
             var params = {

@@ -603,7 +603,7 @@ module.exports = {
 
                 if (body.isTestMail) {
                     mAmazon.sendEmail(body.myMail, body.myMail, body.subject, body.body);
-                    res.json(Result.ACTION_SUCCESS)
+                    res.json(Result.ACTION_SUCCESS);
                 } else {
                     var mailListDetailData = await mMailListDetail(db).findAll({
                         where: { MailListID: body.mailListID }

@@ -313,18 +313,18 @@ module.exports = function (app) {
 
     // additional-infomation
     var infomation = require('./controllers/additional-infomation');
-    app.route('/crm/add_additional_infomation').post(infomation.addAdditionalInformation);
-    app.route('/crm/get_detail_additional_infomation').post(infomation.getDetailAdditionalInformation);
-    app.route('/crm/delete_additional_infomation').post(infomation.deleteAdditionalInformation);
-    app.route('/crm/update_additional_infomation').post(infomation.updateAdditionalInformation);
-    app.route('/crm/get_list_additional_infomation').post(infomation.getListAdditionalInformation);
-    app.route('/crm/get_all_additional_infomation').post(infomation.getAllAdditionalInformation);
+    app.route('/crm/add_additional_information').post(infomation.addAdditionalInformation);
+    app.route('/crm/get_detail_additional_information').post(infomation.getDetailAdditionalInformation);
+    app.route('/crm/delete_additional_information').post(infomation.deleteAdditionalInformation);
+    app.route('/crm/update_additional_information').post(infomation.updateAdditionalInformation);
+    app.route('/crm/get_list_additional_information').post(infomation.getListAdditionalInformation);
+    app.route('/crm/get_all_additional_information').post(infomation.getAllAdditionalInformation);
 
     // handle create additional-information
     app.route('/crm/get_all_data_maillist').post(mailmerge.getDatafromInformation);
 
-    var handle_body = require('./controllers/handle_body');
-    app.route('/crm/test').post(handle_body.handlePushDataToBody);
+    var handle_body = require('./controllers/send_maillist');
+    app.route('/crm/test').post(handle_body.sendMailList);
 
 
 };

@@ -8,6 +8,9 @@ var moment = require('moment');
 var database = require('../db');
 let mUser = require('../tables/user');
 var mModules = require('../constants/modules');
+var mAmazon = require('../controllers/amazon');
+var mCheckMail = require('../controllers/check-mail');
+
 
 let mAdditionalInformation = require('../tables/additional-infomation');
 var mMailListDetail = require('../tables/mail-list-detail');
@@ -41,7 +44,7 @@ module.exports = {
                                 Applicant: item.Create_ApplicantDate ? item.Applicant : null,
                                 ApplicationNo: item.ApplicationNo ? item.ApplicationNo : null,
                                 ClassA: item.ClassA ? item.ClassA : null,
-                                FilingDate: item.FilingDate ? item.FilingDate : null,
+                                FilingDate: moment(item.FilingDate).format('DD-MM-YYYY') ? item.FilingDate : null,
                                 PriorTrademark: item.PriorTrademark ? item.PriorTrademark : null,
                                 OwnerID: item.OwnerID ? item.OwnerID : null,
                                 Owner: item.Owner ? item.Owner.Name : "",
@@ -79,8 +82,13 @@ module.exports = {
     addAdditionalInformation: (req, res) => {
         let body = req.body;
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            let errorEmail = '';
+            await mCheckMail.checkEmail(body.Email).then(async (checkMailRes) => {
+                if (checkMailRes == false) {
+                    errorEmail = Constant.MAIL_RESPONSE_TYPE.INVALID;
+                }
+            })
             mAdditionalInformation(db).create({
                 OurRef: body.OurRef ? body.OurRef : null,
                 PAT: body.PAT ? body.PAT : null,
@@ -134,7 +142,9 @@ module.exports = {
                 var result = {
                     status: Constant.STATUS.SUCCESS,
                     message: Constant.MESSAGE.ACTION_SUCCESS,
-                    obj: obj
+                    obj: obj,
+                    emailExist: true ? errorEmail === '' : false
+
                 }
                 await mMailListDetail(db).create({
                     Email: data.Email ? data.Email : null,
@@ -151,7 +161,8 @@ module.exports = {
                 var result = {
                     status: Constant.STATUS.FAIL,
                     message: Constant.MESSAGE.BINDING_ERROR,
-                    ojb: err.fields
+                    ojb: err.fields,
+                    emailExist: true ? errorEmail === '' : false
                 }
                 res.json(result);
             })
@@ -159,61 +170,64 @@ module.exports = {
     },
     updateAdditionalInformation: (req, res) => {
         let body = req.body;
+        console.log(body);
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-
+            let errorEmail = '';
+            await mCheckMail.checkEmail(body.Email).then(async (checkMailRes) => {
+                if (checkMailRes == false) {
+                    errorEmail = Constant.MAIL_RESPONSE_TYPE.INVALID;
+                }
+            })
             try {
                 let update = [];
-                if (body.OurRef)
+                if (body.OurRef !== 'null')
                     update.push({ key: 'OurRef', value: body.OurRef });
-                if (body.PAT)
+                if (body.PAT !== 'null')
                     update.push({ key: 'PAT', value: body.PAT });
-                if (body.Applicant)
+                if (body.Applicant !== 'null')
                     update.push({ key: 'Applicant', value: body.Applicant });
-                if (body.ApplicationNo)
+                if (body.ApplicationNo !== 'null')
                     update.push({ key: 'ApplicationNo', value: body.ApplicationNo });
-                if (body.ClassA)
+                if (body.ClassA !== 'null')
                     update.push({ key: 'ClassA', value: body.ClassA });
-                if (body.FilingDate)
-                    update.push({ key: 'FilingDate', value: body.FilingDate });
-                if (body.PriorTrademark)
+                if (body.FilingDate !== 'Invalid date') {
+                    let time = moment(body.FilingDate).format('YYYY-MM-DD');
+                    update.push({ key: 'FilingDate', value: time });
+                }
+                if (body.PriorTrademark !== 'null')
                     update.push({ key: 'PriorTrademark', value: body.PriorTrademark });
-                if (body.OwnerID)
+                if (body.OwnerID !== 'null')
                     update.push({ key: 'OwnerID', value: body.OwnerID });
-                if (body.RedNo)
+                if (body.RedNo !== 'null')
                     update.push({ key: 'RedNo', value: body.RedNo });
-                if (body.ClassB)
+                if (body.ClassB !== 'null')
                     update.push({ key: 'ClassB', value: body.ClassB });
-                if (body.Firm)
+                if (body.Firmb !== 'null')
                     update.push({ key: 'Firm', value: body.Firm });
-                if (body.Address)
+                if (body.Address !== 'null')
                     update.push({ key: 'Address', value: body.Address });
-                if (body.Tel)
+                if (body.Tel !== 'null')
                     update.push({ key: 'Tel', value: body.Tel });
-                if (body.Fax)
+                if (body.Fax !== 'null')
                     update.push({ key: 'Fax', value: body.Fax });
-                if (body.Email)
+                if (errorEmail === '')
                     update.push({ key: 'Email', value: body.Email });
-                if (body.Status)
+                if (body.Status !== 'null')
                     update.push({ key: 'Status', value: body.Status });
-                if (body.Rerminder)
+                if (body.Rerminder !== 'null')
                     update.push({ key: 'Rerminder', value: body.Rerminder });
-                if (body.UserID)
-                    update.push({ key: 'UserID', value: body.UserID });
-                if (body.TimeRemind)
-                    update.push({ key: 'TimeRemind', value: body.TimeRemind });
-                if (body.TimeUpdate)
-                    update.push({ key: 'TimeUpdate', value: body.TimeUpdate });
-                if (body.TimeCreate)
-                    update.push({ key: 'TimeCreate', value: body.TimeCreate });
-                if (body.Description)
+                if (body.userID)
+                    update.push({ key: 'UserID', value: body.userID });
+                if (body.Description !== 'null')
                     update.push({ key: 'Description', value: body.Description });
 
                 database.updateTable(update, mAdditionalInformation(db), body.ID).then(response => {
                     if (response == 1) {
+                        Result.ACTION_SUCCESS.emailExist = true ? errorEmail === '' : false
                         res.json(Result.ACTION_SUCCESS);
                     } else {
+                        Result.SYS_ERROR_RESULT.emailExist = true ? errorEmail === '' : false
                         res.json(Result.SYS_ERROR_RESULT);
                     }
                 })

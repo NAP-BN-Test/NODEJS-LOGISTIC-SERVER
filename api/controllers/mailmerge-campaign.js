@@ -1,10 +1,7 @@
 const Constant = require('../constants/constant');
 const Op = require('sequelize').Op;
-
 const Result = require('../constants/result');
-
 var moment = require('moment');
-
 var database = require('../db');
 let mMailmergeCampaign = require('../tables/mailmerge-campaign');
 let mAdditionalInformation = require('../tables/additional-infomation');
@@ -26,22 +23,67 @@ function getInfoFromMailListDetail(db, MailListID) {
     return MailListDetail
 }
 
-function getAdditionalInfomation(db, listID) {
-    var AdditionalInformation = mAdditionalInformation(db).findAll({
+async function getAdditionalInfomation(db, listID) {
+    let AdditionalInformation = mAdditionalInformation(db);
+
+    AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
+    AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
+    obj = []
+    await AdditionalInformation.findAll({
+        include: [
+            { model: mUser(db), required: false, as: 'User' },
+            { model: mUser(db), required: false, as: 'Owner' }
+        ],
         where: {
-            ID: {
-                [Op.in]: listID
+            [Op.or]: {
+                ID: { [Op.in]: listID }
             }
-        },
-        order: [
-            ['TimeCreate', 'DESC']
-        ]
+        }
+    }).then(result => {
+        if (result) {
+            result.forEach(data => {
+                let FilingDate = '';
+                if (data.FilingDate) {
+                    FilingDate = moment(data.FilingDate).format('DD-MM-YYYY');
+                }
+                obj.push({
+                    ID: data.ID,
+                    OurRef: data.OurRef ? data.OurRef : null,
+                    PAT: data.PAT ? data.PAT : null,
+                    Applicant: data.Create_ApplicantDate ? data.Applicant : null,
+                    ApplicationNo: data.ApplicationNo ? data.ApplicationNo : null,
+                    ClassA: data.ClassA ? data.ClassA : null,
+                    FilingDate: FilingDate,
+                    PriorTrademark: data.PriorTrademark ? data.PriorTrademark : null,
+                    OwnerID: data.OwnerID ? data.OwnerID : null,
+                    Owner: data.Owner ? data.Owner.Name : "",
+                    RedNo: data.RedNo ? data.RedNo : null,
+                    ClassB: data.ClassB ? data.ClassB : null,
+                    Firm: data.Firm ? data.Firm : null,
+                    Address: data.Address ? data.Address : null,
+                    Tel: data.Tel ? data.Tel : null,
+                    Fax: data.Fax ? data.Fax : null,
+                    Email: data.Email ? data.Email : null,
+                    Status: data.Status ? data.Status : null,
+                    Rerminder: data.Rerminder ? data.Rerminder : null,
+                    UserID: data.UserID ? data.UserID : null,
+                    UserName: data.User ? data.User.Name : "",
+                    TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
+                    TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
+                    TimeCreate: mModules.toDatetime(data.TimeCreate),
+                    TimeUpdate: mModules.toDatetime(data.TimeUpdate),
+                    Description: mModules.toDatetime(data.description)
+                })
+            })
+        }
     })
-    return AdditionalInformation
+    return obj;
 }
 
 module.exports = {
     // --------------------- Template -----------------------------------------------------------
+    getAdditionalInfomation,
+    getInfoFromMailListDetail,
     getListMailmergeTemplate: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
@@ -278,7 +320,6 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             var mail_list_detail = [];
             var information = [];
-            console.log(body.MailListID);
             if (body.MailListID) {
                 var MailList = await mMailList(db).findAll({
                     where: {
@@ -292,10 +333,7 @@ module.exports = {
                     if (item.dataValues.DataID)
                         ListDataId.push(item.dataValues.DataID);
                 })
-                add_info = await getAdditionalInfomation(db, ListDataId)
-                add_info.forEach(inf => {
-                    information.push(inf.dataValues);
-                })
+                information = await getAdditionalInfomation(db, ListDataId);
                 let result = {
                     status: Constant.STATUS.SUCCESS,
                     message: '',
