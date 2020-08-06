@@ -324,7 +324,7 @@ module.exports = function (app) {
     app.route('/crm/get_all_data_maillist').post(mailmerge.getDatafromInformation);
 
     var handle_body = require('./controllers/send_maillist');
-    app.route('/crm/test').post(handle_body.sendMailList);
+    app.route('/crm/send_mailmerge').post(handle_body.sendMailList);
 
 
 };
