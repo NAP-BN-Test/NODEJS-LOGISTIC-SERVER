@@ -34,11 +34,42 @@ var mModules = require('../constants/modules')
 
 
 module.exports = {
+    getListNameCompany: (req, res) => {
+
+        let body = req.body;
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            try {
+                user.checkUser(body.ip, body.dbName, body.userID).then(async role => {
+                    var data = await mCompany(db).findAll({
+                        order: [['ID', 'DESC']],
+                        limit: 1000,
+                    });
+                    var array = [];
+                    data.forEach(elm => {
+                        array.push({
+                            id: elm.ID,
+                            name: elm.Name,
+                        })
+                    });
+
+                    var result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                        array: array
+                    }
+                    res.json(result)
+                })
+
+            } catch (error) {
+                console.log(error);
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+        })
+    },
 
     getListCompany: (req, res) => {
 
         let body = req.body;
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
                 user.checkUser(body.ip, body.dbName, body.userID).then(async role => {

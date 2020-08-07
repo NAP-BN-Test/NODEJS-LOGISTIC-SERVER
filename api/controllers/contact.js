@@ -12,6 +12,7 @@ var mCompany = require('../tables/company');
 var mContact = require('../tables/contact');
 var mUser = require('../tables/user');
 var mUserFollow = require('../tables/user-follow');
+var mCategoryJobTitle = require('../tables/category-job-tile');
 
 var rmTaskAssciate = require('../tables/task-associate');
 var rmEmailAssciate = require('../tables/email-associate');
@@ -25,6 +26,76 @@ var rmDeal = require('../tables/deal');
 var mModules = require('../constants/modules')
 
 module.exports = {
+    getListContactFromCompanyID: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
+                if (user) {
+                    var contact = mContact(db);
+
+                    contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
+                    contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
+                    contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
+                    contact.belongsTo(mCategoryJobTitle(db), { foreignKey: 'JobTile', sourceKey: 'JobTile', as: 'JobTileID' });
+                    contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
+                    contact.findAll({
+                        include: [
+                            { model: mUser(db), required: false, as: 'CreateUser' },
+                            { model: mUser(db), required: false, as: 'AssignUser' },
+                            { model: mCategoryJobTitle(db), required: false, as: 'JobTileID' },
+                            {
+                                model: mUserFollow(db),
+                                required: body.contactType == 3 ? true : false,
+                                where: { UserID: body.userID, Type: 2, Follow: true }
+                            },
+                            { model: mCompany(db), required: false }
+                        ],
+                        where: {
+                            CompanyID: body.CompanyID,
+                        },
+                        order: [['ID', 'DESC']],
+                        offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                        limit: Number(body.itemPerPage)
+                    }).then(data => {
+                        var array = [];
+
+                        data.forEach(elm => {
+                            array.push({
+                                id: elm.ID,
+                                name: elm.Name,
+                                email: elm.Email,
+                                phone: elm.Phone,
+                                timeCreate: mModules.toDatetime(elm.TimeCreate),
+
+                                companyID: elm.Company ? elm.Company.ID : null,
+                                companyName: elm.Company ? elm.Company.Name : "",
+
+                                ownerID: elm.UserID,
+                                ownerName: elm.CreateUser ? elm.CreateUser.Username : "",
+
+                                assignID: elm.AssignID,
+                                assignName: elm.AssignUser ? elm.AssignUser.Username : "",
+
+                                follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
+
+                                lastActivity: elm.LastActivity,
+                                JobTile: elm.JobTile,
+                                JobTileName: elm.JobTileID ? elm.JobTileID.Name : '',
+                            })
+                        });
+                        var result = {
+                            status: Constant.STATUS.SUCCESS,
+                            message: '',
+                            array: array
+                        }
+                        res.json(result)
+                    })
+                }
+            })
+        })
+
+    },
     getListQuickContact: (req, res) => {
         let body = req.body;
 
@@ -100,6 +171,7 @@ module.exports = {
                     contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
                     contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
                     contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
+                    contact.belongsTo(mCategoryJobTitle(db), { foreignKey: 'JobTile', sourceKey: 'JobTile', as: 'JobTileID' });
                     contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
 
                     let whereSearch = [];
@@ -231,6 +303,7 @@ module.exports = {
                                             include: [
                                                 { model: mUser(db), required: false, as: 'CreateUser' },
                                                 { model: mUser(db), required: false, as: 'AssignUser' },
+                                                { model: mCategoryJobTitle(db), required: false, as: 'JobTileID' },
                                                 {
                                                     model: mUserFollow(db),
                                                     required: body.contactType == 3 ? true : false,
@@ -264,7 +337,9 @@ module.exports = {
 
                                                     follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
 
-                                                    lastActivity: elm.LastActivity
+                                                    lastActivity: elm.LastActivity,
+                                                    JobTile: elm.JobTile,
+                                                    JobTileName: JobTileID.Name,
                                                 })
                                             });
                                             var result = {

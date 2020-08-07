@@ -41,6 +41,7 @@ module.exports = function (app) {
 
     //Company
     app.route('/crm/get_list_company').post(company.getListCompany);
+    app.route('/crm/get_list_name_company').post(company.getListNameCompany);
 
     app.route('/crm/get_detail_company').post(company.getDetailCompany);
 
@@ -324,7 +325,13 @@ module.exports = function (app) {
     app.route('/crm/get_all_data_maillist').post(mailmerge.getDatafromInformation);
 
     var handle_body = require('./controllers/send_maillist');
+    // body: body - text-html, ListDataId - list
     app.route('/crm/send_mailmerge').post(handle_body.sendMailList);
 
+    // get list mail from companyID
+    app.route('/crm/get_list_contact_from_company').post(contact.getListContactFromCompanyID);
+
+    // create infomation - return ID information
+    app.route('/crm/add_information_from_contact').post(infomation.createImformationfromContact);
 
 };

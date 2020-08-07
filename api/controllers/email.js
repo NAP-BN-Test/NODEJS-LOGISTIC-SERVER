@@ -23,7 +23,6 @@ var rmComment = require('../tables/email-comment');
 var mModules = require('../constants/modules')
 
 module.exports = {
-
     createEmail: (req, res) => {
         let body = req.body;
 

@@ -341,7 +341,7 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
-
+            console.log(body);
 
             let update = [];
 

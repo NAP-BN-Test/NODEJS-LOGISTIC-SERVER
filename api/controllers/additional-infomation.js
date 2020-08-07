@@ -9,11 +9,14 @@ var database = require('../db');
 let mUser = require('../tables/user');
 var mModules = require('../constants/modules');
 var mAmazon = require('../controllers/amazon');
+var mContact = require('../tables/contact');
 var mCheckMail = require('../controllers/check-mail');
+var mUserFollow = require('../tables/user-follow');
 
 
 let mAdditionalInformation = require('../tables/additional-infomation');
 var mMailListDetail = require('../tables/mail-list-detail');
+const result = require('../constants/result');
 
 
 module.exports = {
@@ -23,7 +26,11 @@ module.exports = {
             let AdditionalInformation = mAdditionalInformation(db);
             AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
             AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
-
+            var where = []
+            if (body.CampaignID)
+                where.push({
+                    CampaignID: body.CampaignID
+                });
             AdditionalInformation.count().then(all => {
                 AdditionalInformation.findAll({
                     include: [
@@ -32,7 +39,8 @@ module.exports = {
                     ],
                     order: [['TimeCreate', 'DESC']],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
-                    limit: Number(body.itemPerPage)
+                    limit: Number(body.itemPerPage),
+                    where
                 }).then(data => {
                     let array = [];
                     if (data) {
@@ -181,45 +189,45 @@ module.exports = {
             })
             try {
                 let update = [];
-                if (body.OurRef !== 'null')
+                if (body.OurRef)
                     update.push({ key: 'OurRef', value: body.OurRef });
-                if (body.PAT !== 'null')
+                if (body.PAT)
                     update.push({ key: 'PAT', value: body.PAT });
-                if (body.Applicant !== 'null')
+                if (body.Applicant)
                     update.push({ key: 'Applicant', value: body.Applicant });
-                if (body.ApplicationNo !== 'null')
+                if (body.ApplicationNo)
                     update.push({ key: 'ApplicationNo', value: body.ApplicationNo });
-                if (body.ClassA !== 'null')
+                if (body.ClassA)
                     update.push({ key: 'ClassA', value: body.ClassA });
                 if (body.FilingDate !== 'Invalid date') {
                     let time = moment(body.FilingDate).format('YYYY-MM-DD');
                     update.push({ key: 'FilingDate', value: time });
                 }
-                if (body.PriorTrademark !== 'null')
+                if (body.PriorTrademark)
                     update.push({ key: 'PriorTrademark', value: body.PriorTrademark });
-                if (body.OwnerID !== 'null')
+                if (body.OwnerID)
                     update.push({ key: 'OwnerID', value: body.OwnerID });
-                if (body.RedNo !== 'null')
+                if (body.RedNo)
                     update.push({ key: 'RedNo', value: body.RedNo });
-                if (body.ClassB !== 'null')
+                if (body.ClassB)
                     update.push({ key: 'ClassB', value: body.ClassB });
-                if (body.Firmb !== 'null')
+                if (body.Firmb)
                     update.push({ key: 'Firm', value: body.Firm });
-                if (body.Address !== 'null')
+                if (body.Address)
                     update.push({ key: 'Address', value: body.Address });
-                if (body.Tel !== 'null')
+                if (body.Tel)
                     update.push({ key: 'Tel', value: body.Tel });
-                if (body.Fax !== 'null')
+                if (body.Fax)
                     update.push({ key: 'Fax', value: body.Fax });
                 if (errorEmail === '')
                     update.push({ key: 'Email', value: body.Email });
-                if (body.Status !== 'null')
+                if (body.Status)
                     update.push({ key: 'Status', value: body.Status });
-                if (body.Rerminder !== 'null')
+                if (body.Rerminder)
                     update.push({ key: 'Rerminder', value: body.Rerminder });
                 if (body.userID)
                     update.push({ key: 'UserID', value: body.userID });
-                if (body.Description !== 'null')
+                if (body.Description)
                     update.push({ key: 'Description', value: body.Description });
 
                 database.updateTable(update, mAdditionalInformation(db), body.ID).then(response => {
@@ -349,6 +357,57 @@ module.exports = {
                 res.json(result)
             })
 
+        })
+    },
+    createImformationfromContact: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+
+            let contact = mContact(db);
+            contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
+            var listContactID = JSON.parse(body.listContactID);
+            let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+
+            await contact.findAll({
+                where: {
+                    [Op.or]: {
+                        ID: { [Op.in]: listContactID }
+                    }
+                },
+                include: {
+                    model: mUserFollow(db),
+                    required: false,
+                    where: { UserID: body.userID, Type: 2 }
+                }
+            }).then(async data => {
+                if (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        await mAdditionalInformation(db).create({
+                            OurRef: data[i].Name ? data[i].Name : null,
+                            Applicant: body.Create_ApplicantDate ? body.Applicant : null,
+                            OwnerID: Number(data[i].UserID) ? data[i].UserID : null,
+                            Address: data[i].Address ? data[i].Address : null,
+                            Email: data[i].Email ? data[i].Email : null,
+                            TimeCreate: now,
+                            TimeUpdate: now,
+                            CampaignID: body.CampaignID,
+                        })
+                    }
+                    let result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                    }
+                    res.json(result)
+                }
+                else {
+                    let result = {
+                        status: Constant.STATUS.FAIL,
+                        message: Constant.MESSAGE.DATA_NOT_FOUND,
+                    }
+                    res.json(result)
+                }
+            })
         })
     },
 }

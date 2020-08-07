@@ -206,9 +206,6 @@ module.exports = {
             let Template = mTemplate(db);
 
             Template.findOne({
-                include: [
-                    { model: mAdditionalInformation(db), required: false, as: 'dataName' }
-                ],
                 where: { ID: body.ID },
             }).then(data => {
                 if (data) {

@@ -41,16 +41,8 @@ module.exports = {
     sendMailList: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            var mail_list_detail = [];
             var information = [];
-            console.log(bodyHtml);
-            let detail = await mailmergerCampaingn.getInfoFromMailListDetail(db, body.MailListID);
-            let ListDataId = []
-            detail.forEach(item => {
-                mail_list_detail.push(item.dataValues);
-                if (item.dataValues.DataID)
-                    ListDataId.push(item.dataValues.DataID);
-            })
+            var ListDataId = JSON.parse(body.ListDataId);
             information = await mailmergerCampaingn.getAdditionalInfomation(db, ListDataId);
             var bodyHtml;
             information.forEach(async item => {
