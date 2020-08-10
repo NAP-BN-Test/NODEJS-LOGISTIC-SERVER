@@ -12,6 +12,7 @@ var mAmazon = require('../controllers/amazon');
 var mContact = require('../tables/contact');
 var mCheckMail = require('../controllers/check-mail');
 var mUserFollow = require('../tables/user-follow');
+var mMailCampain = require('../tables/mail-campain');
 
 
 let mAdditionalInformation = require('../tables/additional-infomation');
@@ -26,6 +27,8 @@ module.exports = {
             let AdditionalInformation = mAdditionalInformation(db);
             AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
             AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
+            AdditionalInformation.belongsTo(mMailCampain(db), { foreignKey: 'CampaignID', sourceKey: 'CampaignID', as: 'Campaign' });
+
             var where = []
             if (body.CampaignID)
                 where.push({
@@ -41,39 +44,60 @@ module.exports = {
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
                     limit: Number(body.itemPerPage),
                     where
-                }).then(data => {
+                }).then(async data => {
                     let array = [];
                     if (data) {
-                        data.forEach(item => {
+                        for (var i = 0; i < data.length; i++) {
+                            let listNameCampaign = '';
+                            let count = 0;
+                            var check = await AdditionalInformation.findAll({
+                                include: [
+                                    { model: mMailCampain(db), required: false, as: 'Campaign' }
+                                ],
+                                where: {
+                                    ContactID: data[i].ContactID,
+                                    [Op.not]: {
+                                        CampaignID: data[i].CampaignID,
+                                    }
+                                },
+                            })
+                            if (check[0])
+                                check.forEach(item => {
+                                    count += 1;
+                                    count > 1 ? listNameCampaign += ', ' + item.dataValues.Campaign.Name : listNameCampaign += item.dataValues.Campaign.Name;
+                                })
                             array.push({
-                                ID: item.ID,
-                                OurRef: item.OurRef ? item.OurRef : null,
-                                PAT: item.PAT ? item.PAT : null,
-                                Applicant: item.Create_ApplicantDate ? item.Applicant : null,
-                                ApplicationNo: item.ApplicationNo ? item.ApplicationNo : null,
-                                ClassA: item.ClassA ? item.ClassA : null,
-                                FilingDate: moment(item.FilingDate).format('DD-MM-YYYY') ? item.FilingDate : null,
-                                PriorTrademark: item.PriorTrademark ? item.PriorTrademark : null,
-                                OwnerID: item.OwnerID ? item.OwnerID : null,
-                                Owner: item.Owner ? item.Owner.Name : "",
-                                RedNo: item.RedNo ? item.RedNo : null,
-                                ClassB: item.ClassB ? item.ClassB : null,
-                                Firm: item.Firm ? item.Firm : null,
-                                Address: item.Address ? item.Address : null,
-                                Tel: item.Tel ? item.Tel : null,
-                                Fax: item.Fax ? item.Fax : null,
-                                Email: item.Email ? item.Email : null,
-                                Status: item.Status ? item.Status : null,
-                                Rerminder: item.Rerminder ? item.Rerminder : null,
-                                UserID: item.UserID ? item.UserID : null,
-                                UserName: item.User ? item.User.Name : "",
-                                TimeStart: mModules.toDatetime(item.timeStart) ? item.timeStart : null,
-                                TimeRemind: mModules.toDatetime(item.timeRemind) ? item.timeRemind : null,
-                                TimeCreate: mModules.toDatetime(item.TimeCreate),
-                                TimeUpdate: mModules.toDatetime(item.TimeUpdate),
-                                Description: mModules.toDatetime(item.description),
+                                ID: data[i].ID,
+                                OurRef: data[i].OurRef ? data[i].OurRef : null,
+                                PAT: data[i].PAT ? data[i].PAT : null,
+                                Applicant: data[i].Create_ApplicantDate ? data[i].Applicant : null,
+                                ApplicationNo: data[i].ApplicationNo ? data[i].ApplicationNo : null,
+                                ClassA: data[i].ClassA ? data[i].ClassA : null,
+                                FilingDate: data[i].FilingDate ? moment(data[i].FilingDate).format('DD-MM-YYYY') : null,
+                                PriorTrademark: data[i].PriorTrademark ? data[i].PriorTrademark : null,
+                                OwnerID: data[i].OwnerID ? data[i].OwnerID : null,
+                                Owner: data[i].Owner ? data[i].Owner.Name : "",
+                                RedNo: data[i].RedNo ? data[i].RedNo : null,
+                                ClassB: data[i].ClassB ? data[i].ClassB : null,
+                                Firm: data[i].Firm ? data[i].Firm : null,
+                                Address: data[i].Address ? data[i].Address : null,
+                                Tel: data[i].Tel ? data[i].Tel : null,
+                                Fax: data[i].Fax ? data[i].Fax : null,
+                                Email: data[i].Email ? data[i].Email : null,
+                                Status: data[i].Status ? data[i].Status : null,
+                                Rerminder: data[i].Rerminder ? data[i].Rerminder : null,
+                                UserID: data[i].UserID ? data[i].UserID : null,
+                                UserName: data[i].User ? data[i].User.Name : "",
+                                TimeStart: mModules.toDatetime(data[i].timeStart) ? data[i].timeStart : null,
+                                TimeRemind: mModules.toDatetime(data[i].timeRemind) ? data[i].timeRemind : null,
+                                TimeCreate: mModules.toDatetime(data[i].TimeCreate),
+                                TimeUpdate: mModules.toDatetime(data[i].TimeUpdate),
+                                Description: data[i].description,
+                                checkDuplicate: check[0] ? true : false,
+                                nameCampaign: listNameCampaign
                             });
-                        });
+
+                        }
 
                         var result = {
                             status: Constant.STATUS.SUCCESS,
@@ -310,7 +334,6 @@ module.exports = {
     deleteAdditionalInformation: (req, res) => {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-
             if (body.AdditionalInformationIDs) {
                 let listAdditionalInformation = JSON.parse(body.AdditionalInformationIDs);
                 let listAdditionalInformationID = [];
@@ -392,6 +415,7 @@ module.exports = {
                             TimeCreate: now,
                             TimeUpdate: now,
                             CampaignID: body.CampaignID,
+                            ContactID: data[i].ID
                         })
                     }
                     let result = {

@@ -31,6 +31,7 @@ module.exports = function (db) {
         UserID: Sequelize.BIGINT,
         TimeUpdate: Sequelize.NOW,
         CampaignID: Sequelize.BIGINT,
+        ContactID: Sequelize.BIGINT,
     });
 
     return table;

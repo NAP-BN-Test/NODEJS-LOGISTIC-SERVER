@@ -9,6 +9,7 @@ let mTemplate = require('../tables/template');
 var mModules = require('../constants/modules');
 var mMailListDetail = require('../tables/mail-list-detail');
 var mMailList = require('../tables/mail-list');
+var mMailCampain = require('../tables/mail-campain');
 
 let mUser = require('../tables/user');
 const result = require('../constants/result');
@@ -23,21 +24,22 @@ function getInfoFromMailListDetail(db, MailListID) {
     return MailListDetail
 }
 
-async function getAdditionalInfomation(db, listID) {
+async function getAdditionalInfomation(db, CampaignID) {
     let AdditionalInformation = mAdditionalInformation(db);
 
     AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
     AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
+    AdditionalInformation.belongsTo(mMailCampain(db), { foreignKey: 'CampaignID', sourceKey: 'CampaignID', as: 'Campaign' });
     obj = []
     await AdditionalInformation.findAll({
         include: [
             { model: mUser(db), required: false, as: 'User' },
-            { model: mUser(db), required: false, as: 'Owner' }
+            { model: mUser(db), required: false, as: 'Owner' },
+            { model: mMailCampain(db), required: false, as: 'Campaign' }
+
         ],
         where: {
-            [Op.or]: {
-                ID: { [Op.in]: listID }
-            }
+            CampaignID: CampaignID,
         }
     }).then(result => {
         if (result) {
@@ -72,7 +74,8 @@ async function getAdditionalInfomation(db, listID) {
                     TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
                     TimeCreate: mModules.toDatetime(data.TimeCreate),
                     TimeUpdate: mModules.toDatetime(data.TimeUpdate),
-                    Description: mModules.toDatetime(data.description)
+                    Description: data.description,
+                    Subject: data.Campaign.Subject ? data.Campaign.Subject : null,
                 })
             })
         }
