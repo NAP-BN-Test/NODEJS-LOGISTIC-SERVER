@@ -21,13 +21,13 @@ function getDataInformation(db, ID) {
 function handleReplaceText(text, listKey, obj_information) {
     var result = text;
     listKey.forEach(item => {
-        var re = RegExp('<<' + item + '>>', 'g');
+        var re = RegExp('&lt;&lt;' + item + '&lt;&lt;', 'g');
         result = result.replace(re, obj_information[item] ? obj_information[item] : '');
     })
     return result;
 }
 async function handlePushDataToBody(text, infID, db) {
-    const re = RegExp('<<(.*?)>>', 'g');
+    const re = RegExp('&lt;&lt;(.*?)&lt;&lt;', 'g');
     const keyField = []
     while ((matches = re.exec(text)) !== null) {
         keyField.push(matches[1]);
@@ -47,7 +47,7 @@ module.exports = {
             var bodyHtml;
             information.forEach(async item => {
                 bodyHtml = await handlePushDataToBody(body.body, item.ID, db);
-                await mAmazon.sendEmail(body.myMail, body.Email, body.subject, bodyHtml);
+                await mAmazon.sendEmail(body.myMail, item.Email, body.subject, bodyHtml);
             })
             res.json(Result.ACTION_SUCCESS);
         })
