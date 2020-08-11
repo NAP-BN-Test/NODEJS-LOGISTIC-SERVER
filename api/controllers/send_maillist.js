@@ -42,10 +42,20 @@ module.exports = {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             var information = [];
+            campaign = await mMailCampain(db).findOne({
+                where: {
+                    ID: body.CampaignID,
+                }
+            })
+            template = await mTemplate(db).findOne({
+                where: {
+                    ID: campaign.TemplateID,
+                }
+            })
             information = await mailmergerCampaingn.getAdditionalInfomation(db, body.CampaignID);
             var bodyHtml;
             information.forEach(async item => {
-                bodyHtml = await handlePushDataToBody(body.body, item.ID, db);
+                bodyHtml = await handlePushDataToBody(template.body, item.ID, db);
                 await mAmazon.sendEmail('tung24041998@gmail.com', item.Email, item.Subject, bodyHtml);
             })
             res.json(Result.ACTION_SUCCESS);

@@ -89,13 +89,14 @@ module.exports = {
     getInfoFromMailListDetail,
     getListMailmergeTemplate: (req, res) => {
         let body = req.body;
+
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let Template = mTemplate(db)
-
+            Template.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
             Template.count().then(all => {
                 Template.findAll({
                     include: [
-                        { model: mAdditionalInformation(db), required: false, as: 'dataName' }
+                        { model: mUser(db), required: false, as: 'User' }
                     ],
                     order: [['TimeCreate', 'DESC']],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
@@ -108,12 +109,13 @@ module.exports = {
                                 ID: item.ID,
                                 Name: item.Name,
                                 body: item.body ? item.body : null,
-                                dataName: item.dataName ? item.dataName.OurRef : "",
                                 TimeStart: mModules.toDatetime(item.timeStart) ? item.timeStart : null,
                                 TimeRemind: mModules.toDatetime(item.timeRemind) ? item.timeRemind : null,
                                 TimeCreate: mModules.toDatetime(item.TimeCreate),
                                 TimeUpdate: mModules.toDatetime(item.TimeUpdate),
-                                Description: item.description ? item.description : null
+                                Description: item.description ? item.description : null,
+                                UserID: item.UserID ? item.UserID : null,
+                                UserName: item.User ? item.User.Name : "",
                             });
                         });
 
@@ -140,6 +142,7 @@ module.exports = {
                 TimeRemind: body.timeRemind ? moment(body.timeRemind).format('YYYY-MM-DD HH:mm:ss.SSS') : null,
                 TimeCreate: now,
                 TimeUpdate: now,
+                UserID: body.userID,
                 Description: body.description
             }).then(data => {
                 obj = {
@@ -150,6 +153,7 @@ module.exports = {
                     TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
                     TimeCreate: mModules.toDatetime(data.TimeCreate),
                     TimeUpdate: mModules.toDatetime(data.TimeUpdate),
+                    UserID: data.userID,
                     Description: data.description ? data.description : null
                 }
                 var result = {
@@ -207,21 +211,26 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let Template = mTemplate(db);
+            Template.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
 
             Template.findOne({
                 where: { ID: body.ID },
+                include: [
+                    { model: mUser(db), required: false, as: 'User' }
+                ],
             }).then(data => {
                 if (data) {
                     obj = {
                         ID: data.ID,
                         Name: data.Name,
                         body: data.body ? data.body : null,
-                        dataName: data.dataName ? data.dataName.OurRef : "",
                         TimeStart: mModules.toDatetime(data.timeStart) ? data.timeStart : null,
                         TimeRemind: mModules.toDatetime(data.timeRemind) ? data.timeRemind : null,
                         TimeCreate: mModules.toDatetime(data.TimeCreate),
                         TimeUpdate: mModules.toDatetime(data.TimeUpdate),
-                        Description: data.description ? data.description : null
+                        Description: data.description ? data.description : null,
+                        UserID: data.UserID ? data.UserID : null,
+                        UserName: data.User ? data.User.Name : "",
                     }
                     var result = {
                         status: Constant.STATUS.SUCCESS,
@@ -255,7 +264,7 @@ module.exports = {
                     // if (user.Roles == Constant.USER_ROLE.MANAGER) {
                     let update = [];
                     update.Template_ID = null;
-                    await mMailmergeCampaign(db).update(update,
+                    await mMailCampain(db).update(update,
                         {
                             where: {
                                 [Op.or]: {

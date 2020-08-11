@@ -73,7 +73,7 @@ module.exports = {
                                 Applicant: data[i].Create_ApplicantDate ? data[i].Applicant : null,
                                 ApplicationNo: data[i].ApplicationNo ? data[i].ApplicationNo : null,
                                 ClassA: data[i].ClassA ? data[i].ClassA : null,
-                                FilingDate: data[i].FilingDate ? moment(data[i].FilingDate).format('DD-MM-YYYY') : null,
+                                FilingDate: data[i].FilingDate ? data[i].FilingDate : null,
                                 PriorTrademark: data[i].PriorTrademark ? data[i].PriorTrademark : null,
                                 OwnerID: data[i].OwnerID ? data[i].OwnerID : null,
                                 Owner: data[i].Owner ? data[i].Owner.Name : "",
