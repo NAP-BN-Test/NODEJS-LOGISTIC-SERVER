@@ -27,6 +27,8 @@ module.exports = function (db) {
         Source: Sequelize.STRING,
         ScheduleCharge: Sequelize.STRING,
         Note: Sequelize.STRING,
+        Fax: Sequelize.STRING,
+        Role: Sequelize.STRING,
     });
 
     return table;

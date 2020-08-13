@@ -339,7 +339,7 @@ module.exports = {
 
                                                     lastActivity: elm.LastActivity,
                                                     JobTile: elm.JobTile,
-                                                    JobTileName: JobTileID.Name,
+                                                    JobTileName: elm.JobTileID ? elm.JobTileID.Name : null,
                                                 })
                                             });
                                             var result = {

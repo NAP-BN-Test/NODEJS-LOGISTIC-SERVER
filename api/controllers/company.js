@@ -277,7 +277,9 @@ module.exports = {
                             stageID: elm.DealStage ? elm.DealStage.ID : -1,
                             stageName: elm.DealStage ? elm.DealStage.Name : "",
 
-                            lastActivity: mModules.toDatetime(elm.LastActivity)
+                            lastActivity: mModules.toDatetime(elm.LastActivity),
+                            Fax: elm.Fax,
+                            Role: elm.Role,
                         })
                     });
 
@@ -337,7 +339,9 @@ module.exports = {
                     city: data.City ? data.City.Name : "",
                     follow: data.UserFollows[0] ? data.UserFollows[0]['Follow'] : false,
                     stageID: data.DealStage ? data.DealStage.ID : -1,
-                    stageName: data.DealStage ? data.DealStage.Name : ""
+                    stageName: data.DealStage ? data.DealStage.Name : "",
+                    Fax: data.Fax,
+                    Role: data.Role,
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -445,6 +449,12 @@ module.exports = {
             if (body.stageID)
                 listUpdate.push({ key: 'StageID', value: body.stageID });
 
+            if (body.Fax)
+                listUpdate.push({ key: 'Fax', value: body.Fax });
+
+            if (body.Role)
+                listUpdate.push({ key: 'Role', value: body.Role });
+
             let update = {};
             for (let field of listUpdate) {
                 update[field.key] = field.value
@@ -530,7 +540,9 @@ module.exports = {
                 CityID: body.cityID,
                 TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                 Type: 1,
-                StageID: stageData.ID
+                StageID: stageData.ID,
+                Fax: body.Fax,
+                Role: body.Role,
             }).then(data => {
                 var obj;
                 if (body.role == Constant.COMPANY_ROLE.PARENT) {
@@ -549,7 +561,9 @@ module.exports = {
                         city: body.cityName,
                         ownerID: -1,
                         ownerName: "",
-                        companyType: data.Type
+                        companyType: data.Type,
+                        Fax: data.Fax,
+                        Role: data.Role,
                     }
                 }
                 else if (body.role == Constant.COMPANY_ROLE.CHILD) {
@@ -567,7 +581,9 @@ module.exports = {
                         city: body.cityName,
                         ownerID: -1,
                         ownerName: "",
-                        companyType: data.Type
+                        companyType: data.Type,
+                        Fax: data.Fax,
+                        Role: data.Role,
                     }
                 } else {
                     obj = {
@@ -580,7 +596,9 @@ module.exports = {
                         city: body.cityName,
                         ownerID: -1,
                         ownerName: "",
-                        companyType: data.Type
+                        companyType: data.Type,
+                        Fax: data.Fax,
+                        Role: data.Role,
                     }
                 }
 
