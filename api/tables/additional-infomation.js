@@ -7,7 +7,7 @@ module.exports = function (db) {
             primaryKey: true,
             autoIncrement: true
         },
-        OwnerID: Sequelize.BIGINT,
+        Owner: Sequelize.STRING,
         OurRef: Sequelize.STRING,
         PAT: Sequelize.STRING,
         Applicant: Sequelize.STRING,
@@ -15,7 +15,7 @@ module.exports = function (db) {
         ClassA: Sequelize.STRING,
         FilingDate: Sequelize.DATE,
         PriorTrademark: Sequelize.STRING,
-        RedNo: Sequelize.INTEGER,
+        RegNo: Sequelize.STRING,
         ClassB: Sequelize.STRING,
         Firm: Sequelize.STRING,
         Address: Sequelize.STRING,

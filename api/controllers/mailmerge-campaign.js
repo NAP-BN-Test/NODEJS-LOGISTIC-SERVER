@@ -28,13 +28,11 @@ async function getAdditionalInfomation(db, CampaignID) {
     let AdditionalInformation = mAdditionalInformation(db);
 
     AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
-    AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
     AdditionalInformation.belongsTo(mMailCampain(db), { foreignKey: 'CampaignID', sourceKey: 'CampaignID', as: 'Campaign' });
     obj = []
     await AdditionalInformation.findAll({
         include: [
             { model: mUser(db), required: false, as: 'User' },
-            { model: mUser(db), required: false, as: 'Owner' },
             { model: mMailCampain(db), required: false, as: 'Campaign' }
 
         ],
@@ -52,14 +50,13 @@ async function getAdditionalInfomation(db, CampaignID) {
                     ID: data.ID,
                     OurRef: data.OurRef ? data.OurRef : null,
                     PAT: data.PAT ? data.PAT : null,
-                    Applicant: data.Create_ApplicantDate ? data.Applicant : null,
+                    Applicant: data.Applicant ? data.Applicant : null,
                     ApplicationNo: data.ApplicationNo ? data.ApplicationNo : null,
                     ClassA: data.ClassA ? data.ClassA : null,
                     FilingDate: FilingDate,
                     PriorTrademark: data.PriorTrademark ? data.PriorTrademark : null,
-                    OwnerID: data.OwnerID ? data.OwnerID : null,
-                    Owner: data.Owner ? data.Owner.Name : "",
-                    RedNo: data.RedNo ? data.RedNo : null,
+                    Owner: data.Owner,
+                    RegNo: data.RegNo ? data.RegNo : null,
                     ClassB: data.ClassB ? data.ClassB : null,
                     Firm: data.Firm ? data.Firm : null,
                     Address: data.Address ? data.Address : null,

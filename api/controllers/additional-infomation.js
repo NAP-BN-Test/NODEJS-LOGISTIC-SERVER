@@ -26,7 +26,6 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let AdditionalInformation = mAdditionalInformation(db);
             AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
-            AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
             AdditionalInformation.belongsTo(mMailCampain(db), { foreignKey: 'CampaignID', sourceKey: 'CampaignID', as: 'Campaign' });
 
             var where = []
@@ -38,7 +37,6 @@ module.exports = {
                 AdditionalInformation.findAll({
                     include: [
                         { model: mUser(db), required: false, as: 'User' },
-                        { model: mUser(db), required: false, as: 'Owner' }
                     ],
                     order: [['TimeCreate', 'DESC']],
                     offset: Number(body.itemPerPage) * (Number(body.page) - 1),
@@ -70,14 +68,13 @@ module.exports = {
                                 ID: data[i].ID,
                                 OurRef: data[i].OurRef ? data[i].OurRef : null,
                                 PAT: data[i].PAT ? data[i].PAT : null,
-                                Applicant: data[i].Create_ApplicantDate ? data[i].Applicant : null,
+                                Applicant: data[i].Applicant ? data[i].Applicant : null,
                                 ApplicationNo: data[i].ApplicationNo ? data[i].ApplicationNo : null,
                                 ClassA: data[i].ClassA ? data[i].ClassA : null,
                                 FilingDate: data[i].FilingDate ? data[i].FilingDate : null,
                                 PriorTrademark: data[i].PriorTrademark ? data[i].PriorTrademark : null,
-                                OwnerID: data[i].OwnerID ? data[i].OwnerID : null,
-                                Owner: data[i].Owner ? data[i].Owner.Name : "",
-                                RedNo: data[i].RedNo ? data[i].RedNo : null,
+                                Owner: data[i].Owner,
+                                RegNo: data[i].RegNo ? data[i].RegNo : null,
                                 ClassB: data[i].ClassB ? data[i].ClassB : null,
                                 Firm: data[i].Firm ? data[i].Firm : null,
                                 Address: data[i].Address ? data[i].Address : null,
@@ -98,11 +95,14 @@ module.exports = {
                             });
 
                         }
-
+                        let nameCampaign = await mMailCampain(db).findOne({
+                            where: { ID: body.CampaignID }
+                        })
                         var result = {
                             status: Constant.STATUS.SUCCESS,
                             message: '',
-                            array, all
+                            array, all,
+                            nameCampaign: nameCampaign ? nameCampaign.Name : ''
                         }
 
                         res.json(result);
@@ -124,13 +124,13 @@ module.exports = {
             mAdditionalInformation(db).create({
                 OurRef: body.OurRef ? body.OurRef : null,
                 PAT: body.PAT ? body.PAT : null,
-                Applicant: body.Create_ApplicantDate ? body.Applicant : null,
+                Applicant: body.Applicant ? body.Applicant : null,
                 ApplicationNo: body.ApplicationNo ? body.ApplicationNo : null,
                 ClassA: body.ClassA ? body.ClassA : null,
                 FilingDate: body.FilingDate ? body.FilingDate : null,
                 PriorTrademark: body.PriorTrademark ? body.PriorTrademark : null,
-                OwnerID: body.OwnerID ? body.OwnerID : null,
-                RedNo: body.RedNo ? body.RedNo : null,
+                Owner: body.Owner,
+                RegNo: body.RegNo ? body.RegNo : null,
                 ClassB: body.ClassB ? body.ClassB : null,
                 Firm: body.Firm ? body.Firm : null,
                 Address: body.Address ? body.Address : null,
@@ -149,13 +149,13 @@ module.exports = {
                 obj = {
                     OurRef: data.OurRef ? data.OurRef : null,
                     PAT: data.PAT ? data.PAT : null,
-                    Applicant: data.Create_ApplicantDate ? data.Applicant : null,
+                    Applicant: data.Applicant ? data.Applicant : null,
                     ApplicationNo: data.ApplicationNo ? data.ApplicationNo : null,
                     ClassA: data.ClassA ? data.ClassA : null,
                     FilingDate: data.FilingDate ? data.FilingDate : null,
                     PriorTrademark: data.PriorTrademark ? data.PriorTrademark : null,
-                    OwnerID: data.OwnerID ? data.OwnerID : null,
-                    RedNo: data.RedNo ? data.RedNo : null,
+                    Owner: data.Owner,
+                    RegNo: data.RegNo ? data.RegNo : null,
                     ClassB: data.ClassB ? data.ClassB : null,
                     Firm: data.Firm ? data.Firm : null,
                     Address: data.Address ? data.Address : null,
@@ -213,6 +213,8 @@ module.exports = {
             })
             try {
                 let update = [];
+                console.log(body);
+                console.log(body.Applicant);
                 if (body.OurRef)
                     update.push({ key: 'OurRef', value: body.OurRef });
                 if (body.PAT)
@@ -229,13 +231,13 @@ module.exports = {
                 }
                 if (body.PriorTrademark)
                     update.push({ key: 'PriorTrademark', value: body.PriorTrademark });
-                if (body.OwnerID)
-                    update.push({ key: 'OwnerID', value: body.OwnerID });
-                if (body.RedNo)
-                    update.push({ key: 'RedNo', value: body.RedNo });
+                if (body.Owner)
+                    update.push({ key: 'Owner', value: body.Owner });
+                if (body.RegNo)
+                    update.push({ key: 'RegNo', value: body.RegNo });
                 if (body.ClassB)
                     update.push({ key: 'ClassB', value: body.ClassB });
-                if (body.Firmb)
+                if (body.Firm)
                     update.push({ key: 'Firm', value: body.Firm });
                 if (body.Address)
                     update.push({ key: 'Address', value: body.Address });
@@ -253,7 +255,6 @@ module.exports = {
                     update.push({ key: 'UserID', value: body.userID });
                 if (body.Description)
                     update.push({ key: 'Description', value: body.Description });
-
                 database.updateTable(update, mAdditionalInformation(db), body.ID).then(response => {
                     if (response == 1) {
                         Result.ACTION_SUCCESS.emailExist = true ? errorEmail === '' : false
@@ -277,11 +278,9 @@ module.exports = {
             let AdditionalInformation = mAdditionalInformation(db);
 
             AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
-            AdditionalInformation.belongsTo(mUser(db), { foreignKey: 'OwnerID', sourceKey: 'OwnerID', as: 'Owner' });
             AdditionalInformation.findOne({
                 include: [
                     { model: mUser(db), required: false, as: 'User' },
-                    { model: mUser(db), required: false, as: 'Owner' }
                 ],
                 where: { ID: body.ID },
             }).then(data => {
@@ -290,14 +289,13 @@ module.exports = {
                         ID: data.ID,
                         OurRef: data.OurRef ? data.OurRef : null,
                         PAT: data.PAT ? data.PAT : null,
-                        Applicant: data.Create_ApplicantDate ? data.Applicant : null,
+                        Applicant: data.Applicant ? data.Applicant : null,
                         ApplicationNo: data.ApplicationNo ? data.ApplicationNo : null,
                         ClassA: data.ClassA ? data.ClassA : null,
                         FilingDate: data.FilingDate ? data.FilingDate : null,
                         PriorTrademark: data.PriorTrademark ? data.PriorTrademark : null,
-                        OwnerID: data.OwnerID ? data.OwnerID : null,
-                        Owner: data.Owner ? data.Owner.Name : "",
-                        RedNo: data.RedNo ? data.RedNo : null,
+                        Owner: data.Owner,
+                        RegNo: data.RegNo ? data.RegNo : null,
                         ClassB: data.ClassB ? data.ClassB : null,
                         Firm: data.Firm ? data.Firm : null,
                         Address: data.Address ? data.Address : null,
@@ -408,7 +406,6 @@ module.exports = {
                     for (var i = 0; i < data.length; i++) {
                         await mAdditionalInformation(db).create({
                             OurRef: data[i].Name ? data[i].Name : null,
-                            OwnerID: Number(data[i].UserID) ? data[i].UserID : null,
                             Address: data[i].Address ? data[i].Address : null,
                             Email: data[i].Email ? data[i].Email : null,
                             TimeCreate: now,
