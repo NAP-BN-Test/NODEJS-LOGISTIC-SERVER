@@ -209,66 +209,70 @@ module.exports = {
             await mCheckMail.checkEmail(body.Email).then(async (checkMailRes) => {
                 if (checkMailRes == false) {
                     errorEmail = Constant.MAIL_RESPONSE_TYPE.INVALID;
+                    Result.ACTION_SUCCESS.emailExist = false;
+                    res.json(Result.ACTION_SUCCESS);
+                }
+                else {
+                    try {
+                        let update = [];
+                        console.log(body);
+                        console.log(body.Applicant);
+                        if (body.OurRef)
+                            update.push({ key: 'OurRef', value: body.OurRef });
+                        if (body.PAT)
+                            update.push({ key: 'PAT', value: body.PAT });
+                        if (body.Applicant)
+                            update.push({ key: 'Applicant', value: body.Applicant });
+                        if (body.ApplicationNo)
+                            update.push({ key: 'ApplicationNo', value: body.ApplicationNo });
+                        if (body.ClassA)
+                            update.push({ key: 'ClassA', value: body.ClassA });
+                        if (body.FilingDate !== 'Invalid date') {
+                            let time = moment(body.FilingDate).format('YYYY-MM-DD');
+                            update.push({ key: 'FilingDate', value: time });
+                        }
+                        if (body.PriorTrademark)
+                            update.push({ key: 'PriorTrademark', value: body.PriorTrademark });
+                        if (body.Owner)
+                            update.push({ key: 'Owner', value: body.Owner });
+                        if (body.RegNo)
+                            update.push({ key: 'RegNo', value: body.RegNo });
+                        if (body.ClassB)
+                            update.push({ key: 'ClassB', value: body.ClassB });
+                        if (body.Firm)
+                            update.push({ key: 'Firm', value: body.Firm });
+                        if (body.Address)
+                            update.push({ key: 'Address', value: body.Address });
+                        if (body.Tel)
+                            update.push({ key: 'Tel', value: body.Tel });
+                        if (body.Fax)
+                            update.push({ key: 'Fax', value: body.Fax });
+                        if (errorEmail === '')
+                            update.push({ key: 'Email', value: body.Email });
+                        if (body.Status)
+                            update.push({ key: 'Status', value: body.Status });
+                        if (body.Rerminder)
+                            update.push({ key: 'Rerminder', value: body.Rerminder });
+                        if (body.userID)
+                            update.push({ key: 'UserID', value: body.userID });
+                        if (body.Description)
+                            update.push({ key: 'Description', value: body.Description });
+                        database.updateTable(update, mAdditionalInformation(db), body.ID).then(response => {
+                            if (response == 1) {
+                                Result.ACTION_SUCCESS.emailExist = true ? errorEmail === '' : false
+                                res.json(Result.ACTION_SUCCESS);
+                            } else {
+                                Result.SYS_ERROR_RESULT.emailExist = true ? errorEmail === '' : false
+                                res.json(Result.SYS_ERROR_RESULT);
+                            }
+                        })
+                    } catch (error) {
+                        console.log(error);
+                        res.json(Result.SYS_ERROR_RESULT)
+
+                    }
                 }
             })
-            try {
-                let update = [];
-                console.log(body);
-                console.log(body.Applicant);
-                if (body.OurRef)
-                    update.push({ key: 'OurRef', value: body.OurRef });
-                if (body.PAT)
-                    update.push({ key: 'PAT', value: body.PAT });
-                if (body.Applicant)
-                    update.push({ key: 'Applicant', value: body.Applicant });
-                if (body.ApplicationNo)
-                    update.push({ key: 'ApplicationNo', value: body.ApplicationNo });
-                if (body.ClassA)
-                    update.push({ key: 'ClassA', value: body.ClassA });
-                if (body.FilingDate !== 'Invalid date') {
-                    let time = moment(body.FilingDate).format('YYYY-MM-DD');
-                    update.push({ key: 'FilingDate', value: time });
-                }
-                if (body.PriorTrademark)
-                    update.push({ key: 'PriorTrademark', value: body.PriorTrademark });
-                if (body.Owner)
-                    update.push({ key: 'Owner', value: body.Owner });
-                if (body.RegNo)
-                    update.push({ key: 'RegNo', value: body.RegNo });
-                if (body.ClassB)
-                    update.push({ key: 'ClassB', value: body.ClassB });
-                if (body.Firm)
-                    update.push({ key: 'Firm', value: body.Firm });
-                if (body.Address)
-                    update.push({ key: 'Address', value: body.Address });
-                if (body.Tel)
-                    update.push({ key: 'Tel', value: body.Tel });
-                if (body.Fax)
-                    update.push({ key: 'Fax', value: body.Fax });
-                if (errorEmail === '')
-                    update.push({ key: 'Email', value: body.Email });
-                if (body.Status)
-                    update.push({ key: 'Status', value: body.Status });
-                if (body.Rerminder)
-                    update.push({ key: 'Rerminder', value: body.Rerminder });
-                if (body.userID)
-                    update.push({ key: 'UserID', value: body.userID });
-                if (body.Description)
-                    update.push({ key: 'Description', value: body.Description });
-                database.updateTable(update, mAdditionalInformation(db), body.ID).then(response => {
-                    if (response == 1) {
-                        Result.ACTION_SUCCESS.emailExist = true ? errorEmail === '' : false
-                        res.json(Result.ACTION_SUCCESS);
-                    } else {
-                        Result.SYS_ERROR_RESULT.emailExist = true ? errorEmail === '' : false
-                        res.json(Result.SYS_ERROR_RESULT);
-                    }
-                })
-            } catch (error) {
-                console.log(error);
-                res.json(Result.SYS_ERROR_RESULT)
-
-            }
         })
     },
     getDetailAdditionalInformation: (req, res) => {
