@@ -66,7 +66,6 @@ module.exports = {
             }
         })
     },
-
     getListCompany: (req, res) => {
 
         let body = req.body;
@@ -443,6 +442,9 @@ module.exports = {
             if (body.companyCity)
                 listUpdate.push({ key: 'CityID', value: body.companyCity });
 
+            if (body.CountryID)
+                listUpdate.push({ key: 'CountryID', value: body.CountryID });
+
             if (body.website)
                 listUpdate.push({ key: 'Website', value: body.website });
 
@@ -454,6 +456,9 @@ module.exports = {
 
             if (body.Role)
                 listUpdate.push({ key: 'Role', value: body.Role });
+
+            if (body.Note)
+                listUpdate.push({ key: 'Note', value: body.Note });
 
             let update = {};
             for (let field of listUpdate) {
@@ -531,18 +536,20 @@ module.exports = {
             var company = mCompany(db);
             company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
             company.create({
-                UserID: body.userID,
+                UserID: body.userID ? body.userID : null,
                 Name: body.name,
                 ShortName: body.shortName,
                 Phone: body.phone,
                 Email: body.email,
                 Address: body.address,
-                CityID: body.cityID,
+                CityID: body.cityID ? body.cityID : null,
                 TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                 Type: 1,
-                StageID: stageData.ID,
+                CountryID: body.CountryID ? body.CountryID : null,
+                StageID: stageData.ID ? stageData.ID : null,
                 Fax: body.Fax,
                 Role: body.Role,
+                Note: body.Note,
             }).then(data => {
                 var obj;
                 if (body.role == Constant.COMPANY_ROLE.PARENT) {
@@ -564,6 +571,7 @@ module.exports = {
                         companyType: data.Type,
                         Fax: data.Fax,
                         Role: data.Role,
+                        Note: data.Note,
                     }
                 }
                 else if (body.role == Constant.COMPANY_ROLE.CHILD) {
@@ -584,6 +592,7 @@ module.exports = {
                         companyType: data.Type,
                         Fax: data.Fax,
                         Role: data.Role,
+                        Note: data.Note,
                     }
                 } else {
                     obj = {
@@ -599,6 +608,7 @@ module.exports = {
                         companyType: data.Type,
                         Fax: data.Fax,
                         Role: data.Role,
+                        Note: data.Note,
                     }
                 }
 

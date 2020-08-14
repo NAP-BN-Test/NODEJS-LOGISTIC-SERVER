@@ -408,7 +408,6 @@ module.exports = {
                     for (var i = 0; i < data.length; i++) {
                         await mAdditionalInformation(db).create({
                             OurRef: data[i].Name ? data[i].Name : null,
-                            Applicant: body.Create_ApplicantDate ? body.Applicant : null,
                             OwnerID: Number(data[i].UserID) ? data[i].UserID : null,
                             Address: data[i].Address ? data[i].Address : null,
                             Email: data[i].Email ? data[i].Email : null,

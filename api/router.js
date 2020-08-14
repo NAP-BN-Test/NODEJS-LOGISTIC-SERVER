@@ -334,4 +334,8 @@ module.exports = function (app) {
     // create infomation - return ID information
     app.route('/crm/add_information_from_contact').post(infomation.createImformationfromContact);
 
+    //  adress book
+    var adddressBook = require('./controllers/address-book');
+    app.route('/crm/get_list_address_book').post(adddressBook.getListAddressBook);
+
 };
