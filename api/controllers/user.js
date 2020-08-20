@@ -99,6 +99,7 @@ module.exports = {
                             var userCreate = await mUser(db).create({
                                 Name: body.regName,
                                 Username: body.regUsername,
+                                NameAcronym: body.NameAcronym,
                                 Password: body.regPassword,
                                 Phone: body.regPhone ? body.regPhone : "",
                                 Email: body.regEmail ? body.regEmail : "",

@@ -22,10 +22,69 @@ var rmMeetAssciate = require('../tables/meet-associate');
 var rmUserFollow = require('../tables/user-follow');
 var rmMeetContact = require('../tables/meet-contact');
 var rmDeal = require('../tables/deal');
+var mHistoryContact = require('../tables/HistoryContact');
 
-var mModules = require('../constants/modules')
+var mModules = require('../constants/modules');
+const email = require('../tables/email');
+
+function convertStringToListObject(string) {
+    let result = [];
+    let resultArray = [];
+    if (string) {
+        result = string.split("; ")
+        result.forEach(item => {
+            let resultObj = {};
+            resultObj.name = item;
+            resultArray.push(resultObj);
+        })
+    }
+    return resultArray;
+}
 
 module.exports = {
+    getListHistoryContact: (req, res) => {
+        let body = req.body;
+        let where = []
+        if (body.ContactID) {
+            where.push({
+                ContactID: body.ContactID,
+            })
+        }
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            mHistoryContact(db).findAll({
+                include: [{
+                    model: mUser(db),
+                    as: 'User'
+                    // require: true
+                },
+                {
+                    model: mContact(db),
+                    as: 'Contact'
+                }
+                ],
+                where,
+            }).then(data => {
+                var array = [];
+                data.forEach(item => {
+                    array.push({
+                        id: item.ID,
+                        UserId: item.UserID,
+                        UserName: item.User ? item.User.Name : '',
+                        Date: mModules.toDatetime(item.Date),
+                        ContactID: item.ContactID,
+                        ContactName: item.Contact ? item.Contact.Name : '',
+                        Description: item.Description,
+                    })
+                })
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array: array
+                }
+                res.json(result)
+            })
+        })
+    },
     getListContactFromCompanyID: (req, res) => {
         let body = req.body;
 
@@ -381,6 +440,8 @@ module.exports = {
                 Facebook: body.facebook,
                 Skype: body.skype,
                 TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                Note: body.Note,
+                Status: body.Status
             }).then(data => {
                 var obj = {
                     id: data.ID,
@@ -512,6 +573,7 @@ module.exports = {
 
     updateContact: (req, res) => {
         let body = req.body;
+        let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let listUpdate = [];
@@ -537,6 +599,12 @@ module.exports = {
                 update[field.key] = field.value
             }
             mContact(db).update(update, { where: { ID: body.contactID } }).then(() => {
+                mHistoryContact(db).create({
+                    UserID: body.userID,
+                    Date: now,
+                    ContactID: body.contactID,
+                    // Description: item.Description,
+                })
                 res.json(Result.ACTION_SUCCESS)
             }).catch(() => {
                 res.json(Result.SYS_ERROR_RESULT);
@@ -694,4 +762,77 @@ module.exports = {
 
         })
     },
+    getListContactFromAddressBook: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
+                if (user) {
+                    var contact = mContact(db);
+
+                    contact.belongsTo(mCompany(db), { foreignKey: 'CompanyID', sourceKey: 'CompanyID' });
+                    contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
+                    contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
+                    contact.belongsTo(mCategoryJobTitle(db), { foreignKey: 'JobTile', sourceKey: 'JobTile', as: 'JobTileID' });
+                    contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
+                    contact.findAll({
+                        include: [
+                            { model: mUser(db), required: false, as: 'CreateUser' },
+                            { model: mUser(db), required: false, as: 'AssignUser' },
+                            { model: mCategoryJobTitle(db), required: false, as: 'JobTileID' },
+                            {
+                                model: mUserFollow(db),
+                                required: body.contactType == 3 ? true : false,
+                                where: { UserID: body.userID, Type: 2, Follow: true }
+                            },
+                            { model: mCompany(db), required: false }
+                        ],
+                        where: {
+                            CompanyID: body.CompanyID,
+                        },
+                        order: [['ID', 'DESC']],
+                        offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                        limit: Number(body.itemPerPage)
+                    }).then(data => {
+                        var array = [];
+
+                        data.forEach(elm => {
+                            array.push({
+                                id: elm.ID,
+                                name: elm.Name,
+                                email: convertStringToListObject(elm.Email),
+                                phone: convertStringToListObject(elm.Phone),
+                                fax: convertStringToListObject(elm.Phone),
+                                timeCreate: mModules.toDatetime(elm.TimeCreate),
+
+                                companyID: elm.Company ? elm.Company.ID : null,
+                                companyName: elm.Company ? elm.Company.Name : "",
+
+                                ownerID: elm.UserID,
+                                ownerName: elm.CreateUser ? elm.CreateUser.Username : "",
+
+                                assignID: elm.AssignID,
+                                assignName: elm.AssignUser ? elm.AssignUser.Username : "",
+
+                                follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
+
+                                lastActivity: elm.LastActivity,
+                                JobTile: elm.JobTile,
+                                JobTileName: elm.JobTileID ? elm.JobTileID.Name : '',
+                                Note: elm.Note ? elm.Note : '',
+                                Status: elm.Status ? elm.Status : ''
+                            })
+                        });
+                        var result = {
+                            status: Constant.STATUS.SUCCESS,
+                            message: '',
+                            array: array
+                        }
+                        res.json(result)
+                    })
+                }
+            })
+        })
+
+    }
 }

@@ -185,6 +185,8 @@ module.exports = function (app) {
 
     app.route('/crm/follow_contact').post(contact.followContact);
 
+    app.route('/crm/get_list_contact_from_addressbook').post(contact.getListContactFromAddressBook);
+
 
     //summary
     app.route('/crm/get_summary_info').post(summary.getListActivity);
@@ -330,6 +332,7 @@ module.exports = function (app) {
 
     // get list mail from companyID
     app.route('/crm/get_list_contact_from_company').post(contact.getListContactFromCompanyID);
+    app.route('/crm/get_list_history_contact').post(contact.getListHistoryContact);
 
     // create infomation - return ID information
     app.route('/crm/add_information_from_contact').post(infomation.createImformationfromContact);
@@ -337,5 +340,6 @@ module.exports = function (app) {
     //  adress book
     var adddressBook = require('./controllers/address-book');
     app.route('/crm/get_list_address_book').post(adddressBook.getListAddressBook);
+    app.route('/crm/search_address_book').post(company.searchCompanyToAddressbook);
 
 };

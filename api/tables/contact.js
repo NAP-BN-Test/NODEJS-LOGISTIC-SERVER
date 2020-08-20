@@ -21,7 +21,9 @@ module.exports = function (db) {
         Facebook: Sequelize.INTEGER,
         Skype: Sequelize.INTEGER,
         AssignID: Sequelize.BIGINT,
-        LastActivity: Sequelize.NOW
+        LastActivity: Sequelize.NOW,
+        Status: Sequelize.STRING,
+        Note: Sequelize.STRING
     });
 
     return table;

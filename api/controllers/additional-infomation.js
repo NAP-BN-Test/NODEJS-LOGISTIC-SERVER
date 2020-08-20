@@ -14,11 +14,16 @@ var mCheckMail = require('../controllers/check-mail');
 var mUserFollow = require('../tables/user-follow');
 var mMailCampain = require('../tables/mail-campain');
 
-
 let mAdditionalInformation = require('../tables/additional-infomation');
 var mMailListDetail = require('../tables/mail-list-detail');
 const result = require('../constants/result');
 
+function handleNumber(number) {
+    if (number < 10) return "000" + number.toString();
+    if (number >= 10 && number < 100) return "00" + number.toString();
+    if (number >= 100 && number < 1000) return "0" + number.toString();
+    if (number >= 1000) return number.toString();
+}
 
 module.exports = {
     getListAdditionalInformation: (req, res) => {
@@ -66,7 +71,7 @@ module.exports = {
                                 })
                             array.push({
                                 ID: data[i].ID,
-                                OurRef: data[i].OurRef ? data[i].OurRef : null,
+                                OurRef: data[i].OurRef + handleNumber(i),
                                 PAT: data[i].PAT ? data[i].PAT : null,
                                 Applicant: data[i].Applicant ? data[i].Applicant : null,
                                 ApplicationNo: data[i].ApplicationNo ? data[i].ApplicationNo : null,
@@ -121,8 +126,11 @@ module.exports = {
                     errorEmail = Constant.MAIL_RESPONSE_TYPE.INVALID;
                 }
             })
+            let User = await mUser(db).findOne({ where: { ID: body.UserID } })
+            let NameAcronym = User.NameAcronym ? User.NameAcronym + '/' : '';
+            let OurRef = 'PR/LA/' + NameAcronym;
             mAdditionalInformation(db).create({
-                OurRef: body.OurRef ? body.OurRef : null,
+                OurRef: OurRef,
                 PAT: body.PAT ? body.PAT : null,
                 Applicant: body.Applicant ? body.Applicant : null,
                 ApplicationNo: body.ApplicationNo ? body.ApplicationNo : null,
@@ -202,7 +210,6 @@ module.exports = {
     },
     updateAdditionalInformation: (req, res) => {
         let body = req.body;
-        console.log(body);
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let errorEmail = '';
@@ -215,10 +222,6 @@ module.exports = {
                 else {
                     try {
                         let update = [];
-                        console.log(body);
-                        console.log(body.Applicant);
-                        if (body.OurRef)
-                            update.push({ key: 'OurRef', value: body.OurRef });
                         if (body.PAT)
                             update.push({ key: 'PAT', value: body.PAT });
                         if (body.Applicant)
@@ -291,7 +294,7 @@ module.exports = {
                 if (data) {
                     obj = {
                         ID: data.ID,
-                        OurRef: data.OurRef ? data.OurRef : null,
+                        OurRef: data[i].OurRef + handleNumber(i),
                         PAT: data.PAT ? data.PAT : null,
                         Applicant: data.Applicant ? data.Applicant : null,
                         ApplicationNo: data.ApplicationNo ? data.ApplicationNo : null,
@@ -367,12 +370,13 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             mAdditionalInformation(db).findAll().then(data => {
                 var array = [];
-
+                var i = 1;
                 data.forEach(elm => {
                     array.push({
                         id: elm['ID'],
-                        OurRef: elm['OurRef'],
+                        OurRef: elm.OurRef + handleNumber(i),
                     })
+                    i += 1;
                 });
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -393,7 +397,10 @@ module.exports = {
             contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
             var listContactID = JSON.parse(body.listContactID);
             let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
-
+            let User = await mUser(db).findOne({ where: { ID: body.userID } })
+            let NameAcronym = User.NameAcronym ? User.NameAcronym + '/' : '';
+            let OurRef = 'PR/LA/' + NameAcronym;
+            console.log(listContactID);
             await contact.findAll({
                 where: {
                     [Op.or]: {
@@ -409,7 +416,7 @@ module.exports = {
                 if (data) {
                     for (var i = 0; i < data.length; i++) {
                         await mAdditionalInformation(db).create({
-                            OurRef: data[i].Name ? data[i].Name : null,
+                            OurRef: OurRef,
                             Address: data[i].Address ? data[i].Address : null,
                             Email: data[i].Email ? data[i].Email : null,
                             TimeCreate: now,

@@ -12,6 +12,7 @@ var user = require('../controllers/user');
 var mCity = require('../tables/city');
 
 var mActivity = require('../controllers/activity');
+var mCountry = require('../tables/country');
 
 var mCompany = require('../tables/company');
 var mContact = require('../tables/contact');
@@ -66,6 +67,7 @@ module.exports = {
             }
         })
     },
+
     getListCompany: (req, res) => {
 
         let body = req.body;
@@ -297,7 +299,6 @@ module.exports = {
         })
     },
 
-
     getDetailCompany: (req, res) => {
         let body = req.body;
 
@@ -307,7 +308,7 @@ module.exports = {
             let company = mCompany(db);
             company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
             company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
-
+            company.belongsTo(mCountry(db), { foreignKey: 'CountryID', sourceKey: 'CountryID', as: 'Country' });
             company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
 
             company.findOne({
@@ -322,7 +323,9 @@ module.exports = {
                     {
                         model: mDealStage(db),
                         required: false,
-                    }
+                    },
+                    { model: mCountry(db), required: false, as: 'Country' },
+
                 ]
             }).then(data => {
                 var obj = {
@@ -341,6 +344,9 @@ module.exports = {
                     stageName: data.DealStage ? data.DealStage.Name : "",
                     Fax: data.Fax,
                     Role: data.Role,
+                    CountryID: data.Country ? data.Country.ID : "",
+                    Country: data.Country ? data.Country.Name : "",
+                    Note: data.Note
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -417,7 +423,7 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-
+            console.log(body);
 
             let listUpdate = [];
 
@@ -924,6 +930,231 @@ module.exports = {
             res.json(Result.SYS_ERROR_RESULT)
         })
 
+    },
+
+    searchCompanyToAddressbook: (req, res) => {
+        let body = req.body;
+
+        database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
+            // console.log(body);
+            let company = mCompany(db);
+            company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
+            company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
+            company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
+            company.belongsTo(mCountry(db), { foreignKey: 'CountryID', sourceKey: 'CountryID', as: 'Country' });
+            company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
+
+            company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
+            company.hasMany(mDeal(db), { foreignKey: 'CompanyID' });
+
+            var data = JSON.parse(body.data)
+            let where = [];
+            if (data.search) {
+                where = [
+                    { Name: { [Op.like]: '%' + data.search + '%' } },
+                    { Address: { [Op.like]: '%' + data.search + '%' } },
+                    { Phone: { [Op.like]: '%' + data.search + '%' } },
+                    { ShortName: { [Op.like]: '%' + data.search + '%' } },
+                ];
+            } else {
+                where = [
+                    { Name: { [Op.ne]: '%%' } },
+                    { Address: { [Op.like]: '%%' } },
+                    { Phone: { [Op.like]: '%%' } },
+                    { ShortName: { [Op.like]: '%%' } },
+                ];
+            }
+            console.log(data);
+            let whereOjb = { [Op.or]: where };
+            if (data.items) {
+                data.items.forEach(item => {
+                    let userFind = {};
+                    if (item.fields['name'] === 'Name') {
+                        userFind['Name'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                    if (item.fields['name'] === 'Email') {
+                        userFind['Email'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                    if (item.fields['name'] === 'Address') {
+                        userFind['Address'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                    if (item.fields['name'] === 'ShortName') {
+                        userFind['ShortName'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                    if (item.fields['name'] === 'Phone') {
+                        userFind['Phone'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                    if (item.fields['name'] === 'Website') {
+                        userFind['Website'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                    if (item.fields['name'] === 'Source') {
+                        userFind['Source'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                    if (item.fields['name'] === 'Note') {
+                        userFind['Note'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                    if (item.fields['name'] === 'Fax') {
+                        userFind['Fax'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                    if (item.fields['name'] === 'Name') {
+                        userFind['Name'] = { [Op.like]: '%' + item['searchFields'] + '%' }
+                        if (item.conditionFields['name'] == 'And') {
+                            whereOjb[Op.and] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Or') {
+                            whereOjb[Op.or] = userFind
+                        }
+                        if (item.conditionFields['name'] == 'Not') {
+                            whereOjb[Op.not] = userFind
+                        }
+                    }
+                })
+            }
+            console.log(whereOjb);
+            var data = await company.findAll({
+                where: whereOjb,
+                include: [
+                    { model: mCountry(db), required: false, as: 'Country' },
+                    { model: mUser(db), required: false, as: 'CreateUser' },
+                    { model: mUser(db), required: false, as: 'AssignUser' },
+                    {
+                        model: mUserFollow(db),
+                        required: body.companyType == 3 ? true : false,
+                        where: { UserID: body.userID, Type: 1, Follow: true }
+                    },
+                    { model: mCity(db), required: false },
+                    {
+                        model: mDealStage(db),
+                        required: false,
+                    }
+                ],
+                order: [['ID', 'DESC']],
+                offset: Number(body.itemPerPage) * (Number(body.page) - 1),
+                limit: Number(body.itemPerPage)
+            });
+
+            var array = [];
+            data.forEach(elm => {
+                array.push({
+                    id: elm.ID,
+                    name: elm.Name,
+
+                    ownerID: elm.UserID,
+                    ownerName: elm.CreateUser ? elm.CreateUser.Username : "",
+
+                    assignID: elm.AssignID,
+                    assignName: elm.AssignUser ? elm.AssignUser.Username : "",
+
+                    address: elm.Address,
+                    phone: elm.Phone,
+                    email: elm.Email,
+                    website: elm.Website,
+                    timeCreate: mModules.toDatetime(elm.TimeCreate),
+
+                    cityID: elm.City ? elm.City.ID : -1,
+                    city: elm.City ? elm.City.Name : "",
+                    CountryID: elm.Country ? elm.Country.ID : "",
+                    Country: elm.Country ? elm.Country.Name : "",
+
+                    follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
+                    checked: false,
+                    companyType: elm.Type == 0 ? 'Có' : 'Không',
+                    stageID: elm.DealStage ? elm.DealStage.ID : -1,
+                    stageName: elm.DealStage ? elm.DealStage.Name : "",
+
+                    lastActivity: mModules.toDatetime(elm.LastActivity),
+                    Fax: elm.Fax,
+                    Role: elm.Role,
+                })
+            });
+            var result = {
+                status: Constant.STATUS.SUCCESS,
+                message: '',
+                array: array
+            }
+            res.json(result)
+        })
     },
 
 }
