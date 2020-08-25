@@ -31,7 +31,7 @@ function convertStringToListObject(string) {
     let result = [];
     let resultArray = [];
     if (string) {
-        result = string.split("; ")
+        result = string.split(";")
         result.forEach(item => {
             let resultObj = {};
             resultObj.name = item;
@@ -429,7 +429,7 @@ module.exports = {
 
             mContact(db).create({
                 UserID: body.userID,
-                CompanyID: body.addOut ? null : body.companyID,
+                CompanyID: body.companyID ? body.companyID : null,
                 Name: body.name,
                 Gender: body.gender,
                 JobTile: body.jobTile,
@@ -441,6 +441,8 @@ module.exports = {
                 Skype: body.skype,
                 TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                 Note: body.Note,
+                Fax: body.Fax,
+                Active: body.Active,
                 Status: body.Status
             }).then(data => {
                 var obj = {
@@ -592,6 +594,18 @@ module.exports = {
 
             if (body.contactJobTile)
                 listUpdate.push({ key: 'JobTile', value: body.contactJobTile });
+
+            if (body.Fax)
+                listUpdate.push({ key: 'Fax', value: body.Fax })
+
+            if (body.Active)
+                listUpdate.push({ key: 'Active', value: body.Active });
+
+            if (body.Note)
+                listUpdate.push({ key: 'Note', value: body.Note })
+
+            if (body.Status)
+                listUpdate.push({ key: 'Status', value: body.Status })
 
 
             let update = {};

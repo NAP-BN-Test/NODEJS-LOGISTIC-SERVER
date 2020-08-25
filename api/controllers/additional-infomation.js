@@ -223,7 +223,7 @@ module.exports = {
                     try {
                         let update = [];
                         if (body.PAT)
-                            update.push({ key: 'PAT', value: body.PAT });
+                            update.push({ key: 'PAT', value: body.PAT.toString() });
                         if (body.Applicant)
                             update.push({ key: 'Applicant', value: body.Applicant });
                         if (body.ApplicationNo)
@@ -235,7 +235,7 @@ module.exports = {
                             update.push({ key: 'FilingDate', value: time });
                         }
                         if (body.PriorTrademark)
-                            update.push({ key: 'PriorTrademark', value: body.PriorTrademark });
+                            update.push({ key: 'PriorTrademark', value: body.PriorTrademark.toString() });
                         if (body.Owner)
                             update.push({ key: 'Owner', value: body.Owner });
                         if (body.RegNo)

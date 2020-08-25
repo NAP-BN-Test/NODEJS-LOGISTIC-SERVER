@@ -23,7 +23,9 @@ module.exports = function (db) {
         AssignID: Sequelize.BIGINT,
         LastActivity: Sequelize.NOW,
         Status: Sequelize.STRING,
-        Note: Sequelize.STRING
+        Note: Sequelize.STRING,
+        Fax: Sequelize.STRING,
+        Active: Sequelize.STRING,
     });
 
     return table;

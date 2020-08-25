@@ -423,7 +423,6 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            console.log(body);
 
             let listUpdate = [];
 
@@ -448,9 +447,9 @@ module.exports = {
             if (body.companyCity)
                 listUpdate.push({ key: 'CityID', value: body.companyCity });
 
-            if (body.CountryID)
+            if (body.CountryID) {
                 listUpdate.push({ key: 'CountryID', value: body.CountryID });
-
+            }
             if (body.website)
                 listUpdate.push({ key: 'Website', value: body.website });
 
@@ -952,16 +951,10 @@ module.exports = {
             if (data.search) {
                 where = [
                     { Name: { [Op.like]: '%' + data.search + '%' } },
-                    { Address: { [Op.like]: '%' + data.search + '%' } },
-                    { Phone: { [Op.like]: '%' + data.search + '%' } },
-                    { ShortName: { [Op.like]: '%' + data.search + '%' } },
                 ];
             } else {
                 where = [
                     { Name: { [Op.ne]: '%%' } },
-                    { Address: { [Op.like]: '%%' } },
-                    { Phone: { [Op.like]: '%%' } },
-                    { ShortName: { [Op.like]: '%%' } },
                 ];
             }
             console.log(data);
@@ -1091,7 +1084,6 @@ module.exports = {
                     }
                 })
             }
-            console.log(whereOjb);
             var data = await company.findAll({
                 where: whereOjb,
                 include: [
@@ -1148,10 +1140,12 @@ module.exports = {
                     Role: elm.Role,
                 })
             });
+            var all = await company.count({ where: whereOjb });
             var result = {
                 status: Constant.STATUS.SUCCESS,
                 message: '',
-                array: array
+                array: array,
+                all
             }
             res.json(result)
         })

@@ -43,7 +43,7 @@ app.post('/api/upload', upload.single('photo'), function (req, res) {
 
     } else {
         return res.send({
-            link: 'file:///D:/work/logistic_crm/nodejs-logistic-server/upload/' + nameMiddle + '.jpg',
+            link: nameMiddle + '.jpg',
             success: true
         })
     }
