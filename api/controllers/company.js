@@ -327,7 +327,13 @@ module.exports = {
                     { model: mCountry(db), required: false, as: 'Country' },
 
                 ]
-            }).then(data => {
+            }).then(async data => {
+                console.log(body.companyID);
+                let companyParent = await rmCompanyChild(db).findOne({ where: { ChildID: body.companyID } });
+                let company;
+                if (companyParent) {
+                    company = await mCompany(db).findOne({ where: { ID: companyParent.ParentID } })
+                }
                 var obj = {
                     id: data['ID'],
                     name: data['Name'],
@@ -346,7 +352,9 @@ module.exports = {
                     Role: data.Role,
                     CountryID: data.Country ? data.Country.ID : "",
                     Country: data.Country ? data.Country.Name : "",
-                    Note: data.Note
+                    Note: data.Note,
+                    ParentID: company ? company.ID : '',
+                    ParentName: company ? company.Name : '',
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -465,6 +473,11 @@ module.exports = {
             if (body.Note)
                 listUpdate.push({ key: 'Note', value: body.Note });
 
+            if (body.ChildID)
+                await rmCompanyChild(db).update({
+                    ParentID: body.ChildID,
+                }, { where: { ChildID: body.companyID } })
+
             let update = {};
             for (let field of listUpdate) {
                 update[field.key] = field.value
@@ -537,7 +550,6 @@ module.exports = {
                 attributes: ['ID'],
                 raw: true
             });
-
             var company = mCompany(db);
             company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
             company.create({
@@ -555,8 +567,12 @@ module.exports = {
                 Fax: body.Fax,
                 Role: body.Role,
                 Note: body.Note,
-            }).then(data => {
+            }).then(async data => {
                 var obj;
+                await rmCompanyChild(db).create({
+                    ParentID: body.ChildID ? body.ChildID : null,
+                    ChildID: data.ID
+                })
                 if (body.role == Constant.COMPANY_ROLE.PARENT) {
                     mCompany(db).update(
                         { ParentID: data.ID },
