@@ -30,6 +30,7 @@ var rmNote = require('../tables/note');
 var rmContact = require('../tables/contact');
 var rmDeal = require('../tables/deal');
 var rmUserFlow = require('../tables/user-follow');
+var mCategoryCustomer = require('../tables/category-customer');
 
 var mModules = require('../constants/modules')
 
@@ -79,6 +80,7 @@ module.exports = {
                     company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
                     company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
                     company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
+                    company.belongsTo(mCategoryCustomer(db), { foreignKey: 'CategoryID', sourceKey: 'CategoryID' });
 
                     company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
                     company.hasMany(mDeal(db), { foreignKey: 'CompanyID' });
@@ -240,10 +242,11 @@ module.exports = {
                                 where: { UserID: body.userID, Type: 1, Follow: true }
                             },
                             { model: mCity(db), required: false },
+                            { model: mCategoryCustomer(db), required: false },
                             {
                                 model: mDealStage(db),
                                 required: false,
-                            }
+                            },
                         ],
                         where: where,
                         order: [['ID', 'DESC']],
@@ -253,6 +256,7 @@ module.exports = {
 
                     var array = [];
                     data.forEach(elm => {
+
                         array.push({
                             id: elm.ID,
                             name: elm.Name,
@@ -281,6 +285,8 @@ module.exports = {
                             lastActivity: mModules.toDatetime(elm.LastActivity),
                             Fax: elm.Fax,
                             Role: elm.Role,
+                            CategoryID: elm.CategoryID ? elm.CategoryID : '',
+                            CustomerGroup: elm.CategoryCustomer ? elm.CategoryCustomer.Name : '',
                         })
                     });
 
@@ -310,6 +316,7 @@ module.exports = {
             company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
             company.belongsTo(mCountry(db), { foreignKey: 'CountryID', sourceKey: 'CountryID', as: 'Country' });
             company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
+            company.belongsTo(mCategoryCustomer(db), { foreignKey: 'CategoryID', sourceKey: 'CategoryID' });
 
             company.findOne({
                 where: { ID: body.companyID },
@@ -325,10 +332,10 @@ module.exports = {
                         required: false,
                     },
                     { model: mCountry(db), required: false, as: 'Country' },
+                    { model: mCategoryCustomer(db), required: false },
 
                 ]
             }).then(async data => {
-                console.log(body.companyID);
                 let companyParent = await rmCompanyChild(db).findOne({ where: { ChildID: body.companyID } });
                 let company;
                 if (companyParent) {
@@ -355,6 +362,8 @@ module.exports = {
                     Note: data.Note,
                     ParentID: company ? company.ID : '',
                     ParentName: company ? company.Name : '',
+                    CustomerGroupID: data.CategoryCustomer ? data.CategoryCustomer.ID : '',
+                    CustomerGroup: data.CategoryCustomer ? data.CategoryCustomer.Name : '',
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -453,6 +462,14 @@ module.exports = {
 
             if (body.companyCity || body.companyCity === '')
                 listUpdate.push({ key: 'CityID', value: body.companyCity });
+
+            if (body.CategoryID || body.CategoryID === '') {
+                if (body.CategoryID === '')
+                    listUpdate.push({ key: 'CategoryID', value: null });
+                else
+                    listUpdate.push({ key: 'CategoryID', value: body.CategoryID });
+
+            }
 
             if (body.CountryID || body.CountryID === '') {
                 if (body.CountryID === '')
@@ -576,9 +593,10 @@ module.exports = {
                 Type: 1,
                 CountryID: body.CountryID ? body.CountryID : null,
                 StageID: stageData.ID ? stageData.ID : null,
-                Fax: body.Fax,
-                Role: body.Role,
-                Note: body.Note,
+                Fax: body.Fax ? body.Fax : '',
+                Role: body.Role ? body.Role : '',
+                Note: body.Note ? body.Note : '',
+                CategoryID: body.CategoryID ? body.CategoryID : null,
             }).then(async data => {
                 var obj;
                 await rmCompanyChild(db).create({

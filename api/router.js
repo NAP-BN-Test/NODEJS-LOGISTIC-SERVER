@@ -342,4 +342,11 @@ module.exports = function (app) {
     app.route('/crm/get_list_address_book').post(adddressBook.getListAddressBook);
     app.route('/crm/search_address_book').post(company.searchCompanyToAddressbook);
 
+    // category customer
+    var catagoryCustomer = require('./controllers/category-customer');
+    app.route('/crm/add_customer_group').post(catagoryCustomer.addCategory);
+    app.route('/crm/update_customer_group').post(catagoryCustomer.updateCategory);
+    app.route('/crm/delete_list_customer_group').post(catagoryCustomer.deleteCategory);
+    app.route('/crm/get_list_all_customer_group').post(catagoryCustomer.getListAll);
+
 };

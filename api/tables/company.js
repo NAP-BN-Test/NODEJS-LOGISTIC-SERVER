@@ -29,6 +29,7 @@ module.exports = function (db) {
         Note: Sequelize.STRING,
         Fax: Sequelize.STRING,
         Role: Sequelize.STRING,
+        CategoryID: Sequelize.BIGINT,
     });
 
     return table;
