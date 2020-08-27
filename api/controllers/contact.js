@@ -580,31 +580,31 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let listUpdate = [];
 
-            if (body.contactName)
+            if (body.contactName || body.contactName === '')
                 listUpdate.push({ key: 'Name', value: body.contactName });
 
-            if (body.contactAddress)
+            if (body.contactAddress || body.contactAddress === '')
                 listUpdate.push({ key: 'Address', value: body.contactAddress });
 
-            if (body.contactPhone)
+            if (body.contactPhone || body.contactPhone === '')
                 listUpdate.push({ key: 'Phone', value: body.contactPhone });
 
-            if (body.contactEmail)
+            if (body.contactEmail || body.contactEmail === '')
                 listUpdate.push({ key: 'Email', value: body.contactEmail });
 
-            if (body.contactJobTile)
+            if (body.contactJobTile || body.contactJobTile === '')
                 listUpdate.push({ key: 'JobTile', value: body.contactJobTile });
 
-            if (body.Fax)
+            if (body.Fax || body.Fax === '')
                 listUpdate.push({ key: 'Fax', value: body.Fax })
 
-            if (body.Active)
+            if (body.Active || body.Active === '')
                 listUpdate.push({ key: 'Active', value: body.Active });
 
-            if (body.Note)
+            if (body.Note || body.Note === '')
                 listUpdate.push({ key: 'Note', value: body.Note })
 
-            if (body.Status)
+            if (body.Status || body.Status === '')
                 listUpdate.push({ key: 'Status', value: body.Status })
 
 

@@ -700,30 +700,30 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
                 let update = [];
-                if (body.name)
+                if (body.name || body.name === '')
                     update.push({ key: 'Name', value: body.name });
-                if (body.subject)
+                if (body.subject || body.subject === '')
                     update.push({ key: 'Subject', value: body.subject });
-                if (body.startTime) {
+                if (body.startTime || body.startTime === '') {
                     let time = moment(body.startTime).format('YYYY-MM-DD HH:mm:ss.SSS')
                     update.push({ key: 'TimeCreate', value: time });
                 }
-                if (body.endTime) {
+                if (body.endTime || body.endTime === '') {
                     let time = moment(body.endTime).format('YYYY-MM-DD HH:mm:ss.SSS')
                     update.push({ key: 'TimeEnd', value: time });
                 }
-                if (body.body) {
+                if (body.body || body.body === '') {
                     update.push({ key: 'Body', value: body.body });
                 }
                 if (body.Type == 'MailList') {
-                    if (body.mailListID)
+                    if (body.mailListID || body.mailListID === '')
                         update.push({ key: 'MailListID', value: body.mailListID });
                 } else {
-                    if (body.TemplateID)
+                    if (body.TemplateID || body.TemplateID === '')
                         update.push({ key: 'TemplateID', value: body.TemplateID });
-                    if (body.Description)
+                    if (body.Description || body.Description === '')
                         update.push({ key: 'Description', value: body.Description });
-                    if (body.NumberAddressBook)
+                    if (body.NumberAddressBook || body.NumberAddressBook === '')
                         update.push({ key: 'NumberAddressBook', value: Number(body.NumberAddressBook) });
 
                 }

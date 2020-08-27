@@ -222,43 +222,43 @@ module.exports = {
                 else {
                     try {
                         let update = [];
-                        if (body.PAT)
+                        if (body.PAT || body.PAT === '')
                             update.push({ key: 'PAT', value: body.PAT.toString() });
-                        if (body.Applicant)
+                        if (body.Applicant || body.Applicant === '')
                             update.push({ key: 'Applicant', value: body.Applicant });
-                        if (body.ApplicationNo)
+                        if (body.ApplicationNo || body.ApplicationNo === '')
                             update.push({ key: 'ApplicationNo', value: body.ApplicationNo });
-                        if (body.ClassA)
+                        if (body.ClassA || body.ClassA === '')
                             update.push({ key: 'ClassA', value: body.ClassA });
                         if (body.FilingDate !== 'Invalid date') {
                             let time = moment(body.FilingDate).format('YYYY-MM-DD');
                             update.push({ key: 'FilingDate', value: time });
                         }
-                        if (body.PriorTrademark)
+                        if (body.PriorTrademark || body.PriorTrademark === '')
                             update.push({ key: 'PriorTrademark', value: body.PriorTrademark.toString() });
-                        if (body.Owner)
+                        if (body.Owner || body.Owner === '')
                             update.push({ key: 'Owner', value: body.Owner });
-                        if (body.RegNo)
+                        if (body.RegNo || body.RegNo === '')
                             update.push({ key: 'RegNo', value: body.RegNo });
-                        if (body.ClassB)
+                        if (body.ClassB || body.ClassB === '')
                             update.push({ key: 'ClassB', value: body.ClassB });
-                        if (body.Firm)
+                        if (body.Firm || body.Firm === '')
                             update.push({ key: 'Firm', value: body.Firm });
-                        if (body.Address)
+                        if (body.Address || body.Address === '')
                             update.push({ key: 'Address', value: body.Address });
-                        if (body.Tel)
+                        if (body.Tel || body.Tel === '')
                             update.push({ key: 'Tel', value: body.Tel });
-                        if (body.Fax)
+                        if (body.Fax || body.Fax === '')
                             update.push({ key: 'Fax', value: body.Fax });
                         if (errorEmail === '')
                             update.push({ key: 'Email', value: body.Email });
-                        if (body.Status)
+                        if (body.Status || body.Status === '')
                             update.push({ key: 'Status', value: body.Status });
-                        if (body.Rerminder)
+                        if (body.Rerminder || body.Rerminder === '')
                             update.push({ key: 'Rerminder', value: body.Rerminder });
-                        if (body.userID)
+                        if (body.userID || body.userID === '')
                             update.push({ key: 'UserID', value: body.userID });
-                        if (body.Description)
+                        if (body.Description || body.Description === '')
                             update.push({ key: 'Description', value: body.Description });
                         database.updateTable(update, mAdditionalInformation(db), body.ID).then(response => {
                             if (response == 1) {
