@@ -245,9 +245,9 @@ module.exports = {
 
             try {
                 let update = [];
-                if (body.code)
+                if (body.code || body.code === '')
                     update.push({ key: 'Code', value: body.code });
-                if (body.name)
+                if (body.name || body.name === '')
                     update.push({ key: 'Name', value: body.name });
 
                 database.updateTable(update, mCountry(db), body.countryID).then(response => {
@@ -514,7 +514,7 @@ module.exports = {
 
             try {
                 let update = [];
-                if (body.name)
+                if (body.name || body.name === '')
                     update.push({ key: 'Name', value: body.name });
 
                 database.updateTable(update, mJobTile(db), body.categoryID).then(response => {

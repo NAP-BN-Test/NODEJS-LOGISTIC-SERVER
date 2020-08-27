@@ -431,32 +431,35 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-
             let listUpdate = [];
-
-            if (body.companyName)
+            console.log(body);
+            if (body.companyName || body.companyName === '')
                 listUpdate.push({ key: 'Name', value: body.companyName });
 
-            if (body.companyShortName)
+            if (body.companyShortName || body.companyShortName === '')
                 listUpdate.push({ key: 'ShortName', value: body.companyShortName });
 
-            if (body.companyAddress)
+            if (body.companyAddress || body.companyAddress === '')
                 listUpdate.push({ key: 'Address', value: body.companyAddress });
 
-            if (body.companyPhone)
+            if (body.companyPhone || body.companyPhone === '')
                 listUpdate.push({ key: 'Phone', value: body.companyPhone });
 
-            if (body.companyEmail)
+            if (body.companyEmail || body.companyEmail === '')
                 listUpdate.push({ key: 'Email', value: body.companyEmail });
 
-            if (body.timeActive)
+            if (body.timeActive || body.timeActive === '')
                 listUpdate.push({ key: 'TimeActive', value: body.timeActive });
 
-            if (body.companyCity)
+            if (body.companyCity || body.companyCity === '')
                 listUpdate.push({ key: 'CityID', value: body.companyCity });
 
-            if (body.CountryID) {
-                listUpdate.push({ key: 'CountryID', value: body.CountryID });
+            if (body.CountryID || body.CountryID === '') {
+                if (body.CountryID === '')
+                    listUpdate.push({ key: 'CountryID', value: null });
+                else
+                    listUpdate.push({ key: 'CountryID', value: body.CountryID });
+
             }
             if (body.website)
                 listUpdate.push({ key: 'Website', value: body.website });
@@ -464,19 +467,28 @@ module.exports = {
             if (body.stageID)
                 listUpdate.push({ key: 'StageID', value: body.stageID });
 
-            if (body.Fax)
+            if (body.Fax || body.Fax === '')
                 listUpdate.push({ key: 'Fax', value: body.Fax });
 
-            if (body.Role)
+            if (body.Role || body.Role === '')
                 listUpdate.push({ key: 'Role', value: body.Role });
 
-            if (body.Note)
+            if (body.Note || body.Note === '')
                 listUpdate.push({ key: 'Note', value: body.Note });
 
-            if (body.ChildID)
-                await rmCompanyChild(db).update({
-                    ParentID: body.ChildID,
-                }, { where: { ChildID: body.companyID } })
+            if (body.ChildID || body.ChildID === '') {
+                if (body.ChildID === '') {
+                    await rmCompanyChild(db).update({
+                        ParentID: null,
+                    }, { where: { ChildID: body.companyID } })
+                } else {
+                    await rmCompanyChild(db).update({
+                        ParentID: body.ChildID,
+                    }, { where: { ChildID: body.companyID } })
+                }
+            }
+
+
 
             let update = {};
             for (let field of listUpdate) {
@@ -543,7 +555,7 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-
+            console.log(body);
             //get stageID with Stage = 1;
             var stageData = await mDealStage(db).findOne({
                 where: { Stage: 1 },

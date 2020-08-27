@@ -176,17 +176,17 @@ module.exports = {
 
             try {
                 let update = [];
-                if (body.body)
+                if (body.body || body.body === '')
                     update.push({ key: 'body', value: body.body });
-                if (body.Name)
+                if (body.Name || body.Name === '')
                     update.push({ key: 'Name', value: body.Name });
-                if (body.Description)
+                if (body.Description || body.Description === '')
                     update.push({ key: 'Description', value: body.Description });
-                if (body.UserID)
+                if (body.UserID || body.UserID === '')
                     update.push({ key: 'UserID', value: body.UserID });
-                if (body.TimeRemind)
+                if (body.TimeRemind || body.TimeRemind === '')
                     update.push({ key: 'TimeRemind', value: body.TimeRemind });
-                if (body.TimeStart)
+                if (body.TimeStart || body.TimeStart === '')
                     update.push({ key: 'TimeStart', value: body.TimeStart });
 
                 database.updateTable(update, mTemplate(db), body.ID).then(response => {
