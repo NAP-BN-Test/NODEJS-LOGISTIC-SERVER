@@ -1003,7 +1003,6 @@ module.exports = {
                     { Name: { [Op.ne]: '%%' } },
                 ];
             }
-            console.log(data);
             let whereOjb = { [Op.or]: where };
             if (data.items) {
                 data.items.forEach(item => {
