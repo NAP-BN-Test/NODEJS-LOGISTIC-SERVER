@@ -67,7 +67,7 @@ module.exports = {
                             if (check[0])
                                 check.forEach(item => {
                                     count += 1;
-                                    count > 1 ? listNameCampaign += ', [' + item.dataValues.Campaign.Name + ']' : listNameCampaign += '[' + item.dataValues.Campaign.Name + ']';
+                                    count > 1 ? listNameCampaign += ', [' + item.Campaign ? item.Campaign : '' + ']' : listNameCampaign += '[' + item.Campaign ? item.Campaign : '' + ']';
                                 })
                             array.push({
                                 ID: data[i].ID,
@@ -127,7 +127,7 @@ module.exports = {
                 }
             })
             let User = await mUser(db).findOne({ where: { ID: body.UserID } })
-            let NameAcronym = User.NameAcronym ? User.NameAcronym + '/' : '';
+            let NameAcronym = User.Username ? User.Username + '/' : '';
             let OurRef = 'PR/LA/' + NameAcronym;
             mAdditionalInformation(db).create({
                 OurRef: OurRef,
@@ -214,66 +214,57 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let errorEmail = '';
             await mCheckMail.checkEmail(body.Email).then(async (checkMailRes) => {
-                if (checkMailRes == false) {
-                    errorEmail = Constant.MAIL_RESPONSE_TYPE.INVALID;
-                    Result.ACTION_SUCCESS.emailExist = false;
-                    res.json(Result.ACTION_SUCCESS);
-                }
-                else {
-                    try {
-                        let update = [];
-                        if (body.PAT || body.PAT === '')
-                            update.push({ key: 'PAT', value: body.PAT.toString() });
-                        if (body.Applicant || body.Applicant === '')
-                            update.push({ key: 'Applicant', value: body.Applicant });
-                        if (body.ApplicationNo || body.ApplicationNo === '')
-                            update.push({ key: 'ApplicationNo', value: body.ApplicationNo });
-                        if (body.ClassA || body.ClassA === '')
-                            update.push({ key: 'ClassA', value: body.ClassA });
-                        if (body.FilingDate !== 'Invalid date') {
-                            let time = moment(body.FilingDate).format('YYYY-MM-DD');
-                            update.push({ key: 'FilingDate', value: time });
-                        }
-                        if (body.PriorTrademark || body.PriorTrademark === '')
-                            update.push({ key: 'PriorTrademark', value: body.PriorTrademark.toString() });
-                        if (body.Owner || body.Owner === '')
-                            update.push({ key: 'Owner', value: body.Owner });
-                        if (body.RegNo || body.RegNo === '')
-                            update.push({ key: 'RegNo', value: body.RegNo });
-                        if (body.ClassB || body.ClassB === '')
-                            update.push({ key: 'ClassB', value: body.ClassB });
-                        if (body.Firm || body.Firm === '')
-                            update.push({ key: 'Firm', value: body.Firm });
-                        if (body.Address || body.Address === '')
-                            update.push({ key: 'Address', value: body.Address });
-                        if (body.Tel || body.Tel === '')
-                            update.push({ key: 'Tel', value: body.Tel });
-                        if (body.Fax || body.Fax === '')
-                            update.push({ key: 'Fax', value: body.Fax });
-                        if (errorEmail === '')
-                            update.push({ key: 'Email', value: body.Email });
-                        if (body.Status || body.Status === '')
-                            update.push({ key: 'Status', value: body.Status });
-                        if (body.Rerminder || body.Rerminder === '')
-                            update.push({ key: 'Rerminder', value: body.Rerminder });
-                        if (body.userID || body.userID === '')
-                            update.push({ key: 'UserID', value: body.userID });
-                        if (body.Description || body.Description === '')
-                            update.push({ key: 'Description', value: body.Description });
-                        database.updateTable(update, mAdditionalInformation(db), body.ID).then(response => {
-                            if (response == 1) {
-                                Result.ACTION_SUCCESS.emailExist = true ? errorEmail === '' : false
-                                res.json(Result.ACTION_SUCCESS);
-                            } else {
-                                Result.SYS_ERROR_RESULT.emailExist = true ? errorEmail === '' : false
-                                res.json(Result.SYS_ERROR_RESULT);
-                            }
-                        })
-                    } catch (error) {
-                        console.log(error);
-                        res.json(Result.SYS_ERROR_RESULT)
-
+                try {
+                    let update = [];
+                    if (body.PAT || body.PAT === '')
+                        update.push({ key: 'PAT', value: body.PAT.toString() });
+                    if (body.Applicant || body.Applicant === '')
+                        update.push({ key: 'Applicant', value: body.Applicant });
+                    if (body.ApplicationNo || body.ApplicationNo === '')
+                        update.push({ key: 'ApplicationNo', value: body.ApplicationNo });
+                    if (body.ClassA || body.ClassA === '')
+                        update.push({ key: 'ClassA', value: body.ClassA });
+                    if (body.FilingDate !== 'Invalid date') {
+                        let time = moment(body.FilingDate).format('YYYY-MM-DD');
+                        update.push({ key: 'FilingDate', value: time });
                     }
+                    if (body.PriorTrademark || body.PriorTrademark === '')
+                        update.push({ key: 'PriorTrademark', value: body.PriorTrademark.toString() });
+                    if (body.Owner || body.Owner === '')
+                        update.push({ key: 'Owner', value: body.Owner });
+                    if (body.RegNo || body.RegNo === '')
+                        update.push({ key: 'RegNo', value: body.RegNo });
+                    if (body.ClassB || body.ClassB === '')
+                        update.push({ key: 'ClassB', value: body.ClassB });
+                    if (body.Firm || body.Firm === '')
+                        update.push({ key: 'Firm', value: body.Firm });
+                    if (body.Address || body.Address === '')
+                        update.push({ key: 'Address', value: body.Address });
+                    if (body.Tel || body.Tel === '')
+                        update.push({ key: 'Tel', value: body.Tel });
+                    if (body.Fax || body.Fax === '')
+                        update.push({ key: 'Fax', value: body.Fax });
+                    if (errorEmail === '')
+                        update.push({ key: 'Email', value: body.Email });
+                    if (body.Status || body.Status === '')
+                        update.push({ key: 'Status', value: body.Status });
+                    if (body.Rerminder || body.Rerminder === '')
+                        update.push({ key: 'Rerminder', value: body.Rerminder });
+                    if (body.userID || body.userID === '')
+                        update.push({ key: 'UserID', value: body.userID });
+                    if (body.Description || body.Description === '')
+                        update.push({ key: 'Description', value: body.Description });
+                    database.updateTable(update, mAdditionalInformation(db), body.ID).then(response => {
+                        if (response == 1) {
+                            res.json(Result.ACTION_SUCCESS);
+                        } else {
+                            res.json(Result.SYS_ERROR_RESULT);
+                        }
+                    })
+                } catch (error) {
+                    console.log(error);
+                    res.json(Result.SYS_ERROR_RESULT)
+
                 }
             })
         })
@@ -390,7 +381,7 @@ module.exports = {
     },
     createImformationfromContact: (req, res) => {
         let body = req.body;
-
+        console.log(body);
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
 
             let contact = mContact(db);
@@ -400,7 +391,6 @@ module.exports = {
             let User = await mUser(db).findOne({ where: { ID: body.userID } })
             let NameAcronym = User.NameAcronym ? User.NameAcronym + '/' : '';
             let OurRef = 'PR/LA/' + NameAcronym;
-            console.log(listContactID);
             await contact.findAll({
                 where: {
                     [Op.or]: {
@@ -415,10 +405,14 @@ module.exports = {
             }).then(async data => {
                 if (data) {
                     for (var i = 0; i < data.length; i++) {
+                        console.log(data[i].Email);
                         await mAdditionalInformation(db).create({
                             OurRef: OurRef,
                             Address: data[i].Address ? data[i].Address : null,
                             Email: data[i].Email ? data[i].Email : null,
+                            Owner: data[i].Name ? data[i].Name : null,
+                            Tel: data[i].Phone ? data[i].Phone : null,
+                            Fax: data[i].Fax ? data[i].Fax : null,
                             TimeCreate: now,
                             TimeUpdate: now,
                             CampaignID: body.CampaignID,

@@ -993,6 +993,7 @@ module.exports = {
             company.hasMany(mDeal(db), { foreignKey: 'CompanyID' });
 
             var data = JSON.parse(body.data)
+            console.log(body.data);
             let where = [];
             if (data.search) {
                 where = [

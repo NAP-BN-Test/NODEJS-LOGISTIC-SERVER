@@ -423,10 +423,7 @@ module.exports = {
 
     addContact: (req, res) => {
         let body = req.body;
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-
-
             mContact(db).create({
                 UserID: body.userID,
                 CompanyID: body.companyID ? body.companyID : null,
@@ -816,7 +813,7 @@ module.exports = {
                                 name: elm.Name,
                                 email: convertStringToListObject(elm.Email),
                                 phone: convertStringToListObject(elm.Phone),
-                                fax: convertStringToListObject(elm.Phone),
+                                fax: convertStringToListObject(elm.Fax),
                                 timeCreate: mModules.toDatetime(elm.TimeCreate),
 
                                 companyID: elm.Company ? elm.Company.ID : null,
