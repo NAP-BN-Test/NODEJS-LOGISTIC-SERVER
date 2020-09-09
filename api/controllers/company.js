@@ -993,6 +993,7 @@ module.exports = {
             company.hasMany(mDeal(db), { foreignKey: 'CompanyID' });
 
             var data = JSON.parse(body.data)
+            console.log(body.data);
             let where = [];
             if (data.search) {
                 where = [
@@ -1003,7 +1004,6 @@ module.exports = {
                     { Name: { [Op.ne]: '%%' } },
                 ];
             }
-            console.log(data);
             let whereOjb = { [Op.or]: where };
             if (data.items) {
                 data.items.forEach(item => {
