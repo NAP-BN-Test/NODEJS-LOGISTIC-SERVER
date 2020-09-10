@@ -219,7 +219,12 @@ module.exports = {
                     });
                 }
 
-                var mailCampainCount = await mailCampain.count();
+                var mailCampainCount = await mailCampain.count({
+                    where: [
+                        where,
+                        { Type: 'MailMerge' }
+                    ],
+                });
 
                 var array = [];
                 mailCampainData.forEach(item => {
@@ -459,6 +464,13 @@ module.exports = {
                             }
                         }
                     });
+                    await mAdditionalInformation(db).destroy({
+                        where: {
+                            CampaignID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    })
                 }
 
                 res.json(Result.ACTION_SUCCESS);

@@ -13,7 +13,7 @@ var mContact = require('../tables/contact');
 var mCheckMail = require('../controllers/check-mail');
 var mUserFollow = require('../tables/user-follow');
 var mMailCampain = require('../tables/mail-campain');
-
+const fs = require('fs');
 let mAdditionalInformation = require('../tables/additional-infomation');
 var mMailListDetail = require('../tables/mail-list-detail');
 const result = require('../constants/result');
@@ -67,7 +67,7 @@ module.exports = {
                             if (check[0])
                                 check.forEach(item => {
                                     count += 1;
-                                    count > 1 ? listNameCampaign += ', [' + item.Campaign ? item.Campaign : '' + ']' : listNameCampaign += '[' + item.Campaign ? item.Campaign : '' + ']';
+                                    count > 1 ? listNameCampaign += ', [' + item.Campaign.Name + ']' : listNameCampaign += '[' + item.Campaign.Name + ']';
                                 })
                             array.push({
                                 ID: data[i].ID,
@@ -210,6 +210,7 @@ module.exports = {
     },
     updateAdditionalInformation: (req, res) => {
         let body = req.body;
+        console.log(body);
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let errorEmail = '';
@@ -434,5 +435,18 @@ module.exports = {
                 }
             })
         })
+    },
+    // delete_image
+    deleteImage: (req, res) => {
+        // delete a file
+        var body = req.body;
+        var file = body.nameImage
+        fs.unlink('./upload/' + file, (err) => {
+            if (err) {
+                res.json("Image not exist.");
+            }
+
+            res.json("Image is deleted.");
+        });
     },
 }
