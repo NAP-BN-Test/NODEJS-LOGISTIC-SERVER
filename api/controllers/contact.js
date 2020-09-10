@@ -777,7 +777,7 @@ module.exports = {
         let body = req.body;
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
+            mUser(db).findOne({ where: { ID: body.userID } }).then(async user => {
                 if (user) {
                     var contact = mContact(db);
 
@@ -786,6 +786,11 @@ module.exports = {
                     contact.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
                     contact.belongsTo(mCategoryJobTitle(db), { foreignKey: 'JobTile', sourceKey: 'JobTile', as: 'JobTileID' });
                     contact.hasMany(mUserFollow(db), { foreignKey: 'ContactID' })
+                    var count = await contact.count({
+                        where: {
+                            CompanyID: body.CompanyID,
+                        },
+                    });
                     contact.findAll({
                         include: [
                             { model: mUser(db), required: false, as: 'CreateUser' },
@@ -837,7 +842,9 @@ module.exports = {
                         var result = {
                             status: Constant.STATUS.SUCCESS,
                             message: '',
-                            array: array
+                            array: array,
+                            all: count
+
                         }
                         res.json(result)
                     })

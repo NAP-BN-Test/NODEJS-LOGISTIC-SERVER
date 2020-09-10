@@ -219,7 +219,12 @@ module.exports = {
                     });
                 }
 
-                var mailCampainCount = await mailCampain.count();
+                var mailCampainCount = await mailCampain.count({
+                    where: [
+                        where,
+                        { Type: 'MailMerge' }
+                    ],
+                });
 
                 var array = [];
                 mailCampainData.forEach(item => {

@@ -13,7 +13,7 @@ var mContact = require('../tables/contact');
 var mCheckMail = require('../controllers/check-mail');
 var mUserFollow = require('../tables/user-follow');
 var mMailCampain = require('../tables/mail-campain');
-
+const fs = require('fs');
 let mAdditionalInformation = require('../tables/additional-infomation');
 var mMailListDetail = require('../tables/mail-list-detail');
 const result = require('../constants/result');
@@ -210,6 +210,7 @@ module.exports = {
     },
     updateAdditionalInformation: (req, res) => {
         let body = req.body;
+        console.log(body);
         let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let errorEmail = '';
@@ -434,5 +435,18 @@ module.exports = {
                 }
             })
         })
+    },
+    // delete_image
+    deleteImage: (req, res) => {
+        // delete a file
+        var body = req.body;
+        var file = body.nameImage
+        fs.unlink('./upload/' + file, (err) => {
+            if (err) {
+                res.json("Image not exist.");
+            }
+
+            res.json("Image is deleted.");
+        });
     },
 }
