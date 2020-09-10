@@ -459,6 +459,13 @@ module.exports = {
                             }
                         }
                     });
+                    await mAdditionalInformation(db).destroy({
+                        where: {
+                            CampaignID: {
+                                [Op.in]: listID
+                            }
+                        }
+                    })
                 }
 
                 res.json(Result.ACTION_SUCCESS);

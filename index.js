@@ -40,10 +40,9 @@ app.post('/api/upload', upload.single('photo'), function (req, res) {
         return res.send({
             success: false
         });
-
     } else {
         return res.send({
-            link: nameMiddle + '.jpg',
+            link: 'file:///D:/work/logistic_crm/nodejs-logistic-server/upload/' + nameMiddle + '.jpg',
             success: true
         })
     }

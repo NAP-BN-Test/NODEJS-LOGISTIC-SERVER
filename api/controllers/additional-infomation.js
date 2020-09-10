@@ -67,7 +67,7 @@ module.exports = {
                             if (check[0])
                                 check.forEach(item => {
                                     count += 1;
-                                    count > 1 ? listNameCampaign += ', [' + item.Campaign ? item.Campaign : '' + ']' : listNameCampaign += '[' + item.Campaign ? item.Campaign : '' + ']';
+                                    count > 1 ? listNameCampaign += ', [' + item.Campaign.Name + ']' : listNameCampaign += '[' + item.Campaign.Name + ']';
                                 })
                             array.push({
                                 ID: data[i].ID,
