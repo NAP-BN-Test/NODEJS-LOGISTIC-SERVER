@@ -521,7 +521,7 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+                let now = moment().subtract(7, 'hours').format('YYYY-MM-DD HH:mm:ss.SSS');
                 data = {
                     Name: body.name,
                     TimeCreate: now,
