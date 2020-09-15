@@ -10,8 +10,6 @@ const bodyParser = require('body-parser')
 
 
 
-
-
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 app.use(function (req, res, next) {
@@ -21,12 +19,14 @@ app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
 });
-
-const DIR = './upload';
-let nameMiddle = Date.now();
+var nameMiddle;
+async function getDateInt(req, res, next) {
+    var datetime = new Date();
+    nameMiddle = Date.parse(datetime);
+    next();
+}
 let storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        console.log(DIR);
         cb(null, DIR);
     },
     filename: (req, file, cb) => {
@@ -34,13 +34,15 @@ let storage = multer.diskStorage({
     }
 });
 let upload = multer({ storage: storage });
-app.post('/api/upload', upload.single('photo'), function (req, res) {
+const DIR = './upload';
+app.post('/api/upload', getDateInt, upload.single('photo'), function (req, res) {
     if (!req.file) {
         console.log("No file received");
         return res.send({
             success: false
         });
     } else {
+        console.log(nameMiddle);
         return res.send({
             link: nameMiddle + '.jpg',
             success: true

@@ -443,10 +443,17 @@ module.exports = {
         var file = body.nameImage
         fs.unlink('./upload/' + file, (err) => {
             if (err) {
-                res.json("Image not exist.");
+                var result = {
+                    status: Constant.STATUS.FAIL,
+                    message: 'Image not exist.',
+                }
+                res.json(result)
             }
-
-            res.json("Image is deleted.");
+            var result = {
+                status: Constant.STATUS.SUCCESS,
+                message: 'Image is deleted.',
+            }
+            res.json(result)
         });
     },
 }

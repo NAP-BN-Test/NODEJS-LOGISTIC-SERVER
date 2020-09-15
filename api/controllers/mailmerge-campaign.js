@@ -89,6 +89,7 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let Template = mTemplate(db)
+            let now = moment();
             Template.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'User' });
             Template.count().then(all => {
                 Template.findAll({
@@ -108,7 +109,7 @@ module.exports = {
                                 body: item.body ? item.body : null,
                                 TimeStart: mModules.toDatetime(item.timeStart) ? item.timeStart : null,
                                 TimeRemind: mModules.toDatetime(item.timeRemind) ? item.timeRemind : null,
-                                TimeCreate: mModules.toDatetime(item.TimeCreate),
+                                TimeCreate: now.format('YYYY-MM-DD HH:mm:ss.SSS'),
                                 TimeUpdate: mModules.toDatetime(item.TimeUpdate),
                                 Description: item.description ? item.description : null,
                                 UserID: item.UserID ? item.UserID : null,
