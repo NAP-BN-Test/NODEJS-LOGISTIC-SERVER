@@ -37,6 +37,19 @@ async function handlePushDataToBody(text, infID, db) {
     var result = handleReplaceText(text, keyField, obj_information.dataValues);
     return result
 }
+function convertStringToListObject(string) {
+    let result = [];
+    let resultArray = [];
+    if (string) {
+        result = string.split(";")
+        result.forEach(item => {
+            let resultObj = {};
+            resultObj.name = item;
+            resultArray.push(resultObj);
+        })
+    }
+    return resultArray;
+}
 
 module.exports = {
     sendMailList: (req, res) => {
@@ -57,10 +70,11 @@ module.exports = {
             var bodyHtml;
             information.forEach(async item => {
                 bodyHtml = await handlePushDataToBody(template.body, item.ID, db);
-                console.log(bodyHtml);
                 let Subject = item.Subject ? item.Subject : '';
-                console.log(Subject);
-                await mAmazon.sendEmail('tung24041998@gmail.com', item.Email, Subject, bodyHtml);
+                var arrayEmail = convertStringToListObject(item.Email)
+                arrayEmail.forEach(async data => {
+                    await mAmazon.sendEmail('tung24041998@gmail.com', data.name, Subject, bodyHtml);
+                })
             })
             res.json(Result.ACTION_SUCCESS);
         })

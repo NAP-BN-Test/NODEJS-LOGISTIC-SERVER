@@ -349,5 +349,10 @@ module.exports = function (app) {
     app.route('/crm/update_customer_group').post(catagoryCustomer.updateCategory);
     app.route('/crm/delete_list_customer_group').post(catagoryCustomer.deleteCategory);
     app.route('/crm/get_list_all_customer_group').post(catagoryCustomer.getListAll);
+    // mail campaign
+    var mail = require('./controllers/send-mail-campaign');
+
+    app.route('/crm/get_list_mail_campaign').post(mail.getListMailCampaign);
+    app.route('/crm/get_list_mailmerge').post(mail.getListMailMerge);
 
 };

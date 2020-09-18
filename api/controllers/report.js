@@ -1135,9 +1135,6 @@ module.exports = {
                         Type: body.mailType
                     }
                 }
-
-                console.log(mWhere);
-                
                 var mailResponseData = await mailResponse.findAll({
                     where: mWhere,
                     attributes: ['ID', 'TimeCreate', 'Reason'],
@@ -1149,7 +1146,7 @@ module.exports = {
                 });
 
                 console.log(mailResponseData);
-                
+
 
                 var arrayTable = [];
                 mailResponseData.forEach(mailResponseDataItem => {
@@ -1177,7 +1174,7 @@ module.exports = {
                     }
                 }
 
-                
+
 
                 var array = handleArrayChart(arrayTable, body);
 
