@@ -30,11 +30,11 @@ let storage = multer.diskStorage({
         cb(null, DIR);
     },
     filename: (req, file, cb) => {
-        cb(null, file.fieldname + '-' + nameMiddle + path.extname(file.originalname));
+        cb(null, file.fieldname + '-' + nameMiddle + '.jpg');
     }
 });
 let upload = multer({ storage: storage });
-const DIR = './upload';
+const DIR = 'D:/images_services/ageless_sendmail';
 app.post('/api/upload', getDateInt, upload.single('photo'), function (req, res) {
     if (!req.file) {
         console.log("No file received");
@@ -44,7 +44,7 @@ app.post('/api/upload', getDateInt, upload.single('photo'), function (req, res) 
     } else {
         console.log(nameMiddle);
         return res.send({
-            link: nameMiddle + '.jpg',
+            link: 'http://163.44.192.123:1357/ageless_sendmail/photo-' + nameMiddle + '.jpg',
             success: true
         })
     }
