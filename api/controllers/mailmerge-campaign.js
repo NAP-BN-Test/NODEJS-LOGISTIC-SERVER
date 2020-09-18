@@ -309,18 +309,6 @@ module.exports = {
 
         })
     },
-
-    // handleCreateInfomation
-    // createMailListAndInfomation: (req, res) => {
-    //     let body = req.body;
-
-    //     database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-    //         if (body.MailListID) {
-    //             let info = getInfoFromMailListDetail(db, body.MailListID);
-    //             console.log(info);
-    //         }
-    //     })
-    // },
     getDatafromInformation: (req, res) => {
         let body = req.body;
 
