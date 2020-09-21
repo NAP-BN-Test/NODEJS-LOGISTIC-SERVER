@@ -22,10 +22,12 @@ module.exports = {
                 mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' })
                 var listMailCampaign = [];
                 await mContact(db).findAll({
-                    where: { CompanyID: body.CompanyID }
+                    where: { CompanyID: body.companyID }
                 }).then(async contact => {
                     for (var i = 0; i < contact.length; i++) {
+                        console.log(contact[i].Email);
                         await mMailListDetail(db).findOne({ where: { Email: contact[i].Email } }).then(async detail => {
+                            console.log(detail);
                             if (detail)
                                 if (detail.MailListID) {
                                     await mMailCampain(db).findAll({ where: { MailListID: detail.MailListID } }).then(mailCampaign => {
@@ -48,6 +50,7 @@ module.exports = {
                         }
                     }
                 ).then(async data => {
+                    var stt = 0;
                     for (var i = 0; i < data.length; i++) {
                         var totalOpen = await mMailResponse(db).count({
                             where: {
@@ -86,7 +89,9 @@ module.exports = {
                             var user = await mUser(db).findOne({
                                 where: { ID: body.userID }
                             })
+                            stt += 1;
                             array.push({
+                                stt: stt,
                                 name: data[i].Name,
                                 subject: data[i].Subject,
                                 mailSend: user.Email,
@@ -96,7 +101,7 @@ module.exports = {
                                     listEmail: emailArray.substring(0, emailArray.length - 2)
                                 },
                                 totalOpenings: totalSend ? totalSend : 0,
-                                SecondOpeners: totalOpen ? totalOpen : 0,
+                                secondOpeners: totalOpen ? totalOpen : 0,
                                 numberEmailUnsubscribe: totalUnsubscribe ? totalUnsubscribe : 0,
                             })
                         }
@@ -130,7 +135,7 @@ module.exports = {
                 mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' })
                 var listMailCampaign = [];
                 await mContact(db).findAll({
-                    where: { CompanyID: body.CompanyID }
+                    where: { CompanyID: body.companyID }
                 }).then(async contact => {
                     for (var i = 0; i < contact.length; i++) {
                         await mMailListDetail(db).findOne({ where: { Email: contact[i].Email } }).then(async detail => {
@@ -149,48 +154,50 @@ module.exports = {
                 var user = await mUser(db).findOne({
                     where: { ID: body.userID }
                 })
-                await
-                    await mMailCampain(db).findAll(
-                        {
-                            where: {
-                                [Op.and]: [
-                                    { Type: 'MailMerge' },
-                                    { ID: { [Op.in]: listMailCampaign } }
+                await mMailCampain(db).findAll(
+                    {
+                        where: {
+                            [Op.and]: [
+                                { Type: 'MailMerge' },
+                                { ID: { [Op.in]: listMailCampaign } }
 
-                                ]
+                            ]
+                        }
+                    }
+                ).then(async data => {
+                    var stt = 0;
+                    for (var i = 0; i < data.length; i++) {
+                        var totalOpen = await mMailResponse(db).count({
+                            where: {
+                                MailCampainID: data[i].ID,
+                                Type: Constant.MAIL_RESPONSE_TYPE.OPEN
                             }
-                        }
-                    ).then(async data => {
-                        for (var i = 0; i < data.length; i++) {
-                            var totalOpen = await mMailResponse(db).count({
-                                where: {
-                                    MailCampainID: data[i].ID,
-                                    Type: Constant.MAIL_RESPONSE_TYPE.OPEN
-                                }
-                            });
-                            var totalSend = await mMailResponse(db).count({
-                                where: {
-                                    MailCampainID: data[i].ID,
-                                    Type: Constant.MAIL_RESPONSE_TYPE.SEND
-                                }
-                            });
-                            array.push({
-                                mailmergeName: data[i].Name,
-                                dateAndTime: data[i].TimeCreate,
-                                email: user.Email,
-                                totalOpenings: totalSend ? totalSend : 0,
-                                SecondOpeners: totalOpen ? totalOpen : 0,
-                                status: 'Send',
-                                note: data[i].Subject,
-                            })
-                        }
-                        var result = {
-                            status: Constant.STATUS.SUCCESS,
-                            message: '',
-                            array,
-                        }
-                        res.json(result);
-                    })
+                        });
+                        var totalSend = await mMailResponse(db).count({
+                            where: {
+                                MailCampainID: data[i].ID,
+                                Type: Constant.MAIL_RESPONSE_TYPE.SEND
+                            }
+                        });
+                        stt += 1
+                        array.push({
+                            stt: stt,
+                            mailmergeName: data[i].Name,
+                            dateAndTime: data[i].TimeCreate,
+                            email: user.Email,
+                            totalOpenings: totalSend ? totalSend : 0,
+                            secondOpeners: totalOpen ? totalOpen : 0,
+                            status: 'Send',
+                            note: data[i].Subject,
+                        })
+                    }
+                    var result = {
+                        status: Constant.STATUS.SUCCESS,
+                        message: '',
+                        array,
+                    }
+                    res.json(result);
+                })
 
             } catch (error) {
                 console.log(error);

@@ -73,7 +73,10 @@ module.exports = {
                 let Subject = item.Subject ? item.Subject : '';
                 var arrayEmail = convertStringToListObject(item.Email)
                 arrayEmail.forEach(async data => {
-                    await mAmazon.sendEmail('tung24041998@gmail.com', data.name, Subject, bodyHtml);
+                    console.log(bodyHtml);
+                    var bodySend = new Buffer.from(bodyHtml, 'base64').toString('base64');
+                    console.log(bodySend);
+                    await mAmazon.sendEmail('tung24041998@gmail.com', data.name, Subject, bodySend);
                 })
             })
             res.json(Result.ACTION_SUCCESS);

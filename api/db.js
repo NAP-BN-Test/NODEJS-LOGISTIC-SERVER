@@ -50,10 +50,10 @@ async function checkServer(ip, dbName) {
 
 module.exports = {
 
-    checkServerInvalid: async function(ip, dbName, secretKey) {
+    checkServerInvalid: async function (ip, dbName, secretKey) {
         if (secretKey == '00a2152372fa8e0e62edbb45dd82831a') {
-            const dbServer = new Sequelize('CustomerDB', 'customeruser', '123456a$', {
-                host: '163.44.192.123',
+            const dbServer = new Sequelize('CustomerDB', 'sa', '1234', {
+                host: 'localhost',
                 dialect: 'mssql',
                 operatorsAliases: '0',
                 pool: {
@@ -117,7 +117,7 @@ module.exports = {
         }
     },
 
-    updateTable: async function(listObj, table, id) {
+    updateTable: async function (listObj, table, id) {
         let updateObj = {};
         for (let field of listObj) {
             updateObj[field.key] = field.value
