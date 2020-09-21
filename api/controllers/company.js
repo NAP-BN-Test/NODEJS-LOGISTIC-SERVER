@@ -106,9 +106,9 @@ module.exports = {
                     if (body.userIDFind) {
                         userFind.push({ UserID: body.userIDFind })
                     }
-                    if (body.stageID) {
-                        userFind.push({ StageID: body.stageID })
-                    }
+                    // if (body.stageID) {
+                    //     userFind.push({ StageID: body.stageID })
+                    // }
                     if (body.cityID) {
                         userFind.push({ CityID: body.cityID })
                     }
@@ -159,7 +159,7 @@ module.exports = {
                             [Op.and]: userFind
                         }
                         whereCustomer = {
-                            StageID: 8,
+                            // StageID: 8,
                             [Op.or]: whereSearch,
                             TimeCreate: { [Op.between]: [new Date(body.timeFrom), new Date(body.timeTo)] },
                             [Op.and]: userFind
@@ -189,7 +189,7 @@ module.exports = {
                             [Op.and]: userFind
                         }
                         whereCustomer = {
-                            StageID: 8,
+                            // StageID: 8,
                             [Op.or]: whereSearch,
                             [Op.and]: userFind
                         }
@@ -279,7 +279,7 @@ module.exports = {
                             follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
                             checked: false,
                             companyType: elm.Type == 0 ? 'Có' : 'Không',
-                            stageID: elm.DealStage ? elm.DealStage.ID : -1,
+                            // stageID: elm.DealStage ? elm.DealStage.ID : -1,
                             stageName: elm.DealStage ? elm.DealStage.Name : "",
 
                             lastActivity: mModules.toDatetime(elm.LastActivity),
@@ -313,7 +313,7 @@ module.exports = {
 
             let company = mCompany(db);
             company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
-            company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
+            // company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
             company.belongsTo(mCountry(db), { foreignKey: 'CountryID', sourceKey: 'CountryID', as: 'Country' });
             company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
             company.belongsTo(mCategoryCustomer(db), { foreignKey: 'CategoryID', sourceKey: 'CategoryID' });
@@ -353,7 +353,7 @@ module.exports = {
                     cityID: data.City ? data.City.ID : -1,
                     city: data.City ? data.City.Name : "",
                     follow: data.UserFollows[0] ? data.UserFollows[0]['Follow'] : false,
-                    stageID: data.DealStage ? data.DealStage.ID : -1,
+                    // stageID: data.DealStage ? data.DealStage.ID : -1,
                     stageName: data.DealStage ? data.DealStage.Name : "",
                     Fax: data.Fax,
                     Role: data.Role,
@@ -481,8 +481,8 @@ module.exports = {
             if (body.website)
                 listUpdate.push({ key: 'Website', value: body.website });
 
-            if (body.stageID)
-                listUpdate.push({ key: 'StageID', value: body.stageID });
+            // if (body.stageID)
+            //     listUpdate.push({ key: 'StageID', value: body.stageID });
 
             if (body.Fax || body.Fax === '')
                 listUpdate.push({ key: 'Fax', value: body.Fax });
@@ -574,11 +574,11 @@ module.exports = {
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             console.log(body);
             //get stageID with Stage = 1;
-            var stageData = await mDealStage(db).findOne({
-                where: { Stage: 1 },
-                attributes: ['ID'],
-                raw: true
-            });
+            // var stageData = await mDealStage(db).findOne({
+            //     where: { Stage: 1 },
+            //     attributes: ['ID'],
+            //     raw: true
+            // });
             var company = mCompany(db);
             company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
             company.create({
@@ -592,7 +592,7 @@ module.exports = {
                 TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
                 Type: 1,
                 CountryID: body.CountryID ? body.CountryID : null,
-                StageID: stageData.ID ? stageData.ID : null,
+                // StageID: stageData.ID ? stageData.ID : null,
                 Fax: body.Fax ? body.Fax : '',
                 Role: body.Role ? body.Role : '',
                 Note: body.Note ? body.Note : '',
@@ -1178,7 +1178,7 @@ module.exports = {
                     follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
                     checked: false,
                     companyType: elm.Type == 0 ? 'Có' : 'Không',
-                    stageID: elm.DealStage ? elm.DealStage.ID : -1,
+                    // stageID: elm.DealStage ? elm.DealStage.ID : -1,
                     stageName: elm.DealStage ? elm.DealStage.Name : "",
 
                     lastActivity: mModules.toDatetime(elm.LastActivity),
