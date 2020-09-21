@@ -7,7 +7,7 @@ var database = require('../db');
 var mUser = require('../controllers/user');
 
 var AWS = require('aws-sdk');
-AWS.config.update({ region: 'us-east-1' });
+AWS.config.update({ region: 'us-west-2' });
 
 module.exports = {
     amazonResponse: (req, res) => { //take this list for dropdown
@@ -69,6 +69,7 @@ module.exports = {
     },
 
     verifyEmail: (req, res) => { //take this list for dropdown
+        var body = req.body;
         if (body.email) {
             var ses = new AWS.SES();
             var params = {

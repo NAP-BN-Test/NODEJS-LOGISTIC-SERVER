@@ -51,20 +51,64 @@ module.exports = {
 
     getMailList: async function (req, res) {
         let body = req.body;
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+                var data = JSON.parse(body.data)
 
-                var userRole = await cUser.checkUser(body.ip, body.dbName, body.userID);
-                var where = [];
-                if (userRole) where = await mModules.handleWhereClause([{ key: 'OwnerID', value: Number(body.userID) }]);
-
+                if (data.search) {
+                    where = [
+                        { Name: { [Op.like]: '%' + data.search + '%' } },
+                    ];
+                } else {
+                    where = [
+                        { Name: { [Op.ne]: '%%' } },
+                    ];
+                }
+                let whereOjb = { [Op.or]: where };
+                if (data.items) {
+                    for (var i = 0; i < data.items.length; i++) {
+                        let userFind = {};
+                        if (data.items[i].fields['name'] === 'Name') {
+                            userFind['Name'] = { [Op.like]: '%' + data.items[i]['searchFields'] + '%' }
+                            if (data.items[i].conditionFields['name'] == 'And') {
+                                whereOjb[Op.and] = userFind
+                            }
+                            if (data.items[i].conditionFields['name'] == 'Or') {
+                                whereOjb[Op.or] = userFind
+                            }
+                            if (data.items[i].conditionFields['name'] == 'Not') {
+                                whereOjb[Op.not] = userFind
+                            }
+                        }
+                        if (data.items[i].fields['name'] === 'Owner') {
+                            var owner = await mUser(db).findAll({
+                                where: {
+                                    Name: { [Op.like]: '%' + data.items[i]['searchFields'] + '%' }
+                                }
+                            })
+                            var listOwner = [];
+                            owner.forEach(item => {
+                                listOwner.push(item.ID)
+                            })
+                            userFind['OwnerID'] = { [Op.like]: listOwner }
+                            if (data.items[i].conditionFields['name'] == 'And') {
+                                whereOjb[Op.and] = userFind
+                            }
+                            if (data.items[i].conditionFields['name'] == 'Or') {
+                                whereOjb[Op.or] = userFind
+                            }
+                            if (data.items[i].conditionFields['name'] == 'Not') {
+                                whereOjb[Op.not] = userFind
+                            }
+                        }
+                    }
+                }
                 var mailList = mMailList(db);
                 mailList.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
                 mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' })
 
                 var mMailListData = await mailList.findAll({
-                    where: where,
+                    where: whereOjb,
                     include: [
                         { model: mUser(db) },
                         { model: mMailListDetail(db) }
@@ -87,7 +131,7 @@ module.exports = {
                     })
                 })
 
-                var mMailListCount = await mailList.count({ where: where, });
+                var mMailListCount = await mailList.count({ where: whereOjb, });
                 var result = {
                     status: Constant.STATUS.SUCCESS,
                     message: '',
@@ -111,14 +155,64 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-
+                var data = JSON.parse(body.data)
+                if (data.search) {
+                    where = [
+                        { Name: { [Op.like]: '%' + data.search + '%' } },
+                        { MailListID: body.mailListID },
+                    ];
+                } else {
+                    where = [
+                        { Name: { [Op.ne]: '%%' } },
+                        { MailListID: body.mailListID },
+                    ];
+                }
+                let whereOjb = { [Op.or]: where };
+                if (data.items) {
+                    for (var i = 0; i < data.items.length; i++) {
+                        let userFind = {};
+                        if (data.items[i].fields['name'] === 'Name') {
+                            userFind['Name'] = { [Op.like]: '%' + data.items[i]['searchFields'] + '%' }
+                            if (data.items[i].conditionFields['name'] == 'And') {
+                                whereOjb[Op.and] = userFind
+                            }
+                            if (data.items[i].conditionFields['name'] == 'Or') {
+                                whereOjb[Op.or] = userFind
+                            }
+                            if (data.items[i].conditionFields['name'] == 'Not') {
+                                whereOjb[Op.not] = userFind
+                            }
+                        }
+                        if (data.items[i].fields['name'] === 'Owner') {
+                            var owner = await mUser(db).findAll({
+                                where: {
+                                    Name: { [Op.like]: '%' + data.items[i]['searchFields'] + '%' }
+                                }
+                            })
+                            var listOwner = [];
+                            owner.forEach(item => {
+                                listOwner.push(item.ID)
+                            })
+                            userFind['OwnerID'] = { [Op.like]: listOwner }
+                            if (data.items[i].conditionFields['name'] == 'And') {
+                                whereOjb[Op.and] = userFind
+                            }
+                            if (data.items[i].conditionFields['name'] == 'Or') {
+                                whereOjb[Op.or] = userFind
+                            }
+                            if (data.items[i].conditionFields['name'] == 'Not') {
+                                whereOjb[Op.not] = userFind
+                            }
+                        }
+                    }
+                }
                 var mailListDetail = mMailListDetail(db);
                 mailListDetail.belongsTo(mUser(db), { foreignKey: 'OwnerID' });
                 mailListDetail.belongsTo(mAdditionalInformation(db), { foreignKey: 'DataID', sourceKey: 'ID', as: 'Data' });
                 mailListDetail.hasMany(mMailResponse(db), { foreignKey: 'MailListDetailID' });
 
                 var mMailListDetailData = await mailListDetail.findAll({
-                    where: { MailListID: body.mailListID },
+                    where: whereOjb,
                     include: [
                         { model: mUser(db) },
                         { model: mMailResponse(db) },
@@ -137,7 +231,7 @@ module.exports = {
                 })
 
                 var mMailListDetailCount = await mailListDetail.count({
-                    where: { MailListID: body.mailListID }
+                    where: whereOjb
                 })
                 var array = [];
 
@@ -176,6 +270,7 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
+
                 var userRole = await cUser.checkUser(body.ip, body.dbName, body.userID);
                 var where = [];
                 if (userRole) where = await mModules.handleWhereClause([{ key: 'OwnerID', value: Number(body.userID) }]);
