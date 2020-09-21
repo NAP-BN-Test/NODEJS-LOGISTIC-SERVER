@@ -87,7 +87,7 @@ module.exports = {
                     })
                 })
 
-                var mMailListCount = await mailList.count();
+                var mMailListCount = await mailList.count({ where: where, });
                 var result = {
                     status: Constant.STATUS.SUCCESS,
                     message: '',

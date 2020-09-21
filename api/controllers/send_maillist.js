@@ -8,6 +8,12 @@ const Result = require('../constants/result');
 var mCheckMail = require('../controllers/check-mail');
 var mAmazon = require('../controllers/amazon');
 var mailmergerCampaingn = require('../controllers/mailmerge-campaign');
+var base64Img = require('base64-img');
+const sgMail = require('@sendgrid/mail');
+function base64_encode(file) {
+    var bitmap = fs.readFileSync(file);
+    return new Buffer.from(bitmap).toString("base64");
+}
 
 const result = require('../constants/result');
 
@@ -20,10 +26,14 @@ function getDataInformation(db, ID) {
 
 function handleReplaceText(text, listKey, obj_information) {
     var result = text;
-    console.log(listKey);
     listKey.forEach(item => {
-        var re = RegExp('&lt;&lt;' + item + '&gt;&gt;', 'g');
-        result = result.replace(re, obj_information[item] ? obj_information[item] : '');
+        if (item === 'PAT' || item === 'PriorTrademark') {
+            var re = RegExp('&lt;&lt;' + item + '&gt;&gt;', 'g');
+            result = result.replace(re, base64_encode('D://'));
+        } else {
+            var re = RegExp('&lt;&lt;' + item + '&gt;&gt;', 'g');
+            result = result.replace(re, obj_information[item] ? obj_information[item] : '');
+        }
     })
     return result;
 }

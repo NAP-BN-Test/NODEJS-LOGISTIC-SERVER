@@ -79,7 +79,7 @@ module.exports = {
                     company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'UserID', as: 'CreateUser' });
                     company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
                     company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
-                    company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
+                    // company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
                     company.belongsTo(mCategoryCustomer(db), { foreignKey: 'CategoryID', sourceKey: 'CategoryID' });
 
                     company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
@@ -243,10 +243,10 @@ module.exports = {
                             },
                             { model: mCity(db), required: false },
                             { model: mCategoryCustomer(db), required: false },
-                            {
-                                model: mDealStage(db),
-                                required: false,
-                            },
+                            // {
+                            //     model: mDealStage(db),
+                            //     required: false,
+                            // },
                         ],
                         where: where,
                         order: [['ID', 'DESC']],
@@ -280,7 +280,7 @@ module.exports = {
                             checked: false,
                             companyType: elm.Type == 0 ? 'Có' : 'Không',
                             // stageID: elm.DealStage ? elm.DealStage.ID : -1,
-                            stageName: elm.DealStage ? elm.DealStage.Name : "",
+                            // stageName: elm.DealStage ? elm.DealStage.Name : "",
 
                             lastActivity: mModules.toDatetime(elm.LastActivity),
                             Fax: elm.Fax,
@@ -327,10 +327,10 @@ module.exports = {
                         where: { UserID: body.userID, Type: 1 }
                     },
                     { model: mCity(db), required: false },
-                    {
-                        model: mDealStage(db),
-                        required: false,
-                    },
+                    // {
+                    //     model: mDealStage(db),
+                    //     required: false,
+                    // },
                     { model: mCountry(db), required: false, as: 'Country' },
                     { model: mCategoryCustomer(db), required: false },
 
@@ -354,7 +354,7 @@ module.exports = {
                     city: data.City ? data.City.Name : "",
                     follow: data.UserFollows[0] ? data.UserFollows[0]['Follow'] : false,
                     // stageID: data.DealStage ? data.DealStage.ID : -1,
-                    stageName: data.DealStage ? data.DealStage.Name : "",
+                    // stageName: data.DealStage ? data.DealStage.Name : "",
                     Fax: data.Fax,
                     Role: data.Role,
                     CountryID: data.Country ? data.Country.ID : "",
@@ -987,7 +987,7 @@ module.exports = {
             company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
             company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
             company.belongsTo(mCountry(db), { foreignKey: 'CountryID', sourceKey: 'CountryID', as: 'Country' });
-            company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
+            // company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
 
             company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
             company.hasMany(mDeal(db), { foreignKey: 'CompanyID' });
@@ -1142,10 +1142,10 @@ module.exports = {
                         where: { UserID: body.userID, Type: 1, Follow: true }
                     },
                     { model: mCity(db), required: false },
-                    {
-                        model: mDealStage(db),
-                        required: false,
-                    }
+                    // {
+                    //     model: mDealStage(db),
+                    //     required: false,
+                    // }
                 ],
                 order: [['ID', 'DESC']],
                 offset: Number(body.itemPerPage) * (Number(body.page) - 1),
@@ -1179,7 +1179,7 @@ module.exports = {
                     checked: false,
                     companyType: elm.Type == 0 ? 'Có' : 'Không',
                     // stageID: elm.DealStage ? elm.DealStage.ID : -1,
-                    stageName: elm.DealStage ? elm.DealStage.Name : "",
+                    // stageName: elm.DealStage ? elm.DealStage.Name : "",
 
                     lastActivity: mModules.toDatetime(elm.LastActivity),
                     Fax: elm.Fax,

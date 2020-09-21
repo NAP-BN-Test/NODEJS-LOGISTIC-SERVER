@@ -367,6 +367,7 @@ module.exports = {
                     array.push({
                         id: elm['ID'],
                         OurRef: elm.OurRef + handleNumber(i),
+                        email: elm.Email,
                     })
                     i += 1;
                 });

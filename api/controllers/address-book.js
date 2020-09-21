@@ -46,7 +46,7 @@ module.exports = {
                     company.belongsTo(mUser(db), { foreignKey: 'UserID', sourceKey: 'AssignID', as: 'AssignUser' });
                     company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
                     company.belongsTo(mCountry(db), { foreignKey: 'CountryID', sourceKey: 'CountryID', as: 'Country' });
-                    company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
+                    // company.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
 
                     company.hasMany(mUserFollow(db), { foreignKey: 'CompanyID' })
                     company.hasMany(mDeal(db), { foreignKey: 'CompanyID' });
@@ -107,11 +107,11 @@ module.exports = {
                                 required: body.companyType == 3 ? true : false,
                                 where: { UserID: body.userID, Type: 1, Follow: true }
                             },
-                            { model: mCity(db), required: false },
-                            {
-                                model: mDealStage(db),
-                                required: false,
-                            }
+                            // { model: mCity(db), required: false },
+                            // {
+                            //     model: mDealStage(db),
+                            //     required: false,
+                            // }
                         ],
                         order: [['ID', 'DESC']],
                         offset: Number(body.itemPerPage) * (Number(body.page) - 1),
@@ -144,8 +144,8 @@ module.exports = {
                             follow: elm.UserFollows[0] ? elm.UserFollows[0]['Follow'] : false,
                             checked: false,
                             companyType: elm.Type == 0 ? 'Có' : 'Không',
-                            stageID: elm.DealStage ? elm.DealStage.ID : -1,
-                            stageName: elm.DealStage ? elm.DealStage.Name : "",
+                            // stageID: elm.DealStage ? elm.DealStage.ID : -1,
+                            // stageName: elm.DealStage ? elm.DealStage.Name : "",
 
                             lastActivity: mModules.toDatetime(elm.LastActivity),
                             Fax: elm.Fax,

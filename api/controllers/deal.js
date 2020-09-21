@@ -18,11 +18,11 @@ module.exports = {
 
 
             var deal = mDeal(db);
-            deal.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
+            // deal.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
 
             deal.findAll({
                 where: { CompanyID: body.companyID },
-                include: { model: mDealStage(db) }
+                // include: { model: mDealStage(db) }
             }).then(data => {
                 var array = [];
                 data.forEach(elm => {
@@ -31,7 +31,7 @@ module.exports = {
                         timeCreate: elm.TimeCreate,
                         timeClose: elm.TimeClose,
                         amount: elm.Amount,
-                        stageID: elm.DealStage.Stage
+                        // stageID: elm.DealStage.Stage
                     })
                 });
                 var result = {
@@ -54,11 +54,11 @@ module.exports = {
 
 
             var deal = mDeal(db);
-            deal.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
+            // deal.belongsTo(mDealStage(db), { foreignKey: 'StageID', sourceKey: 'StageID' });
 
             deal.findAll({
                 where: { ContactID: body.contactID },
-                include: { model: mDealStage(db) }
+                // include: { model: mDealStage(db) }
             }).then(data => {
                 var array = [];
                 data.forEach(elm => {
@@ -67,7 +67,7 @@ module.exports = {
                         timeCreate: elm.TimeCreate,
                         timeClose: elm.TimeClose,
                         amount: elm.Amount,
-                        stageID: elm.DealStage.Stage
+                        // stageID: elm.DealStage.Stage
                     })
                 });
                 var result = {
