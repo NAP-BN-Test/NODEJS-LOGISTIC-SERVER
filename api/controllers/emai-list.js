@@ -4,6 +4,7 @@ const Constant = require('../constants/constant');
 const Op = require('sequelize').Op;
 
 var moment = require('moment');
+var mContact = require('../tables/contact');
 
 var database = require('../db');
 
@@ -489,46 +490,23 @@ module.exports = {
 
     addMailListDetail: async function (req, res) {
         let body = req.body;
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
                 let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
-
-                let arrMail = JSON.parse(body.listMail);
-                let listMail = [];
-                arrMail.forEach(item => {
-                    listMail.push(item.email)
-                })
-
-                var mailListDetailData = await mMailListDetail(db).findAll({
-                    where: {
-                        Email: {
-                            [Op.in]: listMail
-                        },
-                        MailListID: body.mailListID
-                    },
-                    attributes: ['Email'],
-                    raw: true
-                });
-
-                let bulkCreate = [];
-                arrMail.forEach(mailItem => {
-                    let index = mailListDetailData.findIndex(item => {
-                        return item.Email == mailItem.email;
-                    });
-                    if (index < 0)
-                        bulkCreate.push({
-                            Email: mailItem.email,
-                            Name: mailItem.name,
-                            OwnerID: Number(body.userID),
-                            TimeCreate: now,
-                            MailListID: Number(body.mailListID),
-                            dataID: Number(body.DataID)
-                        })
-                })
-
-                await mMailListDetail(db).bulkCreate(bulkCreate);
-
+                let listMail = JSON.parse(body.listMail);
+                var user = await mUser(db).findOne({ where: { ID: body.userID } })
+                for (var i = 0; i < listMail.length; i++) {
+                    var contact = await mContact(db).findOne({ where: { ID: listMail[i] } });
+                    await mMailListDetail(db).create({
+                        Email: contact.Email ? contact.Email : '',
+                        Name: contact.Name ? contact.Name : '',
+                        TimeCreate: now,
+                        MailListID: body.mailListID,
+                        OwnerID: user.ID,
+                    }).then(data => {
+                        console.log(data);
+                    })
+                }
                 res.json(Result.ACTION_SUCCESS);
             } catch (error) {
                 res.json(Result.SYS_ERROR_RESULT)
