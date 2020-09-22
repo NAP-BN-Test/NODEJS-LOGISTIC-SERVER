@@ -409,7 +409,7 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+                let now = moment().subtract(7, 'hours').format('YYYY-MM-DD HH:mm:ss.SSS');
 
                 var mailList = await mMailList(db).create({
                     Name: body.name,
@@ -492,7 +492,7 @@ module.exports = {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-                let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+                let now = moment().subtract(7, 'hours').format('YYYY-MM-DD HH:mm:ss.SSS');
                 let listMail = JSON.parse(body.listMail);
                 var user = await mUser(db).findOne({ where: { ID: body.userID } })
                 for (var i = 0; i < listMail.length; i++) {
