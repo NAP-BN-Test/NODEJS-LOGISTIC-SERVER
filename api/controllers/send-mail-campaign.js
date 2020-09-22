@@ -8,9 +8,18 @@ var mMailListDetail = require('../tables/mail-list-detail');
 var mMailList = require('../tables/mail-list');
 var mMailCampain = require('../tables/mail-campain');
 var mContact = require('../tables/contact');
+let mAdditionalInformation = require('../tables/additional-infomation');
 
 let mUser = require('../tables/user');
 const result = require('../constants/result');
+function checkDuplicate(array, elm) {
+    var check = false;
+    array.forEach(item => {
+        if (item === elm) check = true;
+    })
+    return check;
+}
+
 module.exports = {
     getListMailCampaign: (req, res) => {
         let body = req.body;
@@ -20,99 +29,88 @@ module.exports = {
                 var mailList = mMailList(db);
                 mailList.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
                 mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' })
-                var listMailCampaign = [];
-                await mContact(db).findAll({
-                    where: { CompanyID: body.companyID }
-                }).then(async contact => {
-                    for (var i = 0; i < contact.length; i++) {
-                        console.log(contact[i].Email);
-                        await mMailListDetail(db).findOne({ where: { Email: contact[i].Email } }).then(async detail => {
-                            console.log(detail);
-                            if (detail)
-                                if (detail.MailListID) {
-                                    await mMailCampain(db).findAll({ where: { MailListID: detail.MailListID } }).then(mailCampaign => {
-                                        mailCampaign.forEach(item => {
-                                            listMailCampaign.push(item.ID);
-                                        })
-
-                                    })
-                                }
-                        })
+                var user = await mUser(db).findOne({
+                    where: { ID: body.userID }
+                })
+                var stt = 0;
+                var listContactID = [];
+                var listCampaignID = [];
+                var contact = await mContact(db).findAll({ where: { CompanyID: body.companyID } });
+                contact.forEach(item => {
+                    listContactID.push(item.ID);
+                })
+                var addInf = await mAdditionalInformation(db).findAll({ where: { ContactID: { [Op.in]: listContactID } } });
+                addInf.forEach(item => {
+                    if (!checkDuplicate(listCampaignID, item.CampaignID)) {
+                        listCampaignID.push(item.CampaignID);
                     }
                 })
-                await mMailCampain(db).findAll(
-                    {
+                var stt = 0;
+                for (var i = 0; i < listCampaignID.length; i++) {
+                    var totalOpen = await mMailResponse(db).count({
+                        where: {
+                            MailCampainID: listCampaignID[i],
+                            Type: Constant.MAIL_RESPONSE_TYPE.OPEN
+                        }
+                    });
+                    var totalUnsubscribe = await mMailResponse(db).count({
+                        where: {
+                            MailCampainID: listCampaignID[i],
+                            Type: Constant.MAIL_RESPONSE_TYPE.UNSUBSCRIBE
+                        }
+                    });
+                    var totalSend = await mMailResponse(db).count({
+                        where: {
+                            MailCampainID: listCampaignID[i],
+                            Type: Constant.MAIL_RESPONSE_TYPE.SEND
+                        }
+                    });
+                    stt += 1;
+                    var addInf = await mAdditionalInformation(db).findAll({
                         where: {
                             [Op.and]: [
-                                { Type: 'MailList' },
-                                { ID: { [Op.in]: listMailCampaign } }
+                                { CampaignID: listCampaignID[i] },
+                                { ContactID: { [Op.in]: listContactID } }
                             ]
                         }
-                    }
-                ).then(async data => {
-                    var stt = 0;
-                    for (var i = 0; i < data.length; i++) {
-                        var totalOpen = await mMailResponse(db).count({
-                            where: {
-                                MailCampainID: data[i].ID,
-                                Type: Constant.MAIL_RESPONSE_TYPE.OPEN
-                            }
-                        });
-                        var totalUnsubscribe = await mMailResponse(db).count({
-                            where: {
-                                MailCampainID: data[i].ID,
-                                Type: Constant.MAIL_RESPONSE_TYPE.UNSUBSCRIBE
-                            }
-                        });
-                        var totalSend = await mMailResponse(db).count({
-                            where: {
-                                MailCampainID: data[i].ID,
-                                Type: Constant.MAIL_RESPONSE_TYPE.SEND
-                            }
-                        });
-                        var emailArray = '';
-                        var countEmail = 0;
-                        if (data[i].MailListID) {
-                            await mMailList(db).findOne({
-                                where: { ID: data[i].MailListID }
-                            }).then(async data => {
-                                var detail = await mMailListDetail(db).findAll({
-                                    where: { MailListID: data.ID },
-                                })
-                                for (var i = 0; i < detail.length; i++) {
-                                    if (detail[i].Email) {
-                                        countEmail += 1;
-                                        emailArray += detail[i].Email + ', ';
-                                    }
-                                }
-                            })
-                            var user = await mUser(db).findOne({
-                                where: { ID: body.userID }
-                            })
-                            stt += 1;
-                            array.push({
-                                stt: stt,
-                                name: data[i].Name,
-                                subject: data[i].Subject,
-                                mailSend: user.Email,
-                                timeCreate: data[i].TimeCreate,
-                                emailArray: {
-                                    totalEmail: countEmail,
-                                    listEmail: emailArray.substring(0, emailArray.length - 2)
-                                },
-                                totalOpenings: totalSend ? totalSend : 0,
-                                secondOpeners: totalOpen ? totalOpen : 0,
-                                numberEmailUnsubscribe: totalUnsubscribe ? totalUnsubscribe : 0,
-                            })
+                    })
+                    var countEmail = 0;
+                    var emailArray = [];
+                    addInf.forEach(item => {
+                        countEmail += 1;
+                        emailArray += item.Email + ', ';
+                    })
+                    var campain = await mMailCampain(db).findOne({
+                        where: {
+                            [Op.and]: [
+                                { ID: listCampaignID[i] },
+                                { type: 'MailList' }
+                            ]
                         }
+                    })
+                    if (campain) {
+                        array.push({
+                            stt: stt,
+                            name: campain.Name ? campain.Name : '',
+                            subject: campain.Subject ? campain.Subject : '',
+                            mailSend: user.Email,
+                            timeCreate: campain.TimeCreate ? campain.TimeCreate : '',
+                            emailArray: {
+                                totalEmail: countEmail,
+                                listEmail: emailArray.substring(0, emailArray.length - 2)
+                            },
+                            totalOpenings: totalSend ? totalSend : 0,
+                            secondOpeners: totalOpen ? totalOpen : 0,
+                            numberEmailUnsubscribe: totalUnsubscribe ? totalUnsubscribe : 0,
+                        })
                     }
-                    var result = {
-                        status: Constant.STATUS.SUCCESS,
-                        message: '',
-                        array,
-                    }
-                    res.json(result);
-                })
+                }
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array,
+                }
+                res.json(result);
 
             } catch (error) {
                 console.log(error);
@@ -128,76 +126,83 @@ module.exports = {
         let body = req.body;
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
-
                 var array = [];
                 var mailList = mMailList(db);
                 mailList.belongsTo(mUser(db), { foreignKey: 'OwnerID' })
                 mailList.hasMany(mMailListDetail(db), { foreignKey: 'MailListID' })
-                var listMailCampaign = [];
-                await mContact(db).findAll({
-                    where: { CompanyID: body.companyID }
-                }).then(async contact => {
-                    for (var i = 0; i < contact.length; i++) {
-                        await mMailListDetail(db).findOne({ where: { Email: contact[i].Email } }).then(async detail => {
-                            if (detail)
-                                if (detail.MailListID) {
-                                    await mMailCampain(db).findAll({ where: { MailListID: detail.MailListID } }).then(mailCampaign => {
-                                        mailCampaign.forEach(item => {
-                                            listMailCampaign.push(item.ID);
-                                        })
-
-                                    })
-                                }
-                        })
-                    }
-                })
                 var user = await mUser(db).findOne({
                     where: { ID: body.userID }
                 })
-                await mMailCampain(db).findAll(
-                    {
+                var stt = 0;
+                var listContactID = [];
+                var listCampaignID = [];
+                var contact = await mContact(db).findAll({ where: { CompanyID: body.companyID } });
+                contact.forEach(item => {
+                    listContactID.push(item.ID);
+                })
+                var addInf = await mAdditionalInformation(db).findAll({ where: { ContactID: { [Op.in]: listContactID } } });
+                addInf.forEach(item => {
+                    if (!checkDuplicate(listCampaignID, item.CampaignID)) {
+                        listCampaignID.push(item.CampaignID);
+                    }
+                })
+                var stt = 0;
+                for (var i = 0; i < listCampaignID.length; i++) {
+                    var totalOpen = await mMailResponse(db).count({
+                        where: {
+                            MailCampainID: listCampaignID[i],
+                            Type: Constant.MAIL_RESPONSE_TYPE.OPEN
+                        }
+                    });
+                    var totalSend = await mMailResponse(db).count({
+                        where: {
+                            MailCampainID: listCampaignID[i],
+                            Type: Constant.MAIL_RESPONSE_TYPE.SEND
+                        }
+                    });
+                    stt += 1;
+                    var addInf = await mAdditionalInformation(db).findAll({
                         where: {
                             [Op.and]: [
-                                { Type: 'MailMerge' },
-                                { ID: { [Op.in]: listMailCampaign } }
-
+                                { CampaignID: listCampaignID[i] },
+                                { ContactID: { [Op.in]: listContactID } }
                             ]
                         }
-                    }
-                ).then(async data => {
-                    var stt = 0;
-                    for (var i = 0; i < data.length; i++) {
-                        var totalOpen = await mMailResponse(db).count({
-                            where: {
-                                MailCampainID: data[i].ID,
-                                Type: Constant.MAIL_RESPONSE_TYPE.OPEN
-                            }
-                        });
-                        var totalSend = await mMailResponse(db).count({
-                            where: {
-                                MailCampainID: data[i].ID,
-                                Type: Constant.MAIL_RESPONSE_TYPE.SEND
-                            }
-                        });
-                        stt += 1
+                    })
+                    var countEmail = 0;
+                    var emailArray = [];
+                    addInf.forEach(item => {
+                        countEmail += 1;
+                        emailArray += item.Email + ', ';
+                    })
+                    var campain = await mMailCampain(db).findOne({
+                        where: {
+                            [Op.and]: [
+                                { ID: listCampaignID[i] },
+                                { type: 'MailMerge' }
+                            ]
+                        }
+                    })
+                    if (campain) {
                         array.push({
                             stt: stt,
-                            mailmergeName: data[i].Name,
-                            dateAndTime: data[i].TimeCreate,
+                            mailmergeName: campain.Name ? campain.Name : '',
+                            dateAndTime: campain.TimeCreate ? campain.TimeCreate : null,
                             email: user.Email,
                             totalOpenings: totalSend ? totalSend : 0,
                             secondOpeners: totalOpen ? totalOpen : 0,
                             status: 'Send',
-                            note: data[i].Subject,
+                            note: campain.Subject ? campain.Subject : '',
                         })
                     }
-                    var result = {
-                        status: Constant.STATUS.SUCCESS,
-                        message: '',
-                        array,
-                    }
-                    res.json(result);
-                })
+
+                }
+                var result = {
+                    status: Constant.STATUS.SUCCESS,
+                    message: '',
+                    array,
+                }
+                res.json(result);
 
             } catch (error) {
                 console.log(error);
