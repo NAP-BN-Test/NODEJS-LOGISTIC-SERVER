@@ -141,44 +141,24 @@ module.exports = {
                     listContactID.push(item.ID);
                 })
                 var addInf = await mAdditionalInformation(db).findAll({ where: { ContactID: { [Op.in]: listContactID } } });
-                addInf.forEach(item => {
-                    if (!checkDuplicate(listCampaignID, item.CampaignID)) {
-                        listCampaignID.push(item.CampaignID);
-                    }
-                })
-                var stt = 0;
-                for (var i = 0; i < listCampaignID.length; i++) {
+                for (var i = 0; i < addInf.length; i++) {
                     var totalOpen = await mMailResponse(db).count({
                         where: {
-                            MailCampainID: listCampaignID[i],
+                            MailCampainID: addInf[i].CampaignID,
                             Type: Constant.MAIL_RESPONSE_TYPE.OPEN
                         }
                     });
                     var totalSend = await mMailResponse(db).count({
                         where: {
-                            MailCampainID: listCampaignID[i],
+                            MailCampainID: addInf[i].CampaignID,
                             Type: Constant.MAIL_RESPONSE_TYPE.SEND
                         }
                     });
                     stt += 1;
-                    var addInf = await mAdditionalInformation(db).findAll({
-                        where: {
-                            [Op.and]: [
-                                { CampaignID: listCampaignID[i] },
-                                { ContactID: { [Op.in]: listContactID } }
-                            ]
-                        }
-                    })
-                    var countEmail = 0;
-                    var emailArray = [];
-                    addInf.forEach(item => {
-                        countEmail += 1;
-                        emailArray += item.Email + ', ';
-                    })
                     var campain = await mMailCampain(db).findOne({
                         where: {
                             [Op.and]: [
-                                { ID: listCampaignID[i] },
+                                { ID: addInf[i].CampaignID },
                                 { type: 'MailMerge' }
                             ]
                         }
@@ -186,17 +166,17 @@ module.exports = {
                     if (campain) {
                         array.push({
                             stt: stt,
-                            mailmergeName: campain.Name ? campain.Name : '',
-                            dateAndTime: campain.TimeCreate ? campain.TimeCreate : null,
+                            mailmergeName: addInf[i].Owner ? addInf[i].Owner : '',
+                            dateAndTime: addInf[i].TimeCreate ? addInf[i].TimeCreate : null,
                             email: user.Email,
                             totalOpenings: totalSend ? totalSend : 0,
                             secondOpeners: totalOpen ? totalOpen : 0,
                             status: 'Send',
-                            note: campain.Subject ? campain.Subject : '',
+                            note: addInf[i].Description ? addInf[i].Description : '',
                         })
                     }
-
                 }
+
                 var result = {
                     status: Constant.STATUS.SUCCESS,
                     message: '',
