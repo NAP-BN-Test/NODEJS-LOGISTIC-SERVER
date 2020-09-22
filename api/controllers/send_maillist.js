@@ -8,8 +8,9 @@ const Result = require('../constants/result');
 var mCheckMail = require('../controllers/check-mail');
 var mAmazon = require('../controllers/amazon');
 var mailmergerCampaingn = require('../controllers/mailmerge-campaign');
-var base64Img = require('base64-img');
-const sgMail = require('@sendgrid/mail');
+var fs = require('fs');
+// var base64Img = require('base64-img');
+// const sgMail = require('@sendgrid/mail');
 function base64_encode(file) {
     var bitmap = fs.readFileSync(file);
     return new Buffer.from(bitmap).toString("base64");
@@ -29,7 +30,12 @@ function handleReplaceText(text, listKey, obj_information) {
     listKey.forEach(item => {
         if (item === 'PAT' || item === 'PriorTrademark') {
             var re = RegExp('&lt;&lt;' + item + '&gt;&gt;', 'g');
-            result = result.replace(re, base64_encode('D://'));
+            if (obj_information[item]) {
+                result = result.replace(re, `<img src="${obj_information[item]}" height="250px" width="500px"/>`);
+            }
+            else {
+                result = result.replace(re, obj_information[item] ? obj_information[item] : '');
+            }
         } else {
             var re = RegExp('&lt;&lt;' + item + '&gt;&gt;', 'g');
             result = result.replace(re, obj_information[item] ? obj_information[item] : '');
@@ -83,10 +89,7 @@ module.exports = {
                 let Subject = item.Subject ? item.Subject : '';
                 var arrayEmail = convertStringToListObject(item.Email)
                 arrayEmail.forEach(async data => {
-                    console.log(bodyHtml);
-                    var bodySend = new Buffer.from(bodyHtml, 'base64').toString('base64');
-                    console.log(bodySend);
-                    await mAmazon.sendEmail('tung24041998@gmail.com', data.name, Subject, bodySend);
+                    await mAmazon.sendEmail('tung24041998@gmail.com', data.name, Subject, bodyHtml);
                 })
             })
             res.json(Result.ACTION_SUCCESS);

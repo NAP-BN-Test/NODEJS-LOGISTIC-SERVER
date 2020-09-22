@@ -44,7 +44,7 @@ app.post('/api/upload', getDateInt, upload.single('photo'), function (req, res) 
     } else {
         console.log(nameMiddle);
         return res.send({
-            link: 'http://163.44.192.123:1357/ageless_sendmail/photo-' + nameMiddle + '.jpg',
+            link: 'http://118.27.192.106:1357/ageless_sendmail/photo-' + nameMiddle + '.jpg',
             success: true
         })
     }
