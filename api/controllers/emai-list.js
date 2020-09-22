@@ -152,22 +152,21 @@ module.exports = {
 
     getMailListDetail: async function (req, res) {
         let body = req.body;
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
                 var data = JSON.parse(body.data)
                 if (data.search) {
                     where = [
                         { Name: { [Op.like]: '%' + data.search + '%' } },
-                        { MailListID: body.mailListID },
+                        { MailListID: body.mailListID }
                     ];
                 } else {
                     where = [
-                        { Name: { [Op.ne]: '%%' } },
-                        { MailListID: body.mailListID },
+                        { Name: { [Op.like]: '%%' } },
+                        { MailListID: body.mailListID }
                     ];
                 }
-                let whereOjb = { [Op.or]: where };
+                let whereOjb = { [Op.and]: where };
                 if (data.items) {
                     for (var i = 0; i < data.items.length; i++) {
                         let userFind = {};
@@ -210,7 +209,6 @@ module.exports = {
                 mailListDetail.belongsTo(mUser(db), { foreignKey: 'OwnerID' });
                 mailListDetail.belongsTo(mAdditionalInformation(db), { foreignKey: 'DataID', sourceKey: 'ID', as: 'Data' });
                 mailListDetail.hasMany(mMailResponse(db), { foreignKey: 'MailListDetailID' });
-
                 var mMailListDetailData = await mailListDetail.findAll({
                     where: whereOjb,
                     include: [
@@ -267,7 +265,6 @@ module.exports = {
 
     getListMailCampain: async function (req, res) {
         let body = req.body;
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             try {
 
@@ -322,20 +319,24 @@ module.exports = {
                 });
 
                 var array = [];
-                mailCampainData.forEach(item => {
+                for (var i = 0; i < mailCampainData.length; i++) {
+
+                    var numberAddressBook = await mAdditionalInformation(db).count({
+                        where: { CampaignID: mailCampainData[i].ID }
+                    });
                     array.push({
-                        id: Number(item.ID),
-                        name: item.Name,
-                        subject: item.Subject,
-                        owner: item.User.Name,
-                        createTime: mModules.toDatetime(item.TimeCreate),
+                        id: Number(mailCampainData[i].ID),
+                        name: mailCampainData[i].Name,
+                        subject: mailCampainData[i].Subject,
+                        owner: mailCampainData[i].User.Name,
+                        createTime: mModules.toDatetime(mailCampainData[i].TimeCreate),
                         nearestSend: '2020-05-30 14:00',
-                        TemplateID: item.TemplateID,
-                        TemplateName: item.Template ? item.Template.Name : '',
-                        NumberAddressBook: item.NumberAddressBook,
-                        Description: item.Description
+                        TemplateID: mailCampainData[i].TemplateID,
+                        TemplateName: mailCampainData[i].Template ? mailCampainData[i].Template.Name : '',
+                        NumberAddressBook: numberAddressBook,
+                        Description: mailCampainData[i].Description
                     })
-                })
+                }
 
                 var result = {
                     status: Constant.STATUS.SUCCESS,
