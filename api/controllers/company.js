@@ -50,7 +50,7 @@ module.exports = {
                     data.forEach(elm => {
                         array.push({
                             id: elm.ID,
-                            name: elm.Name,
+                            name: elm.ID + ' - ' + elm.Name + ' - ' + elm.Address,
                         })
                     });
 
@@ -362,8 +362,8 @@ module.exports = {
                     Note: data.Note,
                     ParentID: company ? company.ID : '',
                     ParentName: company ? company.Name : '',
-                    CustomerGroupID: data.CategoryCustomer ? data.CategoryCustomer.ID : '',
-                    CustomerGroup: data.CategoryCustomer ? data.CategoryCustomer.Name : '',
+                    relationship: data.Relationship ? data.Relationship : '',
+                    customerGroup: data.CustomerGroup ? data.CustomerGroup : '',
                 }
                 var result = {
                     status: Constant.STATUS.SUCCESS,
@@ -570,108 +570,41 @@ module.exports = {
 
     addCompany: (req, res) => {
         let body = req.body;
-
+        console.log(body);
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
-            console.log(body);
-            //get stageID with Stage = 1;
-            // var stageData = await mDealStage(db).findOne({
-            //     where: { Stage: 1 },
-            //     attributes: ['ID'],
-            //     raw: true
-            // });
-            var company = mCompany(db);
-            company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
-            company.create({
-                UserID: body.userID ? body.userID : null,
-                Name: body.name,
-                ShortName: body.shortName,
-                Phone: body.phone,
-                Email: body.email,
-                Address: body.address,
-                CityID: body.cityID ? body.cityID : null,
-                TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
-                Type: 1,
-                CountryID: body.CountryID ? body.CountryID : null,
-                // StageID: stageData.ID ? stageData.ID : null,
-                Fax: body.Fax ? body.Fax : '',
-                Role: body.Role ? body.Role : '',
-                Note: body.Note ? body.Note : '',
-                CategoryID: body.CategoryID ? body.CategoryID : null,
-            }).then(async data => {
-                var obj;
-                await rmCompanyChild(db).create({
-                    ParentID: body.ChildID ? body.ChildID : null,
-                    ChildID: data.ID
+            try {
+                var company = mCompany(db);
+                company.belongsTo(mCity(db), { foreignKey: 'CityID', sourceKey: 'CityID' });
+                company.create({
+                    UserID: body.userID ? body.userID : null,
+                    Name: body.name,
+                    ShortName: body.shortName,
+                    Phone: body.phone ? body.phone.replace(/plus/g, '+') : '',
+                    Email: body.email,
+                    Address: body.address,
+                    CityID: body.cityID ? body.cityID : null,
+                    TimeCreate: moment().format('YYYY-MM-DD HH:mm:ss.SSS'),
+                    Type: 1,
+                    CountryID: body.CountryID ? body.CountryID : null,
+                    Fax: body.Fax ? body.Fax.replace(/plus/g, '+') : '',
+                    Role: body.Role ? body.Role : '',
+                    Note: body.Note ? body.Note : '',
+                    CustomerGroup: body.customerGroup ? body.customerGroup : '',
+                    Relationship: body.relationship ? body.relationship : '',
                 })
-                if (body.role == Constant.COMPANY_ROLE.PARENT) {
-                    mCompany(db).update(
-                        { ParentID: data.ID },
-                        {
-                            where: { ID: body.companyID }
-                        });
-                    obj = {
-                        id: data.ID,
-                        name: data.Name,
-                        address: data.Address,
-                        email: data.Email,
-                        role: Constant.COMPANY_ROLE.PARENT,
-                        phone: data.Phone,
-                        city: body.cityName,
-                        ownerID: -1,
-                        ownerName: "",
-                        companyType: data.Type,
-                        Fax: data.Fax,
-                        Role: data.Role,
-                        Note: data.Note,
-                    }
-                }
-                else if (body.role == Constant.COMPANY_ROLE.CHILD) {
-                    mCompanyChild(db).create({
-                        ParentID: body.companyID,
-                        ChildID: data.ID
-                    })
-                    obj = {
-                        id: data.ID,
-                        name: data.Name,
-                        address: data.Address,
-                        email: data.Email,
-                        role: Constant.COMPANY_ROLE.CHILD,
-                        phone: data.Phone,
-                        city: body.cityName,
-                        ownerID: -1,
-                        ownerName: "",
-                        companyType: data.Type,
-                        Fax: data.Fax,
-                        Role: data.Role,
-                        Note: data.Note,
-                    }
-                } else {
-                    obj = {
-                        id: data.ID,
-                        name: data.Name,
-                        address: data.Address,
-                        email: data.Email,
-                        role: -1,
-                        phone: data.Phone,
-                        city: body.cityName,
-                        ownerID: -1,
-                        ownerName: "",
-                        companyType: data.Type,
-                        Fax: data.Fax,
-                        Role: data.Role,
-                        Note: data.Note,
-                    }
-                }
-
-
                 var result = {
                     status: Constant.STATUS.SUCCESS,
                     message: Constant.MESSAGE.ACTION_SUCCESS,
-                    obj: obj
                 }
-
                 res.json(result);
-            })
+            } catch (error) {
+                console.log(error);
+                var result = {
+                    status: Constant.STATUS.FAIL,
+                    message: '',
+                }
+                res.json(result);
+            }
         })
     },
 

@@ -30,6 +30,8 @@ module.exports = function (db) {
         Fax: Sequelize.STRING,
         Role: Sequelize.STRING,
         CategoryID: Sequelize.BIGINT,
+        CustomerGroup: Sequelize.STRING,
+        Relationship: Sequelize.STRING,
     });
 
     return table;
