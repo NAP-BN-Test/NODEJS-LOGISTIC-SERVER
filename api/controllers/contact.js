@@ -40,6 +40,19 @@ function convertStringToListObject(string) {
     }
     return resultArray;
 }
+function convertStringToListObjectEmail(string) {
+    let result = [];
+    let resultArray = [];
+    if (string) {
+        result = string.split(";")
+        result.forEach(item => {
+            let resultObj = {};
+            resultObj.name = item + '(unsubscribe)';
+            resultArray.push(resultObj);
+        })
+    }
+    return resultArray;
+}
 
 module.exports = {
     getListHistoryContact: (req, res) => {
@@ -87,7 +100,6 @@ module.exports = {
     },
     getListContactFromCompanyID: (req, res) => {
         let body = req.body;
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             mUser(db).findOne({ where: { ID: body.userID } }).then(user => {
                 if (user) {
@@ -775,7 +787,6 @@ module.exports = {
     },
     getListContactFromAddressBook: (req, res) => {
         let body = req.body;
-
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             mUser(db).findOne({ where: { ID: body.userID } }).then(async user => {
                 if (user) {
@@ -811,12 +822,11 @@ module.exports = {
                         limit: Number(body.itemPerPage)
                     }).then(data => {
                         var array = [];
-
                         data.forEach(elm => {
                             array.push({
                                 id: elm.ID,
                                 name: elm.Name,
-                                email: convertStringToListObject(elm.Email),
+                                email: convertStringToListObjectEmail(elm.Email),
                                 phone: convertStringToListObject(elm.Phone),
                                 fax: convertStringToListObject(elm.Fax),
                                 timeCreate: mModules.toDatetime(elm.TimeCreate),

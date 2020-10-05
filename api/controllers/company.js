@@ -441,7 +441,12 @@ module.exports = {
 
         database.checkServerInvalid(body.ip, body.dbName, body.secretKey).then(async db => {
             let listUpdate = [];
-            console.log(body);
+            if (body.relationship || body.relationship === '')
+                listUpdate.push({ key: 'Relationship', value: body.relationship });
+
+            if (body.customerGroup || body.customerGroup === '')
+                listUpdate.push({ key: 'CustomerGroup', value: body.customerGroup });
+
             if (body.companyName || body.companyName === '')
                 listUpdate.push({ key: 'Name', value: body.companyName });
 
