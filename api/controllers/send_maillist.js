@@ -88,9 +88,18 @@ module.exports = {
                 bodyHtml = await handlePushDataToBody(template.body, item.ID, db);
                 let Subject = item.Subject ? item.Subject : '';
                 var arrayEmail = convertStringToListObject(item.Email)
-                arrayEmail.forEach(async data => {
-                    await mAmazon.sendEmail('tung24041998@gmail.com', data.name, Subject, bodyHtml);
-                })
+                for (var i = 0; i < arrayEmail.length; i++) {
+                    await mAmazon.sendEmail('tung24041998@gmail.com', arrayEmail[i].name, Subject, bodyHtml).then(async response => {
+                        if (response) {
+
+                            await mAdditionalInformation(db).update({
+                                Status: Constant.MAIL_RESPONSE_TYPE.SEND,
+                            }, {
+                                where: { ID: item.ID },
+                            })
+                        }
+                    })
+                }
             })
             res.json(Result.ACTION_SUCCESS);
         })
